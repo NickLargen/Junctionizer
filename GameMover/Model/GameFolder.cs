@@ -8,13 +8,15 @@ using Monitor.Core.Utilities;
 
 namespace GameMover.Model {
 
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameFolder : IComparable<GameFolder>, INotifyPropertyChanged {
 
         public DirectoryInfo DirectoryInfo { get; }
         public string JunctionTarget { get; }
         public string Name { get; }
-        public bool IsJunction { get;  }
-        
+
+        public bool IsJunction { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private long _size;

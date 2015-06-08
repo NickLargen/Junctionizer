@@ -26,8 +26,8 @@ namespace GameMover {
             set { FolderCollection.SteamCommonFolderGuess = value; }
         }
 
+        private FolderCollection FolderCollection { get; } = new FolderCollection();
 
-        private FolderCollection FolderCollection { get; set; }
         public DataGrid GridDisplay { get; set; }
         public TextBlock TextFolderPath { get; set; }
 
@@ -69,30 +69,35 @@ namespace GameMover {
         }
 
         public void CreateJunctionTo(GameFolder junctionTarget) {
-            FolderCollection.CreateJunctionTo(junctionTarget);
+            try {
+                FolderCollection.CreateJunctionTo(junctionTarget);
+            }
+            catch (UnauthorizedAccessException e) {
+                Debug.WriteLine(e);
+                ShowMessage(InvalidPermission);
+            }
         }
 
         public void CopySelectedItems(IList selectedItems) {
             FolderCollection.CopySelectedItems(selectedItems);
         }
 
-        /// <summary>
-        /// Returns the created/overwritten folder on success, null otherwise (if operation is cancelled)
-        /// </summary>
-        /// <param name="gameFolderToCopy"></param>
-        /// <returns></returns>
         public GameFolder CopyFolder(GameFolder gameFolderToCopy) {
             return FolderCollection.CopyFolder(gameFolderToCopy);
         }
 
-        /// <summary>Returns true on successful delete, false if user cancels operation</summary>
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
             return FolderCollection.DeleteFolder(gameFolderToDelete);
         }
 
         public void DeleteJunction(string junctionPath) {
-            if (!FolderCollection.DeleteJunction(junctionPath))
+            try {
+                FolderCollection.DeleteJunction(junctionPath);
+            }
+            catch (IOException e) {
+                Debug.WriteLine(e);
                 ShowMessage($"Failed to delete junction at '{junctionPath}'. Please verify it is a junction.");
+            }
         }
 
     }
