@@ -32,8 +32,8 @@ namespace GameMover.Model {
         public GameFolder(DirectoryInfo directory) {
             DirectoryInfo = directory;
             Name = directory.Name;
-            IsJunction = JunctionPoint.Exists(directory.FullName);
-            if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory.FullName);
+            IsJunction = JunctionPoint.Exists(directory);
+            if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
         public void RefreshSize() {
@@ -74,10 +74,6 @@ namespace GameMover.Model {
 
         public static implicit operator DirectoryInfo(GameFolder folder) {
             return folder.DirectoryInfo;
-        }
-
-        public static implicit operator GameFolder(DirectoryInfo directoryInfo) {
-            return new GameFolder(directoryInfo);
         }
 
     }

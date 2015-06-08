@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -80,7 +81,7 @@ namespace GameMover {
         }
 
         private void DeleteCurrentLocations(object sender, RoutedEventArgs e) {
-            if (boxPaths.SelectedIndex != - 1)
+            if (boxPaths.SelectedIndex != -1)
                 _pathsInstallAndStorage.RemoveAt(boxPaths.SelectedIndex);
         }
 
@@ -98,11 +99,11 @@ namespace GameMover {
         }
 
         private void SelectInstallLocation(object sender, RoutedEventArgs e) {
-            if (_installPane.SelectLocation()) boxPaths.SelectedIndex = - 1;
+            if (_installPane.SelectLocation()) boxPaths.SelectedIndex = -1;
         }
 
         private void SelectStorageLocation(object sender, RoutedEventArgs e) {
-            if (_storagePane.SelectLocation()) boxPaths.SelectedIndex = - 1;
+            if (_storagePane.SelectLocation()) boxPaths.SelectedIndex = -1;
         }
 
         #region Actions on selected items
@@ -126,8 +127,8 @@ namespace GameMover {
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
                 GameFolder gameFolder = (GameFolder) selectedItems[i];
                 if (_storagePane.DeleteFolder(gameFolder)) {
-                    string junctionPath = _installPane.Location + @"\" + gameFolder.Name;
-                    if (JunctionPoint.Exists(junctionPath)) _installPane.DeleteJunction(junctionPath);
+                    var junctionDirectory = new DirectoryInfo(_installPane.Location + @"\" + gameFolder.Name);
+                    if (JunctionPoint.Exists(junctionDirectory)) _installPane.DeleteJunction(junctionDirectory);
                 }
             }
         }
@@ -143,9 +144,8 @@ namespace GameMover {
         private void DeleteJunctionFromInstall(object sender, RoutedEventArgs e) {
             var selectedItems = dagInstall.SelectedItems;
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
-                GameFolder gameFolder = (GameFolder) selectedItems[i];
-                string junctionPath = gameFolder.DirectoryInfo.FullName;
-                _installPane.DeleteJunction(junctionPath);
+                GameFolder gameFolder = selectedItems[i] as GameFolder;
+                _installPane.DeleteJunction(gameFolder);
             }
         }
 

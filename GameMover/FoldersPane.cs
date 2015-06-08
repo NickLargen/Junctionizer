@@ -90,13 +90,15 @@ namespace GameMover {
             return FolderCollection.DeleteFolder(gameFolderToDelete);
         }
 
-        public void DeleteJunction(string junctionPath) {
+
+
+        public void DeleteJunction(DirectoryInfo junctionDirectory) {
             try {
-                FolderCollection.DeleteJunction(junctionPath);
+                FolderCollection.DeleteJunction(junctionDirectory);
             }
             catch (IOException e) {
                 Debug.WriteLine(e);
-                ShowMessage($"Failed to delete junction at '{junctionPath}'. Please verify it is a junction.");
+                ShowMessage($"Failed to delete junction at '{junctionDirectory.FullName}'. Please verify it is a junction.");
             }
         }
 

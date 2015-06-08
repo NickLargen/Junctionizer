@@ -40,10 +40,10 @@ namespace GameMover.Model {
 
         /// <exception cref="UnauthorizedAccessException">Junction creation failed.</exception>
         public void CreateJunctionTo(GameFolder junctionTarget) {
-            string junctionPath = Location + @"\" + junctionTarget.Name;
-            if (Directory.Exists(junctionPath) == false) {
-                JunctionPoint.Create(junctionPath, junctionTarget.DirectoryInfo.FullName, false);
-                Folders.Add(new GameFolder(new DirectoryInfo(junctionPath)));
+            var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
+            if ( junctionDirectory.Exists == false) {
+                JunctionPoint.Create(junctionDirectory, junctionTarget, false);
+                Folders.Add(new GameFolder(junctionDirectory));
             }
         }
 
@@ -61,12 +61,14 @@ namespace GameMover.Model {
         public GameFolder CopyFolder(GameFolder folderToCopy) {
             string targetDirectory = $"{Location}\\{folderToCopy.Name}";
 
-            var isOverwrite = Directory.Exists(targetDirectory);
+            var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
+
+            var isOverwrite = targetDirectoryInfo.Exists;
 
             try {
                 if (isOverwrite) {
                     var overwrittenFolder =
-                        Folders.First(folder => folder.DirectoryInfo.FullName.Equals(targetDirectory, StringComparison.OrdinalIgnoreCase));
+                        Folders.First(folder => folder.Name.Equals(targetDirectoryInfo.Name, StringComparison.OrdinalIgnoreCase));
                     if (overwrittenFolder.IsJunction == false) {
                         FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
                         overwrittenFolder.RefreshSize();
@@ -74,11 +76,11 @@ namespace GameMover.Model {
                     }
 
                     //If the target is a junction, delete it and proceed normally
-                    DeleteJunction(targetDirectory);
+                    DeleteJunction(targetDirectoryInfo);
                 }
 
                 FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                var createdFolder = new GameFolder(new DirectoryInfo(targetDirectory));
+                var createdFolder = new GameFolder(targetDirectoryInfo);
                 Folders.Add(createdFolder);
                 return createdFolder;
             }
@@ -103,9 +105,8 @@ namespace GameMover.Model {
         }
 
         /// <exception cref="IOException">If it is not a junction path.</exception>
-        public void DeleteJunction(string junctionPath) {
-            string folderName = junctionPath.Substring(junctionPath.LastIndexOf(@"\", StringComparison.OrdinalIgnoreCase) + 1);
-            if (JunctionPoint.Delete(junctionPath)) Folders.Remove(Folders.Single(folder => string.Equals(folder.Name, folderName, StringComparison.OrdinalIgnoreCase)));
+        public void DeleteJunction(DirectoryInfo junctionDirectory) {
+            if (JunctionPoint.Delete(junctionDirectory)) Folders.Remove(Folders.First(folder => folder.Name.Equals(junctionDirectory.Name, StringComparison.OrdinalIgnoreCase)));
         }
 
     }
