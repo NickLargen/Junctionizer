@@ -150,6 +150,7 @@ namespace GameMover {
         }
 
         //todo test
+        //Todo: handle if archiving is cancelled because target folder already exists
         private void ArchiveToStorage(object sender, RoutedEventArgs e) {
             var selectedItems = dagInstall.SelectedItems;
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
@@ -216,22 +217,14 @@ namespace GameMover {
             }
 
             string arrowedPaths = boxPaths.SelectedItem as string;
-            string[] paths = arrowedPaths?.Split(new string[] {ArrowedPathSeparator}, StringSplitOptions.RemoveEmptyEntries);
+            string[] paths = arrowedPaths?.Split(new[] {ArrowedPathSeparator}, StringSplitOptions.RemoveEmptyEntries);
+
 
             if (paths?.Length != 2) return;
 
             _installPane.SetLocation(paths[0]);
             _storagePane.SetLocation(paths[1]);
         }
-
-        private void DagInstall_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            txtNumberSelectedInstall.Text = dagInstall.SelectedItems.Count.ToString();
-        }
-
-        private void DagStorage_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            txtNumberSelectedStorage.Text = dagStorage.SelectedItems.Count.ToString();
-        }
-
     }
 
 }

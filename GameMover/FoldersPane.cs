@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using GameMover.Model;
 using Microsoft.VisualBasic.FileIO;
 using Monitor.Core.Utilities;
-using static System.Environment;
 using static GameMover.StaticMethods;
 using DataGrid = System.Windows.Controls.DataGrid;
 
@@ -59,15 +58,6 @@ namespace GameMover {
             GridDisplay.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, ListSortDirection.Ascending));
         }
 
-        private FolderBrowserDialog CreateFolderBrowserDialog(string defaultSelectedPath) {
-            var folderBrowserDialog = new FolderBrowserDialog {
-                Description = "Select directory containing your game folders.",
-                SelectedPath = defaultSelectedPath,
-                RootFolder = Environment.SpecialFolder.MyComputer
-            };
-            return folderBrowserDialog;
-        }
-
         public void CreateJunctionTo(GameFolder junctionTarget) {
             try {
                 FolderCollection.CreateJunctionTo(junctionTarget);
@@ -89,8 +79,6 @@ namespace GameMover {
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
             return FolderCollection.DeleteFolder(gameFolderToDelete);
         }
-
-
 
         public void DeleteJunction(DirectoryInfo junctionDirectory) {
             try {

@@ -36,6 +36,7 @@ namespace GameMover.Model {
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
+
         public void RefreshSize() {
             CalculateAndSetCurrentSize();
             //Allows UI to update with new size

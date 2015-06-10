@@ -5,11 +5,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
     xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:gameMover="clr-namespace:GameMover"
+    xmlns:local="clr-namespace:GameMover.Model"
     x:Class="GameMover.MainWindow"
     Title="Game Mover" Height="400" Width="650" Background="#FFFFF7ED"
     MinWidth="500" MinHeight="300" d:DataContext="{d:DesignData }">
     <Window.Resources>
         <gameMover:LongToStringConverter x:Key="SizeConverter" />
+        <ObjectDataProvider x:Key="PersonObj" ObjectType="{x:Type local:GameFolder}" />
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -49,7 +51,7 @@
                 </DockPanel>
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" LastChildFill="False">
-                    <TextBlock x:Name="txtNumberSelectedInstall" TextWrapping="Wrap" Text="-" />
+                    <TextBlock x:Name="txtNumberSelectedInstall" TextWrapping="Wrap" Text="{Binding SelectedItems.Count, ElementName=dagInstall}" />
                     <Button Click="CopyToStorage" Content="Copy -&gt;" />
                     <Button Click="DeleteFromInstall" Content="Delete" />
                     <Button Click="DeleteJunctionFromInstall" Content="Delete Junction" />
@@ -59,7 +61,7 @@
                 </DockPanel>
 
                 <DataGrid x:Name="dagInstall" CanUserResizeRows="False" Margin="5" AutoGenerateColumns="False"
-                          IsReadOnly="True" SelectionChanged="DagInstall_OnSelectionChanged">
+                          IsReadOnly="True" >
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" MinWidth="100" Width="*" Binding="{Binding Name}" />
                         <!--                        <DataGridCheckBoxColumn Header="Junction" Binding="{Binding IsJunction}" />-->
@@ -96,14 +98,13 @@
                 </DockPanel>
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" LastChildFill="False">
-                    <TextBlock x:Name="txtNumberSelectedStorage" Text="-" />
+                    <TextBlock x:Name="txtNumberSelectedStorage" Text="{Binding SelectedItems.Count ,ElementName=dagStorage}" />
                     <Button Click="CopyToInstall" Content="&lt;- Copy" />
                     <Button Click="btnCreateJunction_Click" Content="&lt;- Create Junction" />
                     <Button Click="DeleteFromStorage" Content="Delete" />
                 </DockPanel>
 
                 <DataGrid x:Name="dagStorage" CanUserResizeRows="False" Margin="5" AutoGenerateColumns="False"
-                          SelectionChanged="DagStorage_OnSelectionChanged"
                           IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}" />

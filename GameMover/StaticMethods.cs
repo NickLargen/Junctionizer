@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
 
 namespace GameMover
 {
@@ -12,5 +14,15 @@ namespace GameMover
         {
             MessageBox.Show(message);
         }
+
+        internal static FolderBrowserDialog CreateFolderBrowserDialog(string defaultSelectedPath) {
+            var folderBrowserDialog = new FolderBrowserDialog {
+                Description = "Select directory containing your game folders.",
+                SelectedPath = defaultSelectedPath,
+                RootFolder = Environment.SpecialFolder.MyComputer
+            };
+            return folderBrowserDialog;
+        }
+
     }
 }

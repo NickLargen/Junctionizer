@@ -266,7 +266,7 @@ By Jeff Brown
         /// <returns>True on success</returns>
         /// <param name="junctionPoint">The junction point path</param>
         public static bool Delete(DirectoryInfo junctionDirectory) {
-            return Delete(junctionDirectory);
+            return Delete(junctionDirectory.FullName);
         }
 
         private static bool Delete(string junctionPoint) {
