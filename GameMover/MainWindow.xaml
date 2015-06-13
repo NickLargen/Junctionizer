@@ -37,27 +37,25 @@
                 <ColumnDefinition Width="0.5*" Name="storageColumnDefinition" />
             </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0">
+            <DockPanel DataContext="{Binding ElementName=dagInstall}" Grid.Column="0">
                 <DockPanel DockPanel.Dock="Top" LastChildFill="False">
                     <TextBlock Text="Install Location" DockPanel.Dock="Top" HorizontalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
                 </DockPanel>
                 <DockPanel DockPanel.Dock="Top" LastChildFill="False" HorizontalAlignment="Center" Margin="0,5,0,0">
-                    <Button Click="SelectInstallLocation" Content="Select Folder" />
+                    <Button Click="SelectLocation" Content="Select Folder" />
                     <TextBlock Text="{Binding Path=InstallPane.FolderCollection.Location, ElementName=Window}"
                                TextTrimming="CharacterEllipsis" />
                 </DockPanel>
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,5,0,0">
-                    <Button Tag="{Binding ElementName=Window, Path=InstallPane}" Click="SelectFoldersNotInOtherPane"
-                            Content="Select Not In Storage" />
+                    <Button Click="SelectFoldersNotInOtherPane" Content="Select Not In Storage" />
                 </DockPanel>
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" LastChildFill="False">
-                    <TextBlock DataContext="{Binding ElementName=dagInstall}"
-                               x:Name="txtNumberSelectedInstall" TextWrapping="Wrap"
+                    <TextBlock x:Name="txtNumberSelectedInstall" TextWrapping="Wrap"
                                Text="{Binding SelectedItems.Count}" />
-                    <Button Click="CopyToStorage" Content="Copy -&gt;" />
+                    <Button Click="CopySelectedFolders" Content="Copy -&gt;" />
                     <Button Click="DeleteFromInstall" Content="Delete" />
                     <Button Click="DeleteJunctionFromInstall" Content="Delete Junction" />
                     <Button Click="ArchiveToStorage" Content="Archive -&gt;" />
@@ -88,26 +86,25 @@
             </DockPanel>
 
 
-            <DockPanel Grid.Column="1">
+            <DockPanel DataContext="{Binding ElementName=dagStorage}" Grid.Column="1">
                 <TextBlock Text="Storage Location" TextAlignment="Right" DockPanel.Dock="Top"
                            HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
 
                 <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,5,0,0">
-                    <Button Click="SelectStorageLocation" Content="Select Folder" />
+                    <Button Click="SelectLocation" Content="Select Folder" />
                     <TextBlock Text="{Binding ElementName=Window, Path=StoragePane.FolderCollection.Location}"
                                TextTrimming="CharacterEllipsis" />
                 </DockPanel>
 
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,5,0,0">
-                    <Button Tag="{Binding ElementName=Window, Path=StoragePane}" Click="SelectFoldersNotInOtherPane"
-                            Content="Select Not Installed" />
+                    <Button Click="SelectFoldersNotInOtherPane" Content="Select Not Installed" />
                 </DockPanel>
 
                 <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center" LastChildFill="False">
                     <TextBlock x:Name="txtNumberSelectedStorage"
-                               Text="{Binding SelectedItems.Count ,ElementName=dagStorage}" />
-                    <Button Click="CopyToInstall" Content="&lt;- Copy" />
+                               Text="{Binding SelectedItems.Count}" />
+                    <Button Click="CopySelectedFolders" Content="&lt;- Copy" />
                     <Button Click="btnCreateJunction_Click" Content="&lt;- Create Junction" />
                     <Button Click="DeleteFromStorage" Content="Delete" />
                 </DockPanel>

@@ -22,6 +22,8 @@ namespace GameMover {
 
         public string Name { get; set; }
 
+        public FoldersPane OtherPane { get; set; }
+
         public string SteamCommonFolderGuess { get; set; }
         public FolderCollection FolderCollection { get; } = new FolderCollection();
         public DataGrid GridDisplay { get; set; }
@@ -70,10 +72,6 @@ namespace GameMover {
                 Debug.WriteLine(e);
                 ShowMessage(InvalidPermission);
             }
-        }
-
-        public void CopySelectedItems(IList selectedItems) {
-            FolderCollection.CopySelectedItems(selectedItems);
         }
 
         public GameFolder CopyFolder(GameFolder gameFolderToCopy) {

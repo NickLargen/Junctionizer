@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -44,6 +45,7 @@ namespace GameMover {
 
         [NotNull]
         public FoldersPane StoragePane { get; }
+
         [NotNull]
         public FoldersPane InstallPane { get; }
 
@@ -69,9 +71,10 @@ namespace GameMover {
             StoragePane = new FoldersPane {
                 GridDisplay = dagStorage,
                 Name = "storage",
-                SteamCommonFolderGuess = @"E:\Steam\SteamApps\common"
+                SteamCommonFolderGuess = @"E:\Steam\SteamApps\common", 
+                OtherPane = InstallPane
             };
-
+            InstallPane.OtherPane = StoragePane;
 
             //Todo: figure out why this works
             //Without these calls the text boxes showing the locations do not update
@@ -117,12 +120,8 @@ namespace GameMover {
             }
         }
 
-        private void SelectInstallLocation(object sender, RoutedEventArgs e) {
-            if (InstallPane.SelectLocation()) boxPaths.SelectedIndex = -1;
-        }
-
-        private void SelectStorageLocation(object sender, RoutedEventArgs e) {
-            if (StoragePane.SelectLocation()) boxPaths.SelectedIndex = -1;
+        private void SelectLocation(object sender, RoutedEventArgs e) {
+            if (SenderPane(sender).SelectLocation()) boxPaths.SelectedIndex = -1;
         }
 
         #region Actions on selected items
@@ -133,40 +132,50 @@ namespace GameMover {
             }
         }
 
-        private void CopyToStorage(object sender, RoutedEventArgs e) {
-            StoragePane.CopySelectedItems(dagInstall.SelectedItems);
-        }
-
-        private void CopyToInstall(object sender, RoutedEventArgs e) {
-            InstallPane.CopySelectedItems(dagStorage.SelectedItems);
+        private void CopySelectedFolders(object sender, RoutedEventArgs e) {
+            SenderPane(sender).OtherPane.FolderCollection.CopySelectedItems(SenderDataGrid(sender).SelectedItems);
         }
 
         private void DeleteFromStorage(object sender, RoutedEventArgs e) {
-            var selectedItems = dagStorage.SelectedItems;
-            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-                GameFolder gameFolder = (GameFolder) selectedItems[i];
+            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, gameFolder => {
                 if (StoragePane.DeleteFolder(gameFolder)) {
                     var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
                     if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
                 }
-            }
+            });
+//            var selectedItems = dagStorage.SelectedItems;
+//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
+//                GameFolder gameFolder = (GameFolder) selectedItems[i];
+//                if (StoragePane.DeleteFolder(gameFolder)) {
+//                    var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
+//                    if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
+//                }
+//            }
         }
 
         private void DeleteFromInstall(object sender, RoutedEventArgs e) {
-            var selectedItems = dagInstall.SelectedItems;
-            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-                GameFolder gameFolder = (GameFolder) selectedItems[i];
-                InstallPane.DeleteFolder(gameFolder);
-            }
+            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, gameFolder => InstallPane.DeleteFolder(gameFolder));
+//            var selectedItems = dagInstall.SelectedItems;
+//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
+//                InstallPane.DeleteFolder((GameFolder) selectedItems[i]);
+//            }
         }
 
         private void DeleteJunctionFromInstall(object sender, RoutedEventArgs e) {
-            var selectedItems = dagInstall.SelectedItems;
-            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-                GameFolder gameFolder = selectedItems[i] as GameFolder;
-                InstallPane.DeleteJunction(gameFolder);
+            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, folder => InstallPane.DeleteJunction(folder));
+
+//            var selectedItems = dagInstall.SelectedItems;
+//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
+//                InstallPane.DeleteJunction((GameFolder) selectedItems[i]);
+//            }
+        }
+
+        private void TraverseBackwards<T>(IList list, Action<T> action) {
+            for (int i = list.Count - 1; i >= 0; i--) {
+                action((T) list[i]);
             }
         }
+
 
         //todo test
         //Todo: handle if archiving is cancelled because target folder already exists
@@ -184,12 +193,8 @@ namespace GameMover {
         #endregion
 
         private void SelectFoldersNotInOtherPane(object sender, RoutedEventArgs e) {
-            FoldersPane pane = (sender as Button)?.Tag as FoldersPane;
-            FoldersPane otherPane;
-
-            if(pane == InstallPane) otherPane = StoragePane;
-            else if(pane == StoragePane) otherPane = InstallPane;
-            else throw new Exception("Usage error.");
+            var pane = SenderPane(sender);
+            var otherPane = OtherPane(pane);
 
             if (pane.IsLocationInvalid() || otherPane.IsLocationInvalid()) return;
 
@@ -201,18 +206,24 @@ namespace GameMover {
             }
         }
 
-        public class TestCommand : ICommand {
+        private DataGrid SenderDataGrid(object sender) {
+            return (DataGrid)((FrameworkElement)sender).DataContext;
+        }
 
-            public event EventHandler CanExecuteChanged;
+        private FoldersPane SenderPane(object sender) {
+            var dataContext = (sender as FrameworkElement)?.DataContext;
 
-            public bool CanExecute(object parameter) {
-                return true;
+            if (Equals(dataContext, dagInstall)) {
+                return InstallPane;
             }
-
-            public void Execute(object parameter) {
-                throw new NotImplementedException();
+            else if (Equals(dataContext, dagStorage)) {
+                return StoragePane;
             }
+            else throw new Exception("Usage error, data context should be the relevant data grid.");
+        }
 
+        private FoldersPane OtherPane(FoldersPane pane) {
+            return pane == InstallPane ? StoragePane : InstallPane;
         }
 
         private void HideStorage(object sender, RoutedEventArgs e) {
