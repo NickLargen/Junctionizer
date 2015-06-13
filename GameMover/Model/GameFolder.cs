@@ -6,10 +6,17 @@ using System.Runtime.CompilerServices;
 using GameMover.Annotations;
 using Monitor.Core.Utilities;
 
-namespace GameMover.Model {
+namespace GameMover {
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameFolder : IComparable<GameFolder>, INotifyPropertyChanged {
+        
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public DirectoryInfo DirectoryInfo { get; }
         public string JunctionTarget { get; }
@@ -17,10 +24,7 @@ namespace GameMover.Model {
 
         public bool IsJunction { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private long _size;
-
         public long Size {
             get {
                 if (IsJunction) return -1;
@@ -68,10 +72,6 @@ namespace GameMover.Model {
             return Name.ToLowerInvariant().GetHashCode();
         }
 
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public static implicit operator DirectoryInfo(GameFolder folder) {
             return folder.DirectoryInfo;

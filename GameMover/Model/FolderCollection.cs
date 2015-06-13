@@ -6,21 +6,37 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Forms;
+using System.Runtime.CompilerServices;
+using GameMover.Annotations;
 using Microsoft.VisualBasic.FileIO;
 using Monitor.Core.Utilities;
-using DataGrid = System.Windows.Controls.DataGrid;
 
 namespace GameMover.Model {
 
-    internal class FolderCollection {
+    public class FolderCollection : INotifyPropertyChanged {
 
-        public string Location { set; get; }
-        public ObservableCollection<GameFolder> Folders { set; get; }
-        public string SteamCommonFolderGuess { set; get; }
+        public static IEnumerable<GameFolder> operator -(FolderCollection first, FolderCollection second) {
+            return first.Folders.Except(second.Folders);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private string _location;
+
+        public string Location {
+            get { return _location; }
+            set {
+                _location = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<GameFolder> Folders { get; set; }
 
         public void SetLocation(string selectedPath) {
             Location = selectedPath;
@@ -41,7 +57,7 @@ namespace GameMover.Model {
         /// <exception cref="UnauthorizedAccessException">Junction creation failed.</exception>
         public void CreateJunctionTo(GameFolder junctionTarget) {
             var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
-            if ( junctionDirectory.Exists == false) {
+            if (junctionDirectory.Exists == false) {
                 JunctionPoint.Create(junctionDirectory, junctionTarget, false);
                 Folders.Add(new GameFolder(junctionDirectory));
             }
@@ -62,7 +78,6 @@ namespace GameMover.Model {
             string targetDirectory = $"{Location}\\{folderToCopy.Name}";
 
             var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
-
             var isOverwrite = targetDirectoryInfo.Exists;
 
             try {
@@ -93,8 +108,7 @@ namespace GameMover.Model {
         /// <summary>Returns true on successful delete, false if user cancels operation</summary>
         public bool DeleteFolder(GameFolder folderToDelete) {
             try {
-                FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin,
-                    UICancelOption.ThrowException);
+                FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
                 Folders.Remove(folderToDelete);
             }
             catch (OperationCanceledException) {

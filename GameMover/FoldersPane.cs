@@ -5,8 +5,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using GameMover;
+using GameMover.Annotations;
 using GameMover.Model;
 using Microsoft.VisualBasic.FileIO;
 using Monitor.Core.Utilities;
@@ -17,18 +20,21 @@ namespace GameMover {
 
     public class FoldersPane {
 
-        public string Location => FolderCollection.Location;
-        public Collection<GameFolder> Folders => FolderCollection.Folders;
+        public string Name { get; set; }
 
-        public string SteamCommonFolderGuess {
-            get { return FolderCollection.SteamCommonFolderGuess; }
-            set { FolderCollection.SteamCommonFolderGuess = value; }
+        public string SteamCommonFolderGuess { get; set; }
+        public FolderCollection FolderCollection { get; } = new FolderCollection();
+        public DataGrid GridDisplay { get; set; }
+
+        public bool IsLocationInvalid() {
+            if (FolderCollection?.Folders != null) return false;
+            StaticMethods.ShowMessage($"Must select {Name} location first.");
+            return true;
         }
 
-        private FolderCollection FolderCollection { get; } = new FolderCollection();
-
-        public DataGrid GridDisplay { get; set; }
-        public TextBlock TextFolderPath { get; set; }
+        public void SelectFoldersNotIn(FolderCollection collection) {
+            
+        }
 
         /// <summary>
         /// 
@@ -38,7 +44,7 @@ namespace GameMover {
             var folderBrowserDialog = CreateFolderBrowserDialog(SteamCommonFolderGuess);
             if (folderBrowserDialog.ShowDialog() == DialogResult.OK) {
                 var selectedPath = folderBrowserDialog.SelectedPath;
-                var isNewLocation = !selectedPath.Equals(Location, StringComparison.OrdinalIgnoreCase);
+                var isNewLocation = !selectedPath.Equals(FolderCollection.Location, StringComparison.OrdinalIgnoreCase);
                 SetLocation(selectedPath);
                 return isNewLocation;
             }
@@ -47,8 +53,6 @@ namespace GameMover {
 
         public void SetLocation(string selectedPath) {
             FolderCollection.SetLocation(selectedPath);
-
-            TextFolderPath.Text = selectedPath;
 
             GridDisplay.ItemsSource = FolderCollection.Folders;
 

@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using GameMover.Annotations;
-using GameMover.Model;
+using GameMover;
 using Microsoft.Win32;
 using Monitor.Core.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,7 +21,14 @@ namespace GameMover {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow {
+    public partial class MainWindow : INotifyPropertyChanged {
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         //Delete on a junction gives recycle bin prompt but it's just for the junction
         //BUG: double clicking column to resize introduces the empty column on the right
@@ -32,12 +42,15 @@ namespace GameMover {
         //performance: sorting by size on hdd hangs ui
         //performance: test opening giant folder
 
-        private readonly FoldersPane _storagePane;
-        private readonly FoldersPane _installPane;
+        [NotNull]
+        public FoldersPane StoragePane { get; }
+        [NotNull]
+        public FoldersPane InstallPane { get; }
 
         private readonly ObservableCollection<string> _pathsInstallAndStorage = new ObservableCollection<string>();
         private const string ArrowedPathSeparator = " -> ";
 
+        /// Allows you to set the selection without trigger selection change (so that when saving a control you don't reload)
         private bool _ignorePathsSelectionChange;
 
         public MainWindow() {
@@ -47,30 +60,36 @@ namespace GameMover {
 
             var installSteamCommon = regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
-            _installPane = new FoldersPane {
+            InstallPane = new FoldersPane {
                 GridDisplay = dagInstall,
-                TextFolderPath = txtInstallFolder,
-                SteamCommonFolderGuess = installSteamCommon
+                Name = "install",
+                SteamCommonFolderGuess = new DirectoryInfo(installSteamCommon)?.FullName
             };
 
-            _storagePane = new FoldersPane {
+            StoragePane = new FoldersPane {
                 GridDisplay = dagStorage,
-                TextFolderPath = txtStorageFolder,
+                Name = "storage",
                 SteamCommonFolderGuess = @"E:\Steam\SteamApps\common"
             };
+
+
+            //Todo: figure out why this works
+            //Without these calls the text boxes showing the locations do not update
+            OnPropertyChanged(nameof(InstallPane));
+            OnPropertyChanged(nameof(StoragePane));
 
             dagInstall.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
             dagStorage.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
 
 
             boxPaths.ItemsSource = _pathsInstallAndStorage;
-            _pathsInstallAndStorage.Add(_installPane.SteamCommonFolderGuess + ArrowedPathSeparator + _storagePane.SteamCommonFolderGuess);
+            _pathsInstallAndStorage.Add(InstallPane.SteamCommonFolderGuess + ArrowedPathSeparator + StoragePane.SteamCommonFolderGuess);
 
 //            dagInstall.MouseRightButtonUp += (sender, args) => Console.WriteLine(((sender as DataGrid).SelectedItem as Folder).Name);
         }
 
         private void SaveCurrentLocations(object sender, RoutedEventArgs e) {
-            string arrowedPath = _installPane.TextFolderPath.Text + ArrowedPathSeparator + _storagePane.TextFolderPath.Text;
+            string arrowedPath = InstallPane.FolderCollection.Location + ArrowedPathSeparator + StoragePane.FolderCollection.Location;
 
             if (_pathsInstallAndStorage.Contains(arrowedPath) == false) {
                 _pathsInstallAndStorage.Add(arrowedPath);
@@ -99,36 +118,36 @@ namespace GameMover {
         }
 
         private void SelectInstallLocation(object sender, RoutedEventArgs e) {
-            if (_installPane.SelectLocation()) boxPaths.SelectedIndex = -1;
+            if (InstallPane.SelectLocation()) boxPaths.SelectedIndex = -1;
         }
 
         private void SelectStorageLocation(object sender, RoutedEventArgs e) {
-            if (_storagePane.SelectLocation()) boxPaths.SelectedIndex = -1;
+            if (StoragePane.SelectLocation()) boxPaths.SelectedIndex = -1;
         }
 
         #region Actions on selected items
 
         private void btnCreateJunction_Click(object sender, RoutedEventArgs e) {
             foreach (GameFolder folder in dagStorage.SelectedItems) {
-                _installPane.CreateJunctionTo(folder);
+                InstallPane.CreateJunctionTo(folder);
             }
         }
 
         private void CopyToStorage(object sender, RoutedEventArgs e) {
-            _storagePane.CopySelectedItems(dagInstall.SelectedItems);
+            StoragePane.CopySelectedItems(dagInstall.SelectedItems);
         }
 
         private void CopyToInstall(object sender, RoutedEventArgs e) {
-            _installPane.CopySelectedItems(dagStorage.SelectedItems);
+            InstallPane.CopySelectedItems(dagStorage.SelectedItems);
         }
 
         private void DeleteFromStorage(object sender, RoutedEventArgs e) {
             var selectedItems = dagStorage.SelectedItems;
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
                 GameFolder gameFolder = (GameFolder) selectedItems[i];
-                if (_storagePane.DeleteFolder(gameFolder)) {
-                    var junctionDirectory = new DirectoryInfo(_installPane.Location + @"\" + gameFolder.Name);
-                    if (JunctionPoint.Exists(junctionDirectory)) _installPane.DeleteJunction(junctionDirectory);
+                if (StoragePane.DeleteFolder(gameFolder)) {
+                    var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
+                    if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
                 }
             }
         }
@@ -137,7 +156,7 @@ namespace GameMover {
             var selectedItems = dagInstall.SelectedItems;
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
                 GameFolder gameFolder = (GameFolder) selectedItems[i];
-                _installPane.DeleteFolder(gameFolder);
+                InstallPane.DeleteFolder(gameFolder);
             }
         }
 
@@ -145,7 +164,7 @@ namespace GameMover {
             var selectedItems = dagInstall.SelectedItems;
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
                 GameFolder gameFolder = selectedItems[i] as GameFolder;
-                _installPane.DeleteJunction(gameFolder);
+                InstallPane.DeleteJunction(gameFolder);
             }
         }
 
@@ -156,47 +175,44 @@ namespace GameMover {
             for (int i = selectedItems.Count - 1; i >= 0; i--) {
                 GameFolder gameFolder = (GameFolder) selectedItems[i];
 
-                var createdFolder = _storagePane.CopyFolder(gameFolder);
-                _installPane.DeleteFolder(gameFolder);
-                _installPane.CreateJunctionTo(createdFolder);
+                var createdFolder = StoragePane.CopyFolder(gameFolder);
+                InstallPane.DeleteFolder(gameFolder);
+                InstallPane.CreateJunctionTo(createdFolder);
             }
         }
 
         #endregion
 
-        //todo refactor for duplication
-        private void SelectNotInstalled(object sender, RoutedEventArgs e) {
-            if (IsStorageLocationInvalid() || IsInstallLocationInvalid()) return;
+        private void SelectFoldersNotInOtherPane(object sender, RoutedEventArgs e) {
+            FoldersPane pane = (sender as Button)?.Tag as FoldersPane;
+            FoldersPane otherPane;
 
-            var foldersNotInstalled = _storagePane.Folders.Except(_installPane.Folders);
-            dagStorage.SelectedItems.Clear();
+            if(pane == InstallPane) otherPane = StoragePane;
+            else if(pane == StoragePane) otherPane = InstallPane;
+            else throw new Exception("Usage error.");
 
-            foreach (var folder in foldersNotInstalled) {
-                dagStorage.SelectedItems.Add(folder);
-            }
-        }
+            if (pane.IsLocationInvalid() || otherPane.IsLocationInvalid()) return;
 
-        private void SelectNotInStorage(object sender, RoutedEventArgs e) {
-            if (IsInstallLocationInvalid() || IsStorageLocationInvalid()) return;
-
-            var foldersNotInStorage = _installPane.Folders.Except(_storagePane.Folders);
-            dagInstall.SelectedItems.Clear();
+            var foldersNotInStorage = pane.FolderCollection - otherPane.FolderCollection;
+            pane.GridDisplay.SelectedItems.Clear();
 
             foreach (var folder in foldersNotInStorage) {
-                dagInstall.SelectedItems.Add(folder);
+                pane.GridDisplay.SelectedItems.Add(folder);
             }
         }
 
-        private bool IsStorageLocationInvalid() {
-            if (_storagePane.Folders != null) return false;
-            StaticMethods.ShowMessage("Must select storage location first.");
-            return true;
-        }
+        public class TestCommand : ICommand {
 
-        private bool IsInstallLocationInvalid() {
-            if (_installPane.Folders != null) return false;
-            StaticMethods.ShowMessage("Must select installation location first.");
-            return true;
+            public event EventHandler CanExecuteChanged;
+
+            public bool CanExecute(object parameter) {
+                return true;
+            }
+
+            public void Execute(object parameter) {
+                throw new NotImplementedException();
+            }
+
         }
 
         private void HideStorage(object sender, RoutedEventArgs e) {
@@ -219,12 +235,12 @@ namespace GameMover {
             string arrowedPaths = boxPaths.SelectedItem as string;
             string[] paths = arrowedPaths?.Split(new[] {ArrowedPathSeparator}, StringSplitOptions.RemoveEmptyEntries);
 
-
             if (paths?.Length != 2) return;
 
-            _installPane.SetLocation(paths[0]);
-            _storagePane.SetLocation(paths[1]);
+            InstallPane.SetLocation(paths[0]);
+            StoragePane.SetLocation(paths[1]);
         }
+
     }
 
 }
