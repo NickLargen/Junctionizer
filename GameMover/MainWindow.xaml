@@ -63,8 +63,8 @@
 
                 </DockPanel>
 
-                <local:FoldersPane x:Name="InstallPane" CanUserResizeRows="False" Margin="5" AutoGenerateColumns="False"
-                          IsReadOnly="True">
+                <local:FoldersPane x:Name="InstallPane" CanUserResizeRows="False" Margin="5"
+                                   AutoGenerateColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" MinWidth="100" Width="*" Binding="{Binding Name}" />
                         <!--                        <DataGridCheckBoxColumn Header="Junction" Binding="{Binding IsJunction}" />-->
@@ -109,9 +109,9 @@
                     <Button Click="DeleteFromStorage" Content="Delete" />
                 </DockPanel>
 
-                <local:FoldersPane x:Name="StoragePane" CanUserResizeRows="False" Margin="5" AutoGenerateColumns="False"
-                          IsReadOnly="True">
-                    <DataGrid.Columns >
+                <local:FoldersPane x:Name="StoragePane" CanUserResizeRows="False" Margin="5"
+                                   AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}" />
                         <DataGridCheckBoxColumn Header="Junction" Binding="{Binding IsJunction}" />
                         <DataGridTextColumn Header="Size (MB)" CellStyle="{StaticResource RightAlignCell}"

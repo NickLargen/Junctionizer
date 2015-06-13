@@ -57,7 +57,7 @@ namespace GameMover {
             var installSteamCommon = regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
             InstallPane.VisibleName = "install";
-            InstallPane.SteamCommonFolderGuess = new DirectoryInfo(installSteamCommon)?.FullName;
+            InstallPane.SteamCommonFolderGuess = installSteamCommon;
             InstallPane.OtherPane = StoragePane;
 
             StoragePane.VisibleName = "storage";
@@ -69,6 +69,7 @@ namespace GameMover {
 
             boxPaths.ItemsSource = _pathsInstallAndStorage;
             _pathsInstallAndStorage.Add(InstallPane.SteamCommonFolderGuess + ArrowedPathSeparator + StoragePane.SteamCommonFolderGuess);
+            
         }
 
         private void SaveCurrentLocations(object sender, RoutedEventArgs e) {
@@ -123,31 +124,14 @@ namespace GameMover {
                     if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
                 }
             });
-//            var selectedItems = dagStorage.SelectedItems;
-//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-//                GameFolder gameFolder = (GameFolder) selectedItems[i];
-//                if (StoragePane.DeleteFolder(gameFolder)) {
-//                    var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
-//                    if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
-//                }
-//            }
         }
 
         private void DeleteFromInstall(object sender, RoutedEventArgs e) {
             TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => InstallPane.DeleteFolder(gameFolder));
-//            var selectedItems = dagInstall.SelectedItems;
-//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-//                InstallPane.DeleteFolder((GameFolder) selectedItems[i]);
-//            }
         }
 
         private void DeleteJunctionFromInstall(object sender, RoutedEventArgs e) {
             TraverseBackwards<GameFolder>(InstallPane.SelectedItems, folder => InstallPane.DeleteJunction(folder));
-
-//            var selectedItems = dagInstall.SelectedItems;
-//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-//                InstallPane.DeleteJunction((GameFolder) selectedItems[i]);
-//            }
         }
 
         private void TraverseBackwards<T>(IList list, Action<T> action) {
@@ -165,14 +149,6 @@ namespace GameMover {
                 InstallPane.DeleteFolder(gameFolder);
                 InstallPane.CreateJunctionTo(createdFolder);
             });
-//            var selectedItems = dagInstall.SelectedItems;
-//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-//                GameFolder gameFolder = (GameFolder) selectedItems[i];
-//
-//                var createdFolder = StoragePane.CopyFolder(gameFolder);
-//                InstallPane.DeleteFolder(gameFolder);
-//                InstallPane.CreateJunctionTo(createdFolder);
-//            }
         }
 
         #endregion
@@ -191,25 +167,11 @@ namespace GameMover {
             }
         }
 
-//        private static DataGrid SenderDataGrid(object sender) {
-//            return (DataGrid)((FrameworkElement)sender).DataContext;
-//        }
-
         private FoldersPane SenderPane(object sender) {
             return (FoldersPane) ((FrameworkElement) sender).DataContext;
-
-//            if (Equals(dataContext, dagInstall)) {
-//                return InstallPane;
-//            }
-//            else if (Equals(dataContext, dagStorage)) {
-//                return StoragePane;
-//            }
-//            else throw new Exception("Usage error, data context should be the relevant data grid.");
         }
 
         private void HideStorage(object sender, RoutedEventArgs e) {
-//            if ((bool) boxHideStorage.IsChecked) storageColumnDefinition.Width = new GridLength(0);
-//            else storageColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
             storageColumnDefinition.Width = new GridLength(0);
         }
 
