@@ -43,12 +43,6 @@ namespace GameMover {
         //performance: sorting by size on hdd hangs ui
         //performance: test opening giant folder
 
-        [NotNull]
-        public FoldersPane StoragePane { get; }
-
-        [NotNull]
-        public FoldersPane InstallPane { get; }
-
         private readonly ObservableCollection<string> _pathsInstallAndStorage = new ObservableCollection<string>();
         private const string ArrowedPathSeparator = " -> ";
 
@@ -62,33 +56,19 @@ namespace GameMover {
 
             var installSteamCommon = regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
-            InstallPane = new FoldersPane {
-                GridDisplay = dagInstall,
-                Name = "install",
-                SteamCommonFolderGuess = new DirectoryInfo(installSteamCommon)?.FullName
-            };
-
-            StoragePane = new FoldersPane {
-                GridDisplay = dagStorage,
-                Name = "storage",
-                SteamCommonFolderGuess = @"E:\Steam\SteamApps\common", 
-                OtherPane = InstallPane
-            };
+            InstallPane.VisibleName = "install";
+            InstallPane.SteamCommonFolderGuess = new DirectoryInfo(installSteamCommon)?.FullName;
             InstallPane.OtherPane = StoragePane;
 
-            //Todo: figure out why this works
-            //Without these calls the text boxes showing the locations do not update
-            OnPropertyChanged(nameof(InstallPane));
-            OnPropertyChanged(nameof(StoragePane));
+            StoragePane.VisibleName = "storage";
+            StoragePane.SteamCommonFolderGuess = @"E:\Steam\SteamApps\common";
+            StoragePane.OtherPane = InstallPane;
 
-            dagInstall.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
-            dagStorage.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
-
+            InstallPane.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
+            StoragePane.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
 
             boxPaths.ItemsSource = _pathsInstallAndStorage;
             _pathsInstallAndStorage.Add(InstallPane.SteamCommonFolderGuess + ArrowedPathSeparator + StoragePane.SteamCommonFolderGuess);
-
-//            dagInstall.MouseRightButtonUp += (sender, args) => Console.WriteLine(((sender as DataGrid).SelectedItem as Folder).Name);
         }
 
         private void SaveCurrentLocations(object sender, RoutedEventArgs e) {
@@ -127,17 +107,17 @@ namespace GameMover {
         #region Actions on selected items
 
         private void btnCreateJunction_Click(object sender, RoutedEventArgs e) {
-            foreach (GameFolder folder in dagStorage.SelectedItems) {
+            foreach (GameFolder folder in StoragePane.SelectedItems) {
                 InstallPane.CreateJunctionTo(folder);
             }
         }
 
         private void CopySelectedFolders(object sender, RoutedEventArgs e) {
-            SenderPane(sender).OtherPane.FolderCollection.CopySelectedItems(SenderDataGrid(sender).SelectedItems);
+            SenderPane(sender).OtherPane.FolderCollection.CopySelectedItems(SenderPane(sender).SelectedItems);
         }
 
         private void DeleteFromStorage(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, gameFolder => {
+            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => {
                 if (StoragePane.DeleteFolder(gameFolder)) {
                     var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
                     if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
@@ -154,7 +134,7 @@ namespace GameMover {
         }
 
         private void DeleteFromInstall(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, gameFolder => InstallPane.DeleteFolder(gameFolder));
+            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => InstallPane.DeleteFolder(gameFolder));
 //            var selectedItems = dagInstall.SelectedItems;
 //            for (int i = selectedItems.Count - 1; i >= 0; i--) {
 //                InstallPane.DeleteFolder((GameFolder) selectedItems[i]);
@@ -162,7 +142,7 @@ namespace GameMover {
         }
 
         private void DeleteJunctionFromInstall(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(dagInstall.SelectedItems, folder => InstallPane.DeleteJunction(folder));
+            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, folder => InstallPane.DeleteJunction(folder));
 
 //            var selectedItems = dagInstall.SelectedItems;
 //            for (int i = selectedItems.Count - 1; i >= 0; i--) {
@@ -180,50 +160,51 @@ namespace GameMover {
         //todo test
         //Todo: handle if archiving is cancelled because target folder already exists
         private void ArchiveToStorage(object sender, RoutedEventArgs e) {
-            var selectedItems = dagInstall.SelectedItems;
-            for (int i = selectedItems.Count - 1; i >= 0; i--) {
-                GameFolder gameFolder = (GameFolder) selectedItems[i];
-
+            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => {
                 var createdFolder = StoragePane.CopyFolder(gameFolder);
                 InstallPane.DeleteFolder(gameFolder);
                 InstallPane.CreateJunctionTo(createdFolder);
-            }
+            });
+//            var selectedItems = dagInstall.SelectedItems;
+//            for (int i = selectedItems.Count - 1; i >= 0; i--) {
+//                GameFolder gameFolder = (GameFolder) selectedItems[i];
+//
+//                var createdFolder = StoragePane.CopyFolder(gameFolder);
+//                InstallPane.DeleteFolder(gameFolder);
+//                InstallPane.CreateJunctionTo(createdFolder);
+//            }
         }
 
         #endregion
 
         private void SelectFoldersNotInOtherPane(object sender, RoutedEventArgs e) {
-            var pane = SenderPane(sender);
-            var otherPane = OtherPane(pane);
+            var senderPane = SenderPane(sender);
+            var otherPane = senderPane.OtherPane;
 
-            if (pane.IsLocationInvalid() || otherPane.IsLocationInvalid()) return;
+            if (senderPane.IsLocationInvalid() || otherPane.IsLocationInvalid()) return;
 
-            var foldersNotInStorage = pane.FolderCollection - otherPane.FolderCollection;
-            pane.GridDisplay.SelectedItems.Clear();
+            var foldersNotInStorage = senderPane.FolderCollection - otherPane.FolderCollection;
+            senderPane.SelectedItems.Clear();
 
             foreach (var folder in foldersNotInStorage) {
-                pane.GridDisplay.SelectedItems.Add(folder);
+                senderPane.SelectedItems.Add(folder);
             }
         }
 
-        private DataGrid SenderDataGrid(object sender) {
-            return (DataGrid)((FrameworkElement)sender).DataContext;
-        }
+//        private static DataGrid SenderDataGrid(object sender) {
+//            return (DataGrid)((FrameworkElement)sender).DataContext;
+//        }
 
         private FoldersPane SenderPane(object sender) {
-            var dataContext = (sender as FrameworkElement)?.DataContext;
+            return (FoldersPane) ((FrameworkElement) sender).DataContext;
 
-            if (Equals(dataContext, dagInstall)) {
-                return InstallPane;
-            }
-            else if (Equals(dataContext, dagStorage)) {
-                return StoragePane;
-            }
-            else throw new Exception("Usage error, data context should be the relevant data grid.");
-        }
-
-        private FoldersPane OtherPane(FoldersPane pane) {
-            return pane == InstallPane ? StoragePane : InstallPane;
+//            if (Equals(dataContext, dagInstall)) {
+//                return InstallPane;
+//            }
+//            else if (Equals(dataContext, dagStorage)) {
+//                return StoragePane;
+//            }
+//            else throw new Exception("Usage error, data context should be the relevant data grid.");
         }
 
         private void HideStorage(object sender, RoutedEventArgs e) {
@@ -235,7 +216,6 @@ namespace GameMover {
         private void ShowStorage(object sender, RoutedEventArgs e) {
             storageColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
-
 
         private void BoxPaths_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (_ignorePathsSelectionChange) {

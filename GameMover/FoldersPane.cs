@@ -1,41 +1,29 @@
 using System;
-using System.Collections;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Windows.Controls;
 using System.Windows.Forms;
-using GameMover;
 using GameMover.Annotations;
 using GameMover.Model;
-using Microsoft.VisualBasic.FileIO;
-using Monitor.Core.Utilities;
 using static GameMover.StaticMethods;
 using DataGrid = System.Windows.Controls.DataGrid;
 
 namespace GameMover {
 
-    public class FoldersPane {
+    [UsedImplicitly]
+    public class FoldersPane : DataGrid {
 
-        public string Name { get; set; }
+        public string VisibleName { get; set; }
 
         public FoldersPane OtherPane { get; set; }
-
         public string SteamCommonFolderGuess { get; set; }
         public FolderCollection FolderCollection { get; } = new FolderCollection();
-        public DataGrid GridDisplay { get; set; }
 
         public bool IsLocationInvalid() {
             if (FolderCollection?.Folders != null) return false;
-            StaticMethods.ShowMessage($"Must select {Name} location first.");
+            ShowMessage($"Must select {VisibleName} location first.");
             return true;
-        }
-
-        public void SelectFoldersNotIn(FolderCollection collection) {
-            
         }
 
         /// <summary>
@@ -56,12 +44,12 @@ namespace GameMover {
         public void SetLocation(string selectedPath) {
             FolderCollection.SetLocation(selectedPath);
 
-            GridDisplay.ItemsSource = FolderCollection.Folders;
+            ItemsSource = FolderCollection.Folders;
 
             //Set initial sorting
-            var firstCol = GridDisplay.Columns.First();
+            var firstCol = Columns.First();
             firstCol.SortDirection = ListSortDirection.Ascending;
-            GridDisplay.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, ListSortDirection.Ascending));
+            Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, ListSortDirection.Ascending));
         }
 
         public void CreateJunctionTo(GameFolder junctionTarget) {
