@@ -71,6 +71,8 @@ namespace GameMover {
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
             bool folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
             if (folderDeleted) {
+                
+//                TraverseBackwards(OtherPane.FolderCollection.Folders, folder => Console.WriteLine("3"));
                 //Delete junctions pointing to the deleted folder
                 var junctionDirectory = new DirectoryInfo(OtherPane.FolderCollection.Location + @"\" + gameFolderToDelete.Name);
                 if (JunctionPoint.Exists(junctionDirectory)) OtherPane.DeleteJunction(junctionDirectory);

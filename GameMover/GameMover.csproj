@@ -95,6 +95,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="External Code\AsyncObservableCollection.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="StaticMethods.cs" />

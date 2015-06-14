@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Navigation;
 using GameMover.Annotations;
-using GameMover;
 using Microsoft.Win32;
-using Monitor.Core.Utilities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static GameMover.StaticMethods;
 
 namespace GameMover {
 
@@ -128,13 +121,6 @@ namespace GameMover {
         private void DeleteSelectedJunctions(object sender, RoutedEventArgs e) {
             TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, folder =>
                 SenderPane(sender).DeleteJunction(folder));
-        }
-
-        private void TraverseBackwards<T>(IList list, Action<T> action) {
-            //Iterate backwards so that the supplied action can remove elements from the list
-            for (int i = list.Count - 1; i >= 0; i--) {
-                action((T) list[i]);
-            }
         }
 
 

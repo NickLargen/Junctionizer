@@ -10,7 +10,7 @@ namespace GameMover {
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameFolder : IComparable<GameFolder>, INotifyPropertyChanged {
-        
+
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -18,42 +18,53 @@ namespace GameMover {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public DirectoryInfo DirectoryInfo { get; }
+        
+        public DirectoryInfo DirectoryInfo { get; private set; }
+        public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
-        public string Name { get; }
 
         public bool IsJunction { get; set; }
 
         private long _size;
+
         public long Size {
             get {
                 if (IsJunction) return -1;
-                if (_size != 0) return _size;
-                return CalculateAndSetCurrentSize();
+                if (_size == 0) {
+                    long sizeInBytes =
+                        DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
+                    _size = sizeInBytes/1024/1024;
+                }
+                return _size;
+            }
+            private set {
+                _size = value;
+                //Allows UI to update with new size
+                OnPropertyChanged();
             }
         }
 
         public GameFolder(DirectoryInfo directory) {
             DirectoryInfo = directory;
-            Name = directory.Name;
             IsJunction = JunctionPoint.Exists(directory);
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
+        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
         public void RefreshSize() {
-            CalculateAndSetCurrentSize();
-            //Allows UI to update with new size
-            OnPropertyChanged((nameof(Size)));
+            //Mark size as unknown so that calculation is deferred until next time it is needed
+            Size = 0;
         }
 
-        private long CalculateAndSetCurrentSize() {
-            long sizeInBytes =
-                DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
-            _size = sizeInBytes/1024/1024;
-            return _size;
+        public void Rename(string newName) {
+            DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
+            OnPropertyChanged(nameof(Name));
         }
 
+        public bool IsNameEqual(string otherName) {
+            return string.Equals(Name, otherName, StringComparison.OrdinalIgnoreCase);
+        }
 
         public int CompareTo(GameFolder other) {
             return string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
@@ -65,7 +76,7 @@ namespace GameMover {
 //            }
             var other = obj as GameFolder;
 
-            return string.Equals(Name, other?.Name, StringComparison.OrdinalIgnoreCase);
+            return IsNameEqual(other?.Name);
         }
 
         public override int GetHashCode() {
