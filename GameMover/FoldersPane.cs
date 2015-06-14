@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using GameMover.Annotations;
 using GameMover.Model;
+using Monitor.Core.Utilities;
 using static GameMover.StaticMethods;
 using DataGrid = System.Windows.Controls.DataGrid;
 
@@ -61,13 +63,20 @@ namespace GameMover {
                 ShowMessage(InvalidPermission);
             }
         }
-
+        
         public GameFolder CopyFolder(GameFolder gameFolderToCopy) {
             return FolderCollection.CopyFolder(gameFolderToCopy);
         }
 
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
-            return FolderCollection.DeleteFolder(gameFolderToDelete);
+            bool folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
+            if (folderDeleted) {
+                //Delete junctions pointing to the deleted folder
+                var junctionDirectory = new DirectoryInfo(OtherPane.FolderCollection.Location + @"\" + gameFolderToDelete.Name);
+                if (JunctionPoint.Exists(junctionDirectory)) OtherPane.DeleteJunction(junctionDirectory);
+            }
+
+            return folderDeleted;
         }
 
         public void DeleteJunction(DirectoryInfo junctionDirectory) {

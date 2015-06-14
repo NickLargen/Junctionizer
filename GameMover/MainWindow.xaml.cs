@@ -69,7 +69,6 @@ namespace GameMover {
 
             boxPaths.ItemsSource = _pathsInstallAndStorage;
             _pathsInstallAndStorage.Add(InstallPane.SteamCommonFolderGuess + ArrowedPathSeparator + StoragePane.SteamCommonFolderGuess);
-            
         }
 
         private void SaveCurrentLocations(object sender, RoutedEventArgs e) {
@@ -107,38 +106,37 @@ namespace GameMover {
 
         #region Actions on selected items
 
-        private void btnCreateJunction_Click(object sender, RoutedEventArgs e) {
-            foreach (GameFolder folder in StoragePane.SelectedItems) {
-                InstallPane.CreateJunctionTo(folder);
-            }
+        private void CreateJunctionsForSelected(object sender, RoutedEventArgs e) {
+            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+                SenderPane(sender).OtherPane.CreateJunctionTo(gameFolder));
+            //How to read the previous line:
+//            foreach (GameFolder folder in SenderPane(sender).SelectedItems) {
+//                SenderPane(sender).OtherPane.CreateJunctionTo(folder);
+//            }
         }
 
         private void CopySelectedFolders(object sender, RoutedEventArgs e) {
-            SenderPane(sender).OtherPane.FolderCollection.CopySelectedItems(SenderPane(sender).SelectedItems);
+            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+                SenderPane(sender).OtherPane.CopyFolder(gameFolder));
         }
 
-        private void DeleteFromStorage(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => {
-                if (StoragePane.DeleteFolder(gameFolder)) {
-                    var junctionDirectory = new DirectoryInfo(InstallPane.FolderCollection.Location + @"\" + gameFolder.Name);
-                    if (JunctionPoint.Exists(junctionDirectory)) InstallPane.DeleteJunction(junctionDirectory);
-                }
-            });
+        private void DeleteSelectedFolders(object sender, RoutedEventArgs e) {
+            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+                SenderPane(sender).DeleteFolder(gameFolder));
         }
 
-        private void DeleteFromInstall(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => InstallPane.DeleteFolder(gameFolder));
-        }
-
-        private void DeleteJunctionFromInstall(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, folder => InstallPane.DeleteJunction(folder));
+        private void DeleteSelectedJunctions(object sender, RoutedEventArgs e) {
+            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, folder =>
+                SenderPane(sender).DeleteJunction(folder));
         }
 
         private void TraverseBackwards<T>(IList list, Action<T> action) {
+            //Iterate backwards so that the supplied action can remove elements from the list
             for (int i = list.Count - 1; i >= 0; i--) {
                 action((T) list[i]);
             }
         }
+
 
 
         //todo test

@@ -12,7 +12,6 @@
     MinWidth="500" MinHeight="300" d:DataContext="{d:DesignData }">
     <Window.Resources>
         <gameMover:LongToStringConverter x:Key="SizeConverter" />
-        <ObjectDataProvider x:Key="PersonObj" ObjectType="{x:Type local:GameFolder}" />
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -56,8 +55,8 @@
                     <TextBlock x:Name="txtNumberSelectedInstall" TextWrapping="Wrap"
                                Text="{Binding SelectedItems.Count}" />
                     <Button Click="CopySelectedFolders" Content="Copy -&gt;" />
-                    <Button Click="DeleteFromInstall" Content="Delete" />
-                    <Button Click="DeleteJunctionFromInstall" Content="Delete Junction" />
+                    <Button Click="DeleteSelectedFolders" Content="Delete" />
+                    <Button Click="DeleteSelectedJunctions" Content="Delete Junction" />
                     <Button Click="ArchiveToStorage" Content="Archive -&gt;" />
 
 
@@ -105,8 +104,8 @@
                     <TextBlock x:Name="txtNumberSelectedStorage"
                                Text="{Binding SelectedItems.Count}" />
                     <Button Click="CopySelectedFolders" Content="&lt;- Copy" />
-                    <Button Click="btnCreateJunction_Click" Content="&lt;- Create Junction" />
-                    <Button Click="DeleteFromStorage" Content="Delete" />
+                    <Button Click="CreateJunctionsForSelected" Content="&lt;- Create Junction" />
+                    <Button Click="DeleteSelectedFolders" Content="Delete" />
                 </DockPanel>
 
                 <local:FoldersPane x:Name="StoragePane" CanUserResizeRows="False" Margin="5"

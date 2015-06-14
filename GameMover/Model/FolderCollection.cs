@@ -63,11 +63,6 @@ namespace GameMover.Model {
             }
         }
 
-        public void CopySelectedItems(IList selectedItems) {
-            foreach (GameFolder folder in selectedItems) {
-                CopyFolder(folder);
-            }
-        }
 
         /// <summary>
         /// Returns the created/overwritten folder on success, null otherwise (if operation is cancelled)
