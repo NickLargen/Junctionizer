@@ -27,10 +27,11 @@ namespace GameMover.Model {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private string _location;
+        public ObservableCollection<GameFolder> Folders { get; private set; }
 
         private FileSystemWatcher FileSystemWatcher { get; set; } = new FileSystemWatcher();
 
+        private string _location;
         public string Location {
             get { return _location; }
             set {
@@ -43,7 +44,6 @@ namespace GameMover.Model {
             }
         }
 
-        public ObservableCollection<GameFolder> Folders { get; private set; }
 
         private void InitFileSystemWatcher() {
             FileSystemWatcher.EnableRaisingEvents = true;
@@ -100,7 +100,7 @@ namespace GameMover.Model {
 
             try {
                 if (isOverwrite) {
-                    var overwrittenFolder = Folders.First(folder => folder.Name.Equals(targetDirectoryInfo.Name, StringComparison.OrdinalIgnoreCase));
+                    var overwrittenFolder = FolderByName(targetDirectoryInfo.Name);
                     if (overwrittenFolder.IsJunction == false) {
                         FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
                         overwrittenFolder.RefreshSize();

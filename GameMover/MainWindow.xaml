@@ -12,7 +12,11 @@
     MinWidth="500" MinHeight="300" d:DataContext="{d:DesignData }">
     <Window.Resources>
         <gameMover:LongToStringConverter x:Key="SizeConverter" />
+        <Style TargetType="DataGridRow">
+            <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_OnMouseDoubleClick" />
+        </Style>
     </Window.Resources>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -35,8 +39,8 @@
                 <ColumnDefinition Width="0.5*" />
                 <ColumnDefinition Width="0.5*" Name="storageColumnDefinition" />
             </Grid.ColumnDefinitions>
-
             <DockPanel DataContext="{Binding ElementName=InstallPane}" Grid.Column="0">
+
                 <DockPanel DockPanel.Dock="Top" LastChildFill="False">
                     <TextBlock Text="Install Location" DockPanel.Dock="Top" HorizontalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
@@ -61,7 +65,6 @@
 
 
                 </DockPanel>
-
                 <local:FoldersPane x:Name="InstallPane" CanUserResizeRows="False" Margin="5"
                                    AutoGenerateColumns="False" IsReadOnly="True">
                     <DataGrid.Columns>
@@ -71,16 +74,16 @@
                                             Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}" />
                         <DataGridTextColumn Header="Junction Target" Width="*" Binding="{Binding JunctionTarget}" />
                     </DataGrid.Columns>
-                    <!--                    <DataGrid.Resources>-->
-                    <!--                        <Style TargetType="TextElement">-->
-                    <!--                            <Setter Property="Foreground" Value="Aquamarine" />-->
-                    <!--                        </Style>-->
-                    <!--                    </DataGrid.Resources>-->
-                    <!--                                        <DataGrid.CellStyle>-->
-                    <!--                                            <Style  TargetType="DataGridCell" >-->
-                    <!--                                                <Setter Property="TextBlock.Background" Value="Aquamarine" />-->
-                    <!--                                            </Style>-->
-                    <!--                                        </DataGrid.CellStyle>-->
+                    <!--<DataGrid.Resources>
+                        <Style TargetType="TextElement">
+                            <Setter Property="Foreground" Value="Aquamarine" />
+                        </Style>
+                    </DataGrid.Resources>-->
+                    <!--<DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="TextBlock.Background" Value="Aquamarine" />
+                        </Style>
+                    </DataGrid.CellStyle>-->
                 </local:FoldersPane>
             </DockPanel>
 

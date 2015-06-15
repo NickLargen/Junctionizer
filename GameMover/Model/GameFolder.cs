@@ -71,9 +71,6 @@ namespace GameMover {
         }
 
         public override bool Equals(object obj) {
-//            if (obj == null || GetType() != obj.GetType()) {
-//                return false;
-//            }
             var other = obj as GameFolder;
 
             return IsNameEqual(other?.Name);

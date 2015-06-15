@@ -15,18 +15,10 @@ namespace GameMover {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : INotifyPropertyChanged {
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    public partial class MainWindow {
 
         //Delete on a junction gives recycle bin prompt but it's just for the junction
         //BUG: double clicking column to resize introduces the empty column on the right
-        //bug double clicking datagrid non-row while something is selected opens folder
 
         //todo save locations between runs
 
@@ -57,9 +49,6 @@ namespace GameMover {
             StoragePane.SteamCommonFolderGuess = @"E:\Steam\SteamApps\common";
             StoragePane.OtherPane = InstallPane;
 
-            InstallPane.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
-            StoragePane.MouseDoubleClick += DataGrid_OnMouseDoubleClick;
-
             boxPaths.ItemsSource = _pathsInstallAndStorage;
             _pathsInstallAndStorage.Add(InstallPane.SteamCommonFolderGuess + ArrowedPathSeparator + StoragePane.SteamCommonFolderGuess);
         }
@@ -76,21 +65,15 @@ namespace GameMover {
         }
 
         private void DeleteCurrentLocations(object sender, RoutedEventArgs e) {
-            if (boxPaths.SelectedIndex != -1)
-                _pathsInstallAndStorage.RemoveAt(boxPaths.SelectedIndex);
+            if (boxPaths.SelectedIndex != -1) _pathsInstallAndStorage.RemoveAt(boxPaths.SelectedIndex);
         }
 
-        private void DataGrid_OnMouseDoubleClick(object sender, MouseButtonEventArgs e) {
-//            if (mouseButtonEventArgs.ButtonState != MouseButtonState.Pressed) return; //only react on pressed
+        private void DataGridRow_OnMouseDoubleClick(object sender, MouseButtonEventArgs e) {
             if (e.ChangedButton != MouseButton.Left) return;
 
-            var dataGrid = sender as DataGrid;
-
-            if (dataGrid?.SelectedItems?.Count == 1) {
-                var folder = dataGrid.SelectedItem as GameFolder;
-                if (folder != null)
-                    Process.Start(folder.DirectoryInfo.FullName);
-            }
+            var dataGridRow = sender as DataGridRow;
+            var folder = dataGridRow?.Item as GameFolder;
+            if (folder != null) Process.Start(folder.DirectoryInfo.FullName);
         }
 
         private void SelectLocation(object sender, RoutedEventArgs e) {
@@ -100,7 +83,7 @@ namespace GameMover {
         #region Actions on selected items
 
         private void CreateJunctionsForSelected(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+            SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
                 SenderPane(sender).OtherPane.CreateJunctionTo(gameFolder));
             //How to read the previous line:
 //            foreach (GameFolder folder in SenderPane(sender).SelectedItems) {
@@ -109,18 +92,18 @@ namespace GameMover {
         }
 
         private void CopySelectedFolders(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+            SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
                 SenderPane(sender).OtherPane.CopyFolder(gameFolder));
         }
 
         private void DeleteSelectedFolders(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, gameFolder =>
+            SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
                 SenderPane(sender).DeleteFolder(gameFolder));
         }
 
         private void DeleteSelectedJunctions(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(SenderPane(sender).SelectedItems, folder =>
-                SenderPane(sender).DeleteJunction(folder));
+            SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
+                SenderPane(sender).DeleteJunction(gameFolder));
         }
 
 
@@ -128,7 +111,7 @@ namespace GameMover {
         //todo test
         //Todo: handle if archiving is cancelled because target folder already exists
         private void ArchiveToStorage(object sender, RoutedEventArgs e) {
-            TraverseBackwards<GameFolder>(InstallPane.SelectedItems, gameFolder => {
+            InstallPane.SelectedItems.TraverseBackwards<GameFolder>(gameFolder => {
                 var createdFolder = StoragePane.CopyFolder(gameFolder);
                 InstallPane.DeleteFolder(gameFolder);
                 InstallPane.CreateJunctionTo(createdFolder);

@@ -63,7 +63,7 @@ namespace GameMover {
                 ShowMessage(InvalidPermission);
             }
         }
-        
+
         public GameFolder CopyFolder(GameFolder gameFolderToCopy) {
             return FolderCollection.CopyFolder(gameFolderToCopy);
         }
@@ -71,11 +71,12 @@ namespace GameMover {
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
             bool folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
             if (folderDeleted) {
-                
-//                TraverseBackwards(OtherPane.FolderCollection.Folders, folder => Console.WriteLine("3"));
                 //Delete junctions pointing to the deleted folder
-                var junctionDirectory = new DirectoryInfo(OtherPane.FolderCollection.Location + @"\" + gameFolderToDelete.Name);
-                if (JunctionPoint.Exists(junctionDirectory)) OtherPane.DeleteJunction(junctionDirectory);
+                OtherPane.FolderCollection.Folders.TraverseBackwards(folder => {
+                    if (folder.IsJunction && folder.JunctionTarget.Equals(gameFolderToDelete.DirectoryInfo.FullName)) {
+                        OtherPane.DeleteJunction(folder); 
+                    }
+                });
             }
 
             return folderDeleted;
