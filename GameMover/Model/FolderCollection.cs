@@ -117,6 +117,7 @@ namespace GameMover.Model {
             }
             catch (OperationCanceledException e) {
                 Debug.WriteLine(e);
+                if(isOverwrite) return new GameFolder(targetDirectoryInfo);
             }
             return null;
         }

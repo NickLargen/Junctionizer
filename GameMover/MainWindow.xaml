@@ -62,11 +62,9 @@
                     <Button Click="DeleteSelectedFolders" Content="Delete" />
                     <Button Click="DeleteSelectedJunctions" Content="Delete Junction" />
                     <Button Click="ArchiveToStorage" Content="Archive -&gt;" />
-
-
                 </DockPanel>
                 <local:FoldersPane x:Name="InstallPane" CanUserResizeRows="False" Margin="5"
-                                   AutoGenerateColumns="False" IsReadOnly="True">
+                                   AutoGenerateColumns="False" IsReadOnly="True" VisibleName="install">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" MinWidth="100" Width="*" Binding="{Binding Name}" />
                         <!--                        <DataGridCheckBoxColumn Header="Junction" Binding="{Binding IsJunction}" />-->
@@ -112,7 +110,7 @@
                 </DockPanel>
 
                 <local:FoldersPane x:Name="StoragePane" CanUserResizeRows="False" Margin="5"
-                                   AutoGenerateColumns="False" IsReadOnly="True">
+                                   AutoGenerateColumns="False" IsReadOnly="True" VisibleName="storage">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}" />
                         <DataGridCheckBoxColumn Header="Junction" Binding="{Binding IsJunction}" />

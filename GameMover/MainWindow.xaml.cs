@@ -28,6 +28,9 @@ namespace GameMover {
         //performance: sorting by size on hdd hangs ui
         //performance: test opening giant folder
 
+        //feature: select all corresponding elements
+
+        //todo fix this pathsinstallandstorage
         private readonly ObservableCollection<string> _pathsInstallAndStorage = new ObservableCollection<string>();
         private const string ArrowedPathSeparator = " -> ";
 
@@ -41,11 +44,9 @@ namespace GameMover {
 
             var installSteamCommon = regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
-            InstallPane.VisibleName = "install";
             InstallPane.SteamCommonFolderGuess = installSteamCommon;
             InstallPane.OtherPane = StoragePane;
 
-            StoragePane.VisibleName = "storage";
             StoragePane.SteamCommonFolderGuess = @"E:\Steam\SteamApps\common";
             StoragePane.OtherPane = InstallPane;
 
@@ -109,12 +110,11 @@ namespace GameMover {
 
 
         //todo test
-        //Todo: handle if archiving is cancelled because target folder already exists
         private void ArchiveToStorage(object sender, RoutedEventArgs e) {
             InstallPane.SelectedItems.TraverseBackwards<GameFolder>(gameFolder => {
                 var createdFolder = StoragePane.CopyFolder(gameFolder);
-                InstallPane.DeleteFolder(gameFolder);
-                InstallPane.CreateJunctionTo(createdFolder);
+                bool folderDeleted = InstallPane.DeleteFolder(gameFolder);
+                if (folderDeleted && createdFolder != null) InstallPane.CreateJunctionTo(createdFolder);
             });
         }
 
