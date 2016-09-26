@@ -7,14 +7,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using GameMover.Annotations;
 using GameMover.External_Code;
 using Microsoft.VisualBasic.FileIO;
 using Monitor.Core.Utilities;
 
 namespace GameMover.Model {
 
-    public class FolderCollection : INotifyPropertyChanged {
+    public class FolderCollection : INotifyPropertyChanged, IDisposable {
 
         public static IEnumerable<GameFolder> operator -(FolderCollection first, FolderCollection second) {
             return first.Folders.Except(second.Folders);
@@ -22,7 +21,6 @@ namespace GameMover.Model {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -56,11 +54,16 @@ namespace GameMover.Model {
                 Folders.Remove(FolderByName(args.Name));
             };
             FileSystemWatcher.Renamed += (sender, args) => {
-                FolderByName(args.OldName)?.Rename(args.Name);
+                var folder = FolderByName(args.OldName);
+                folder.Rename(args.Name);
+
+                // Refresh sort order
+                Folders.Remove(folder);
+                Folders.Add(folder);
             };
         }
 
-        public GameFolder FolderByName(string name) {
+        private GameFolder FolderByName(string name) {
             return Folders.FirstOrDefault(folder => folder.IsNameEqual(name));
         }
 
@@ -139,6 +142,10 @@ namespace GameMover.Model {
             JunctionPoint.Delete(junctionDirectory);
         }
 
+        public void Dispose()
+        {
+            FileSystemWatcher.Dispose();
+        }
     }
 
 }

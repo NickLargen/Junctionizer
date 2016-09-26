@@ -1,20 +1,17 @@
 using System;
-using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using GameMover.Annotations;
 using GameMover.Model;
-using Monitor.Core.Utilities;
 using static GameMover.StaticMethods;
 using DataGrid = System.Windows.Controls.DataGrid;
 
-namespace GameMover {
+namespace GameMover
+{
 
-    [UsedImplicitly]
-    public class FoldersPane : DataGrid {
+    public class FoldersPane : DataGrid, IDisposable {
 
         public string VisibleName { get; set; }
 
@@ -34,7 +31,7 @@ namespace GameMover {
         /// <returns>True if  the location changed </returns>
         public bool SelectLocation() {
             var folderBrowserDialog = CreateFolderBrowserDialog(SteamCommonFolderGuess);
-            if (folderBrowserDialog.ShowDialog() == DialogResult.OK) {
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK) { 
                 var selectedPath = folderBrowserDialog.SelectedPath;
                 var isNewLocation = !selectedPath.Equals(FolderCollection.Location, StringComparison.OrdinalIgnoreCase);
                 SetLocation(selectedPath);
@@ -69,7 +66,7 @@ namespace GameMover {
         }
 
         public bool DeleteFolder(GameFolder gameFolderToDelete) {
-            bool folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
+            var folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
             if (folderDeleted) {
                 //Delete junctions pointing to the deleted folder
                 OtherPane.FolderCollection.Folders.TraverseBackwards(folder => {
@@ -90,6 +87,11 @@ namespace GameMover {
                 Debug.WriteLine(e);
                 ShowMessage($"Failed to delete junction at '{junctionDirectory.FullName}'. Please verify it is a junction.");
             }
+        }
+
+        public void Dispose()
+        {
+            FolderCollection.Dispose();
         }
 
     }

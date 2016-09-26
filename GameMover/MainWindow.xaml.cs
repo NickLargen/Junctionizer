@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using GameMover.Annotations;
 using Microsoft.Win32;
 using static GameMover.StaticMethods;
 
@@ -113,7 +112,7 @@ namespace GameMover {
         private void ArchiveToStorage(object sender, RoutedEventArgs e) {
             InstallPane.SelectedItems.TraverseBackwards<GameFolder>(gameFolder => {
                 var createdFolder = StoragePane.CopyFolder(gameFolder);
-                bool folderDeleted = InstallPane.DeleteFolder(gameFolder);
+                var folderDeleted = InstallPane.DeleteFolder(gameFolder);
                 if (folderDeleted && createdFolder != null) InstallPane.CreateJunctionTo(createdFolder);
             });
         }

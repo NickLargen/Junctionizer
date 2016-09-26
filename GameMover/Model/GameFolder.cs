@@ -3,22 +3,19 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using GameMover.Annotations;
 using Monitor.Core.Utilities;
 
 namespace GameMover {
 
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameFolder : IComparable<GameFolder>, INotifyPropertyChanged {
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        
+
         public DirectoryInfo DirectoryInfo { get; private set; }
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
@@ -46,7 +43,14 @@ namespace GameMover {
 
         public GameFolder(DirectoryInfo directory) {
             DirectoryInfo = directory;
-            IsJunction = JunctionPoint.Exists(directory);
+            try {
+                IsJunction = JunctionPoint.Exists(directory);
+            }
+            catch (IOException) {
+                // Hack to get around file in use by another process error
+                IsJunction = JunctionPoint.Exists(directory);
+            }
+
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
