@@ -11,7 +11,8 @@ using DataGrid = System.Windows.Controls.DataGrid;
 namespace GameMover
 {
 
-    public class FoldersPane : DataGrid, IDisposable {
+    public class FoldersPane : DataGrid, IDisposable
+    {
 
         public string VisibleName { get; set; }
 
@@ -19,7 +20,8 @@ namespace GameMover
         public string SteamCommonFolderGuess { get; set; }
         public FolderCollection FolderCollection { get; } = new FolderCollection();
 
-        public bool IsLocationInvalid() {
+        public bool IsLocationInvalid()
+        {
             if (FolderCollection?.Folders != null) return false;
             ShowMessage($"Must select {VisibleName} location first.");
             return true;
@@ -29,9 +31,11 @@ namespace GameMover
         /// 
         /// </summary>
         /// <returns>True if  the location changed </returns>
-        public bool SelectLocation() {
+        public bool SelectLocation()
+        {
             var folderBrowserDialog = CreateFolderBrowserDialog(SteamCommonFolderGuess);
-            if (folderBrowserDialog.ShowDialog() == DialogResult.OK) { 
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
                 var selectedPath = folderBrowserDialog.SelectedPath;
                 var isNewLocation = !selectedPath.Equals(FolderCollection.Location, StringComparison.OrdinalIgnoreCase);
                 SetLocation(selectedPath);
@@ -40,7 +44,8 @@ namespace GameMover
             return false;
         }
 
-        public void SetLocation(string selectedPath) {
+        public void SetLocation(string selectedPath)
+        {
             FolderCollection.SetLocation(selectedPath);
 
             ItemsSource = FolderCollection.Folders;
@@ -51,27 +56,35 @@ namespace GameMover
             Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, ListSortDirection.Ascending));
         }
 
-        public void CreateJunctionTo(GameFolder junctionTarget) {
-            try {
+        public void CreateJunctionTo(GameFolder junctionTarget)
+        {
+            try
+            {
                 FolderCollection.CreateJunctionTo(junctionTarget);
             }
-            catch (UnauthorizedAccessException e) {
+            catch (UnauthorizedAccessException e)
+            {
                 Debug.WriteLine(e);
                 ShowMessage(InvalidPermission);
             }
         }
 
-        public GameFolder CopyFolder(GameFolder gameFolderToCopy) {
+        public GameFolder CopyFolder(GameFolder gameFolderToCopy)
+        {
             return FolderCollection.CopyFolder(gameFolderToCopy);
         }
 
-        public bool DeleteFolder(GameFolder gameFolderToDelete) {
+        public bool DeleteFolder(GameFolder gameFolderToDelete)
+        {
             var folderDeleted = FolderCollection.DeleteFolder(gameFolderToDelete);
-            if (folderDeleted) {
+            if (folderDeleted)
+            {
                 //Delete junctions pointing to the deleted folder
-                OtherPane.FolderCollection.Folders.TraverseBackwards(folder => {
-                    if (folder.IsJunction && folder.JunctionTarget.Equals(gameFolderToDelete.DirectoryInfo.FullName)) {
-                        OtherPane.DeleteJunction(folder); 
+                OtherPane.FolderCollection.Folders.TraverseBackwards(folder =>
+                {
+                    if (folder.IsJunction && folder.JunctionTarget.Equals(gameFolderToDelete.DirectoryInfo.FullName))
+                    {
+                        OtherPane.DeleteJunction(folder);
                     }
                 });
             }
@@ -79,11 +92,14 @@ namespace GameMover
             return folderDeleted;
         }
 
-        public void DeleteJunction(DirectoryInfo junctionDirectory) {
-            try {
+        public void DeleteJunction(DirectoryInfo junctionDirectory)
+        {
+            try
+            {
                 FolderCollection.DeleteJunction(junctionDirectory);
             }
-            catch (IOException e) {
+            catch (IOException e)
+            {
                 Debug.WriteLine(e);
                 ShowMessage($"Failed to delete junction at '{junctionDirectory.FullName}'. Please verify it is a junction.");
             }
