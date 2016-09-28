@@ -1,20 +1,20 @@
+using Monitor.Core.Utilities;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Monitor.Core.Utilities;
 
-namespace GameMover {
-
-    public class GameFolder : IComparable<GameFolder>, INotifyPropertyChanged {
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+namespace GameMover
+{
+    public class GameFolder : IComparable<GameFolder>, IEquatable<GameFolder>, INotifyPropertyChanged
+    {
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
 
         public DirectoryInfo DirectoryInfo { get; private set; }
         public string Name => DirectoryInfo.Name;
@@ -24,29 +24,36 @@ namespace GameMover {
 
         private long _size;
 
-        public long Size {
-            get {
+        public long Size
+        {
+            get
+            {
                 if (IsJunction) return -1;
-                if (_size == 0) {
-                    long sizeInBytes =
+                if (_size == 0)
+                {
+                    var sizeInBytes =
                         DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
-                    _size = sizeInBytes/1024/1024;
+                    _size = sizeInBytes / 1024 / 1024;
                 }
                 return _size;
             }
-            private set {
+            private set
+            {
                 _size = value;
                 //Allows UI to update with new size
                 OnPropertyChanged();
             }
         }
 
-        public GameFolder(DirectoryInfo directory) {
+        public GameFolder(DirectoryInfo directory)
+        {
             DirectoryInfo = directory;
-            try {
+            try
+            {
                 IsJunction = JunctionPoint.Exists(directory);
             }
-            catch (IOException) {
+            catch (IOException)
+            {
                 // Hack to get around file in use by another process error
                 IsJunction = JunctionPoint.Exists(directory);
             }
@@ -54,41 +61,28 @@ namespace GameMover {
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
-        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
+        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) { }
 
-        public void RefreshSize() {
-            //Mark size as unknown so that calculation is deferred until next time it is needed
+        public void RefreshSize()
+        {
+            // Mark size as unknown so that calculation is deferred until next time it is needed
             Size = 0;
         }
 
-        public void Rename(string newName) {
+        public void Rename(string newName)
+        {
             DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
             OnPropertyChanged(nameof(Name));
         }
 
-        public bool IsNameEqual(string otherName) {
-            return string.Equals(Name, otherName, StringComparison.OrdinalIgnoreCase);
-        }
+        public int CompareTo(GameFolder other) => other == null ? 1 : string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
 
-        public int CompareTo(GameFolder other) {
-            return string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
-        }
+        public override bool Equals(object obj) => CompareTo(obj as GameFolder) == 0;
 
-        public override bool Equals(object obj) {
-            var other = obj as GameFolder;
+        public bool Equals(GameFolder other) => CompareTo(other) == 0;
 
-            return IsNameEqual(other?.Name);
-        }
+        public override int GetHashCode() => Name.ToLowerInvariant().GetHashCode();
 
-        public override int GetHashCode() {
-            return Name.ToLowerInvariant().GetHashCode();
-        }
-
-
-        public static implicit operator DirectoryInfo(GameFolder folder) {
-            return folder.DirectoryInfo;
-        }
-
+        public static implicit operator DirectoryInfo(GameFolder folder) => folder.DirectoryInfo;
     }
-
 }

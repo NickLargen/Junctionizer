@@ -9,6 +9,8 @@ using System.Windows.Input;
 using Microsoft.Win32;
 using static GameMover.StaticMethods;
 
+[assembly: CLSCompliant(false)]
+
 namespace GameMover {
 
     /// <summary>

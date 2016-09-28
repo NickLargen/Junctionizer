@@ -64,7 +64,7 @@ namespace GameMover.Model {
         }
 
         private GameFolder FolderByName(string name) {
-            return Folders.FirstOrDefault(folder => folder.IsNameEqual(name));
+            return Folders.FirstOrDefault(folder => folder.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         public void SetLocation(string selectedPath) {
