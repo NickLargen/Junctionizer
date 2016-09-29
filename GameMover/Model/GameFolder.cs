@@ -1,15 +1,17 @@
-using Monitor.Core.Utilities;
 using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using GameMover.External_Code;
 
-namespace GameMover
+namespace GameMover.Model
 {
+
     public class GameFolder : IComparable<GameFolder>, IEquatable<GameFolder>, INotifyPropertyChanged
     {
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -26,8 +28,7 @@ namespace GameMover
 
         public long Size
         {
-            get
-            {
+            get {
                 if (IsJunction) return -1;
                 if (_size == 0)
                 {
@@ -37,8 +38,7 @@ namespace GameMover
                 }
                 return _size;
             }
-            private set
-            {
+            private set {
                 _size = value;
                 //Allows UI to update with new size
                 OnPropertyChanged();
@@ -61,9 +61,9 @@ namespace GameMover
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
         }
 
-        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) { }
+        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
-        public void RefreshSize()
+        public void RecalculateSize()
         {
             // Mark size as unknown so that calculation is deferred until next time it is needed
             Size = 0;
@@ -84,5 +84,7 @@ namespace GameMover
         public override int GetHashCode() => Name.ToLowerInvariant().GetHashCode();
 
         public static implicit operator DirectoryInfo(GameFolder folder) => folder.DirectoryInfo;
+
     }
+
 }

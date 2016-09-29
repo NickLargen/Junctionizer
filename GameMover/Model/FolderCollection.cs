@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,12 +8,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using GameMover.External_Code;
 using Microsoft.VisualBasic.FileIO;
-using Monitor.Core.Utilities;
 
 namespace GameMover.Model
 {
 
-    public class FolderCollection : INotifyPropertyChanged, IDisposable
+    public sealed class FolderCollection : INotifyPropertyChanged, IDisposable
     {
 
         public static IEnumerable<GameFolder> operator -(FolderCollection first, FolderCollection second)
@@ -24,7 +22,7 @@ namespace GameMover.Model
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -34,11 +32,11 @@ namespace GameMover.Model
         private FileSystemWatcher FileSystemWatcher { get; set; } = new FileSystemWatcher();
 
         private string _location;
+
         public string Location
         {
             get { return _location; }
-            set
-            {
+            set {
                 if (value == Location) return;
 
                 _location = value;
@@ -54,16 +52,12 @@ namespace GameMover.Model
             FileSystemWatcher.EnableRaisingEvents = true;
             FileSystemWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             //Known issue: size doesn't update if they change folder contents while the program is running, could not find a way to do it without listening to subdirectory changes which is not desired. 
-            FileSystemWatcher.Created += (sender, args) =>
-            {
+            FileSystemWatcher.Created += (sender, args) => {
                 Folders.Add(new GameFolder(args.FullPath));
+                //TODO test changed what is being watched middle of running after setlocation called a second time
             };
-            FileSystemWatcher.Deleted += (sender, args) =>
-            {
-                Folders.Remove(FolderByName(args.Name));
-            };
-            FileSystemWatcher.Renamed += (sender, args) =>
-            {
+            FileSystemWatcher.Deleted += (sender, args) => { Folders.Remove(FolderByName(args.Name)); };
+            FileSystemWatcher.Renamed += (sender, args) => {
                 var folder = FolderByName(args.OldName);
                 folder.Rename(args.Name);
 
@@ -106,7 +100,7 @@ namespace GameMover.Model
         }
 
         /// <summary>
-        /// Returns the created/overwritten folder on success, null otherwise (if operation is cancelled)
+        ///     Returns the created/overwritten folder on success, null otherwise (if operation is canceled)
         /// </summary>
         /// <param name="folderToCopy"></param>
         /// <returns></returns>
@@ -125,7 +119,7 @@ namespace GameMover.Model
                     if (overwrittenFolder.IsJunction == false)
                     {
                         FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                        overwrittenFolder.RefreshSize();
+                        overwrittenFolder.RecalculateSize();
                         return overwrittenFolder;
                     }
 
@@ -166,10 +160,8 @@ namespace GameMover.Model
             JunctionPoint.Delete(junctionDirectory);
         }
 
-        public void Dispose()
-        {
-            FileSystemWatcher.Dispose();
-        }
+        public void Dispose() => FileSystemWatcher.Dispose();
+
     }
 
 }

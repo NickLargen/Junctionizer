@@ -11,7 +11,7 @@ using DataGrid = System.Windows.Controls.DataGrid;
 namespace GameMover
 {
 
-    public class FoldersPane : DataGrid, IDisposable
+    public sealed class FoldersPane : DataGrid, IDisposable
     {
 
         public string VisibleName { get; set; }
@@ -28,7 +28,6 @@ namespace GameMover
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns>True if  the location changed </returns>
         public bool SelectLocation()
@@ -81,12 +80,12 @@ namespace GameMover
             {
                 //Delete junctions pointing to the deleted folder
                 OtherPane.FolderCollection.Folders.TraverseBackwards(folder =>
-                {
-                    if (folder.IsJunction && folder.JunctionTarget.Equals(gameFolderToDelete.DirectoryInfo.FullName))
-                    {
-                        OtherPane.DeleteJunction(folder);
-                    }
-                });
+                         {
+                             if (folder.IsJunction && folder.JunctionTarget.Equals(gameFolderToDelete.DirectoryInfo.FullName))
+                             {
+                                 OtherPane.DeleteJunction(folder);
+                             }
+                         });
             }
 
             return folderDeleted;
@@ -105,10 +104,7 @@ namespace GameMover
             }
         }
 
-        public void Dispose()
-        {
-            FolderCollection.Dispose();
-        }
+        public void Dispose() => FolderCollection.Dispose();
 
     }
 

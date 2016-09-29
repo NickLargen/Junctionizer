@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using GameMover.Model;
 using Microsoft.Win32;
-using static GameMover.StaticMethods;
 
 [assembly: CLSCompliant(false)]
 
@@ -15,13 +13,15 @@ namespace GameMover
 {
 
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow
     {
 
         //Delete on a junction gives recycle bin prompt but it's just for the junction
         //BUG: double clicking column to resize introduces the empty column on the right
+
+        //todo: remove code from code behind
 
         //todo save locations between runs
 
@@ -95,7 +95,7 @@ namespace GameMover
         private void CreateJunctionsForSelected(object sender, RoutedEventArgs e)
         {
             SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
-                SenderPane(sender).OtherPane.CreateJunctionTo(gameFolder));
+                                      SenderPane(sender).OtherPane.CreateJunctionTo(gameFolder));
             //How to read the previous line:
             //            foreach (GameFolder folder in SenderPane(sender).SelectedItems) {
             //                SenderPane(sender).OtherPane.CreateJunctionTo(folder);
@@ -105,19 +105,19 @@ namespace GameMover
         private void CopySelectedFolders(object sender, RoutedEventArgs e)
         {
             SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
-                SenderPane(sender).OtherPane.CopyFolder(gameFolder));
+                                      SenderPane(sender).OtherPane.CopyFolder(gameFolder));
         }
 
         private void DeleteSelectedFolders(object sender, RoutedEventArgs e)
         {
             SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
-                SenderPane(sender).DeleteFolder(gameFolder));
+                                      SenderPane(sender).DeleteFolder(gameFolder));
         }
 
         private void DeleteSelectedJunctions(object sender, RoutedEventArgs e)
         {
             SenderPane(sender).SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
-                SenderPane(sender).DeleteJunction(gameFolder));
+                                      SenderPane(sender).DeleteJunction(gameFolder));
         }
 
 
@@ -125,12 +125,11 @@ namespace GameMover
         //todo test
         private void ArchiveToStorage(object sender, RoutedEventArgs e)
         {
-            InstallPane.SelectedItems.TraverseBackwards<GameFolder>(gameFolder =>
-            {
-                var createdFolder = StoragePane.CopyFolder(gameFolder);
-                var folderDeleted = InstallPane.DeleteFolder(gameFolder);
-                if (folderDeleted && createdFolder != null) InstallPane.CreateJunctionTo(createdFolder);
-            });
+            InstallPane.SelectedItems.TraverseBackwards<GameFolder>(gameFolder => {
+                           var createdFolder = StoragePane.CopyFolder(gameFolder);
+                           var folderDeleted = InstallPane.DeleteFolder(gameFolder);
+                           if (folderDeleted && createdFolder != null) InstallPane.CreateJunctionTo(createdFolder);
+                       });
         }
 
         #endregion
@@ -153,7 +152,7 @@ namespace GameMover
 
         private FoldersPane SenderPane(object sender)
         {
-            return (FoldersPane)((FrameworkElement)sender).DataContext;
+            return (FoldersPane) ((FrameworkElement) sender).DataContext;
         }
 
         private void HideStorage(object sender, RoutedEventArgs e)
@@ -175,7 +174,7 @@ namespace GameMover
             }
 
             string arrowedPaths = boxPaths.SelectedItem as string;
-            string[] paths = arrowedPaths?.Split(new[] { ArrowedPathSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            string[] paths = arrowedPaths?.Split(new[] {ArrowedPathSeparator}, StringSplitOptions.RemoveEmptyEntries);
 
             if (paths?.Length != 2) return;
 
