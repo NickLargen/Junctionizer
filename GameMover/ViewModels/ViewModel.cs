@@ -14,7 +14,7 @@ namespace GameMover.ViewModels
     {
 
         /// Allows you to set the selection without trigger selection change (so that when saving a control you don't reload)
-        private bool _ignorePathsSelectionChange = false;
+        private bool _ignorePathsSelectionChange;
 
         private string _selectedBoxPath;
 
