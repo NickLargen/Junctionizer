@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using MessageBox = System.Windows.MessageBox;
@@ -29,17 +28,9 @@ namespace GameMover
             return folderBrowserDialog;
         }
 
-        public static void TraverseBackwards<T>(this IList list, Action<T> action)
-        {
-            //Iterate backwards so that the supplied action can remove elements from the list
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                action((T) list[i]);
-            }
-        }
-
         public static void TraverseBackwards<T>(this IList<T> list, Action<T> action)
         {
+            //Iterate backwards so that the supplied action can remove elements from the list
             for (int i = list.Count - 1; i >= 0; i--)
             {
                 action(list[i]);

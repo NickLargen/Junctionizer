@@ -4,20 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using GameMover.External_Code;
+using Prism.Mvvm;
 
 namespace GameMover.Model
 {
-
-    public class GameFolder : IComparable<GameFolder>, IEquatable<GameFolder>, INotifyPropertyChanged
+    [PropertyChanged.DoNotNotify]
+    public class GameFolder : BindableBase, IComparable<GameFolder>, IEquatable<GameFolder>
     {
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public DirectoryInfo DirectoryInfo { get; private set; }
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
@@ -39,9 +32,11 @@ namespace GameMover.Model
                 return _size;
             }
             private set {
-                _size = value;
-                //Allows UI to update with new size
-                OnPropertyChanged();
+                if (value != _size)
+                {
+                    _size = value;
+                    OnPropertyChanged();
+                }
             }
         }
 

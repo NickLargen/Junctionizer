@@ -1,6 +1,7 @@
 ﻿<Application x:Class="GameMover.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GameMover"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
 
@@ -23,6 +24,12 @@
             <Style TargetType="Button">
                 <Setter Property="Padding" Value="3,0,3,0" />
                 <Setter Property="Margin" Value="3,0,3,0" />
+            </Style>
+            <Style TargetType="local:MultiSelectDataGrid">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="AutoGenerateColumns" Value="False" />
+                <Setter Property="CanUserResizeRows" Value="False" />
+                <Setter Property="IsReadOnly" Value="True" />
             </Style>
         </ResourceDictionary>
 

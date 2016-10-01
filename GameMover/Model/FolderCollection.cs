@@ -1,35 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using GameMover.External_Code;
 using Microsoft.VisualBasic.FileIO;
+using Prism.Commands;
+using Prism.Mvvm;
+using static GameMover.StaticMethods;
 
 namespace GameMover.Model
 {
 
-    public sealed class FolderCollection : INotifyPropertyChanged, IDisposable
+    public sealed class FolderCollection : BindableBase, IDisposable
     {
 
-        public static IEnumerable<GameFolder> operator -(FolderCollection first, FolderCollection second)
-        {
-            return first.Folders.Except(second.Folders);
-        }
+        [PropertyChanged.DoNotNotify]
+        public FolderCollection OtherPane { get; set; }
+        [PropertyChanged.DoNotNotify]
+        public string SteamCommonFolderGuess { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public ObservableCollection<GameFolder> Folders { get; } = new AsyncObservableCollection<GameFolder>();
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public ObservableCollection<object> SelectedItems { get; set; }
 
-        public ObservableCollection<GameFolder> Folders { get; private set; }
-
-        private FileSystemWatcher FileSystemWatcher { get; set; } = new FileSystemWatcher();
+        private FileSystemWatcher FileSystemWatcher { get; } = new FileSystemWatcher();
 
         private string _location;
 
@@ -45,6 +42,83 @@ namespace GameMover.Model
                 if (FileSystemWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
             }
         }
+
+
+
+        public bool IsLocationInvalid()
+        {
+            if (Location != null) return false;
+
+            ShowMessage($"Must select VisibleName!! location first.");
+            return true;
+        }
+
+
+
+        [AutoLazy.Lazy]
+        public DelegateCommand SelectLocationCommand => new DelegateCommand(() => {
+            var folderBrowserDialog = CreateFolderBrowserDialog(SteamCommonFolderGuess);
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                SetLocation(folderBrowserDialog.SelectedPath);
+            }
+        }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand<IEnumerable<GameFolder>> SelectionChangedCommand => new DelegateCommand<IEnumerable<GameFolder>>(folders => {
+
+            SelectedItems.Clear();
+            foreach (var folder in folders)
+            {
+                SelectedItems.Add(folder);
+            }
+        }, _ => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand CopyCommand => new DelegateCommand(() => {
+            foreach (var folder in SelectedItems)
+            {
+                OtherPane.CopyFolder(folder as GameFolder);
+            }
+        }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteFoldersCommand => new DelegateCommand(() => {
+            SelectedItems.TraverseBackwards(folder => DeleteFolder((GameFolder) folder));
+        }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteJuctionsCommand => new DelegateCommand(() => {
+            SelectedItems.TraverseBackwards(folder => DeleteJunction((DirectoryInfo) folder));
+        }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand CreateJunctionCommand => new DelegateCommand(() => {
+            SelectedItems.TraverseBackwards(folder => OtherPane.CreateJunctionTo((GameFolder) folder));
+        }, () => true);
+
+        //TODO test
+        [AutoLazy.Lazy]
+        public DelegateCommand ArchiveToStorageCommand => new DelegateCommand(() => {
+            SelectedItems.TraverseBackwards(gameFolder => {
+                var folder = gameFolder as GameFolder;
+                var createdFolder = OtherPane.CopyFolder(folder);
+                var folderDeleted = DeleteFolder(folder);
+                if (createdFolder != null && folderDeleted) CreateJunctionTo(createdFolder);
+            });
+        }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(() => {
+            if (IsLocationInvalid() || OtherPane.IsLocationInvalid()) return;
+
+            SelectionChangedCommand.Execute(Folders.Except(OtherPane.Folders));
+        }, () => true);
+
+
+
+
+
 
 
         private void InitFileSystemWatcher()
@@ -74,11 +148,13 @@ namespace GameMover.Model
 
         public void SetLocation(string selectedPath)
         {
+            if (Location == selectedPath) return;
+
             Location = selectedPath;
 
             DirectoryInfo[] directories = new DirectoryInfo(Location).GetDirectories();
 
-            Folders = new AsyncObservableCollection<GameFolder>();
+            Folders.Clear();
             foreach (var directoryInfo in directories)
             {
                 //Skip folders that we don't have access to
@@ -92,10 +168,18 @@ namespace GameMover.Model
         /// <exception cref="UnauthorizedAccessException">Junction creation failed.</exception>
         public void CreateJunctionTo(GameFolder junctionTarget)
         {
-            var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
-            if (junctionDirectory.Exists == false)
+            try
             {
-                JunctionPoint.Create(junctionDirectory, junctionTarget, false);
+                var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
+                if (junctionDirectory.Exists == false)
+                {
+                    JunctionPoint.Create(junctionDirectory, junctionTarget, false);
+                }
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Debug.WriteLine(e);
+                ShowMessage(InvalidPermission);
             }
         }
 
@@ -151,13 +235,30 @@ namespace GameMover.Model
                 //Do nothing if they cancel
                 return false;
             }
+
+            //Delete junctions pointing to the deleted folder
+            OtherPane.Folders.TraverseBackwards(folder => {
+                if (folder.IsJunction && folder.JunctionTarget.Equals(folderToDelete.DirectoryInfo.FullName))
+                {
+                    OtherPane.DeleteJunction(folder);
+                }
+            });
+
             return true;
         }
 
         /// <exception cref="IOException">If it is not a junction path.</exception>
         public void DeleteJunction(DirectoryInfo junctionDirectory)
         {
-            JunctionPoint.Delete(junctionDirectory);
+            try
+            {
+                JunctionPoint.Delete(junctionDirectory);
+            }
+            catch (IOException e)
+            {
+                Debug.WriteLine(e);
+                ShowMessage($"Failed to delete junction at '{junctionDirectory.FullName}'. Please verify it is a junction.");
+            }
         }
 
         public void Dispose() => FileSystemWatcher.Dispose();

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.25618.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameMover", "GameMover\GameMover.csproj", "{441E1C89-6B17-45E7-9E4D-3BF20423C23E}"
 EndProject
@@ -9,23 +9,20 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Release-Signed|Any CPU = Release-Signed|Any CPU
+		Test|Any CPU = Test|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
+		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
+		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Test|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 2
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://nicklargen.visualstudio.com/defaultcollection
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = GameMover\\GameMover.csproj
-		SccProjectName1 = GameMover
-		SccLocalPath1 = GameMover
 	EndGlobalSection
 EndGlobal
