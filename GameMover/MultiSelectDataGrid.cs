@@ -10,7 +10,9 @@ namespace GameMover
 
         public MultiSelectDataGrid()
         {
-            Loaded += (sender, args) => { SelectedItemsList = SelectedItems; };
+            Loaded += (sender, args) => {
+                SelectedItemsList = SelectedItems;
+            };
         }
 
         public IList SelectedItemsList
@@ -20,8 +22,8 @@ namespace GameMover
         }
 
         public static readonly DependencyProperty SelectedItemsListProperty =
-            DependencyProperty.Register("SelectedItemsList", typeof(IList), typeof(MultiSelectDataGrid), new FrameworkPropertyMetadata(
-                defaultValue: null, flags: FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            DependencyProperty.Register("SelectedItemsList", typeof(IList), typeof(MultiSelectDataGrid),
+                new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
     }
 

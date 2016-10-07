@@ -2,16 +2,19 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+
 using Microsoft.Win32.SafeHandles;
+
 // ReSharper disable UnusedMember.Local
 
 namespace GameMover.External_Code
 {
 
 /**
-    Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-    By Jeff Brown
-    **/
+                    Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
+                    By Jeff Brown
+                    **/
 
     /// <summary>
     ///     Provides access to NTFS junction points in .Net.
@@ -260,7 +263,8 @@ namespace GameMover.External_Code
 
                     int bytesReturned;
                     bool result = DeviceIoControl(handle.DangerousGetHandle(), FSCTL_SET_REPARSE_POINT,
-                        inBuffer, targetDirBytes.Length + 20, IntPtr.Zero, nOutBufferSize: 0, pBytesReturned: out bytesReturned, lpOverlapped: IntPtr.Zero);
+                        inBuffer, targetDirBytes.Length + 20, IntPtr.Zero, nOutBufferSize: 0, pBytesReturned: out bytesReturned,
+                        lpOverlapped: IntPtr.Zero);
 
                     if (!result) ThrowLastWin32Error("Unable to create junction point.");
                 }
@@ -328,6 +332,7 @@ namespace GameMover.External_Code
                     throw new IOException("Unable to delete junction point.", ex);
                 }
             }
+
             return true;
         }
 
@@ -423,10 +428,19 @@ namespace GameMover.External_Code
 
         private static SafeFileHandle OpenReparsePoint(string reparsePoint, EFileAccess accessMode)
         {
-            SafeFileHandle reparsePointHandle = new SafeFileHandle(CreateFile(reparsePoint, accessMode,
-                EFileShare.Read | EFileShare.Write | EFileShare.Delete,
-                IntPtr.Zero, ECreationDisposition.OpenExisting,
-                EFileAttributes.BackupSemantics | EFileAttributes.OpenReparsePoint, IntPtr.Zero), ownsHandle: true);
+            SafeFileHandle reparsePointHandle = null;
+            // Retry a few times in case the folder has just been created and a file in use by another process error occurs
+            for (var folderOpenAttempts = 0; folderOpenAttempts < 5; folderOpenAttempts++)
+            {
+                if (folderOpenAttempts != 0) Thread.Sleep(25);
+
+                reparsePointHandle = new SafeFileHandle(CreateFile(reparsePoint, accessMode,
+                    EFileShare.Read | EFileShare.Write | EFileShare.Delete,
+                    IntPtr.Zero, ECreationDisposition.OpenExisting,
+                    EFileAttributes.BackupSemantics | EFileAttributes.OpenReparsePoint, IntPtr.Zero), ownsHandle: true);
+
+                if (Marshal.GetLastWin32Error() == 0) break; //Success
+            }
 
             if (Marshal.GetLastWin32Error() != 0) ThrowLastWin32Error("Unable to open reparse point.");
 

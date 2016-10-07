@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using MessageBox = System.Windows.MessageBox;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Windows;
+
+using Prism.Commands;
 
 namespace GameMover
 {
@@ -13,28 +17,29 @@ namespace GameMover
                               InvalidPermission = "Invalid permission";
 
 
-        public static void ShowMessage(string message)
-        {
+        public delegate void ErrorDisplayer(string message, Exception e = null);
+
+        public static ErrorDisplayer DisplayError = (message, exception) => {
             MessageBox.Show(message);
-        }
+            Debug.WriteLine(exception);
+        };
 
-        internal static FolderBrowserDialog CreateFolderBrowserDialog(string defaultSelectedPath)
+        public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
         {
-            var folderBrowserDialog = new FolderBrowserDialog {
-                Description = "Select directory containing your game folders.",
-                SelectedPath = defaultSelectedPath,
-                RootFolder = Environment.SpecialFolder.MyComputer
-            };
-            return folderBrowserDialog;
-        }
-
-        public static void TraverseBackwards<T>(this IList<T> list, Action<T> action)
-        {
-            //Iterate backwards so that the supplied action can remove elements from the list
-            for (int i = list.Count - 1; i >= 0; i--)
+            foreach (var item in enumerable)
             {
-                action(list[i]);
+                action(item);
             }
+        }
+
+        public static TCommand ObservesCollection<TCommand, TCollection>(this TCommand command,
+            Expression<Func<TCollection>> propertyExpression)
+            where TCommand : DelegateCommand
+            where TCollection : INotifyCollectionChanged
+        {
+            propertyExpression.Compile()().CollectionChanged += (sender, args) => command.RaiseCanExecuteChanged();
+            command.ObservesProperty(propertyExpression);
+            return command;
         }
 
     }

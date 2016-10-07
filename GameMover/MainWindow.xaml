@@ -39,9 +39,8 @@
             <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
             <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
             <ComboBox DockPanel.Dock="Left"
-                      ItemsSource="{Binding BoxPathsObservableCollection}"
-                      SelectedItem="{Binding SelectedBoxPath,
-                                             Mode=TwoWay}" />
+                      ItemsSource="{Binding SavedPaths}"
+                      SelectedItem="{Binding SelectedPath, Mode=TwoWay}" />
         </DockPanel>
 
         <Grid Margin="10" DockPanel.Dock="Top">
@@ -50,7 +49,7 @@
                 <ColumnDefinition x:Name="storageColumnDefinition" Width="0.5*" />
             </Grid.ColumnDefinitions>
 
-            <DockPanel Grid.Column="0" DataContext="{Binding InstallPane}">
+            <DockPanel Grid.Column="0" DataContext="{Binding InstallCollection}">
                 <DockPanel DockPanel.Dock="Top" LastChildFill="False">
                     <TextBlock HorizontalAlignment="Center"
                                DockPanel.Dock="Top"
@@ -77,22 +76,24 @@
                     <TextBlock Text="{Binding SelectedItems.Count}" TextWrapping="Wrap" />
                     <Button Command="{Binding CopyCommand}" Content="Copy -&gt;" />
                     <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
-                    <Button Command="{Binding DeleteJuctionsCommand}" Content="Delete Junction" />
+                    <Button Command="{Binding DeleteJunctionsCommand}" Content="Delete Junction" />
                     <Button Command="{Binding ArchiveToStorageCommand}" Content="Archive -&gt;" />
                 </DockPanel>
-                <local:MultiSelectDataGrid ItemsSource="{Binding Folders}" SelectedItemsList="{Binding SelectedItems}" SelectionUnit="FullRow">
+                <local:MultiSelectDataGrid x:Name="installGrid"
+                                           ItemsSource="{Binding Folders}"
+                                           SelectedItemsList="{Binding SelectedItems}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="*"
                                             MinWidth="100"
                                             Binding="{Binding Name}"
-                                            Header="Name"
-                                            SortDirection="Ascending" />
-<!--                        <DataGridCheckBoxColumn Binding="{Binding IsJunction}" Header="Junction" />-->
-                        <DataGridTextColumn Binding="{Binding Size,
+                                            Header="Name" />
+                        <!--                        <DataGridCheckBoxColumn Binding="{Binding IsJunction}" Header="Junction" />-->
+                        <DataGridTextColumn
+                            Binding="{Binding Size,
                                                               IsAsync=True,
                                                               Converter={StaticResource SizeConverter}}"
-                                            CellStyle="{StaticResource RightAlignCell}"
-                                            Header="Size (MB)" />
+                            CellStyle="{StaticResource RightAlignCell}"
+                            Header="Size (MB)" />
                         <DataGridTextColumn Width="*"
                                             Binding="{Binding JunctionTarget}"
                                             Header="Junction Target" />
@@ -101,7 +102,7 @@
             </DockPanel>
 
 
-            <DockPanel Grid.Column="1" DataContext="{Binding StoragePane}">
+            <DockPanel Grid.Column="1" DataContext="{Binding StorageCollection}">
                 <TextBlock HorizontalAlignment="Center"
                            DockPanel.Dock="Top"
                            Text="Storage Location"
@@ -130,19 +131,19 @@
                     <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
                 </DockPanel>
 
-                <local:MultiSelectDataGrid ItemsSource="{Binding Folders}" SelectedItemsList="{Binding SelectedItems}">
-
+                <local:MultiSelectDataGrid x:Name="storageGrid"
+                                           ItemsSource="{Binding Folders}"
+                                           SelectedItemsList="{Binding SelectedItems}">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Width="*"
-                                            Binding="{Binding Name}"
-                                            Header="Name"
-                                            SortDirection="Ascending" />
-                        <DataGridTextColumn Binding="{Binding Size,
-                                                              IsAsync=True,
-                                                              Converter={StaticResource SizeConverter}}"
-                                            CanUserResize="False"
-                                            CellStyle="{StaticResource RightAlignCell}"
-                                            Header="Size (MB)" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding Name}"
+                            Header="Name" />
+                        <DataGridTextColumn
+                            Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
+                            CanUserResize="False"
+                            CellStyle="{StaticResource RightAlignCell}"
+                            Header="Size (MB)" />
                     </DataGrid.Columns>
                 </local:MultiSelectDataGrid>
             </DockPanel>

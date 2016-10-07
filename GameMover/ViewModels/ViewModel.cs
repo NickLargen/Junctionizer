@@ -2,8 +2,11 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+
 using GameMover.Model;
+
 using Microsoft.Win32;
+
 using Prism.Commands;
 using Prism.Mvvm;
 
@@ -16,21 +19,20 @@ namespace GameMover.ViewModels
         /// Allows you to set the selection without trigger selection change (so that when saving a control you don't reload)
         private bool _ignorePathsSelectionChange;
 
-        private string _selectedBoxPath;
+        public FolderCollection InstallCollection { get; private set; }
+        public FolderCollection StorageCollection { get; private set; }
 
-        public FolderCollection InstallPane { get; } = new FolderCollection();
+        public ObservableCollection<string> SavedPaths { get; } = new ObservableCollection<string>();
 
-        public FolderCollection StoragePane { get; } = new FolderCollection();
 
-        public ObservableCollection<string> BoxPathsObservableCollection { get; } = new ObservableCollection<string>();
 
-        public string SelectedBoxPath
+        public string SelectedPath
         {
-            get { return _selectedBoxPath; }
+            get { return _selectedPath; }
             set {
-                if (_selectedBoxPath == value) return;
+                if (_selectedPath == value) return;
 
-                _selectedBoxPath = value;
+                _selectedPath = value;
 
                 if (_ignorePathsSelectionChange)
                 {
@@ -38,36 +40,44 @@ namespace GameMover.ViewModels
                     return;
                 }
 
-                string[] paths = SelectedBoxPath?.Split(new[] {ARROWED_PATH_SEPARATOR}, StringSplitOptions.RemoveEmptyEntries);
+                string[] paths = _selectedPath?.Split(new[] {ARROWED_PATH_SEPARATOR}, StringSplitOptions.RemoveEmptyEntries);
 
-                //TODO fail horribly?
-                if (paths?.Length != 2) return;
+                if (paths?.Length != 2) throw new Exception($"Unable to parse selected path \"{_selectedPath}\".");
 
-                InstallPane.SetLocation(paths[0]);
-                StoragePane.SetLocation(paths[1]);
+                InstallCollection.Location = paths[0];
+                StorageCollection.Location = paths[1];
             }
         }
 
+        private string _selectedPath;
+
         private const string ARROWED_PATH_SEPARATOR = " -> ";
 
-        public ViewModel()
+        public void Initialize()
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
+            var installSteamCommon = regKey == null
+                                         ? @"C:"
+                                         : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
-            var installSteamCommon = regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
+
+            InstallCollection = new FolderCollection {
+                FolderBrowserDefaultLocation = installSteamCommon
+            };
+            StorageCollection = new FolderCollection {
+                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common"
+            };
+
+            InstallCollection.CorrespondingCollection = StorageCollection;
+            StorageCollection.CorrespondingCollection = InstallCollection;
+
+            InstallCollection.PropertyChanged += OnFolderCollectionChange;
+            StorageCollection.PropertyChanged += OnFolderCollectionChange;
 
 
-
-            InstallPane.PropertyChanged += OnFolderCollectionChange;
-            StoragePane.PropertyChanged += OnFolderCollectionChange;
-
-            InstallPane.SteamCommonFolderGuess = installSteamCommon;
-            InstallPane.OtherPane = StoragePane;
-
-            StoragePane.SteamCommonFolderGuess = @"E:\Steam\SteamApps\common";
-            StoragePane.OtherPane = InstallPane;
-
-            BoxPathsObservableCollection.Add(InstallPane.SteamCommonFolderGuess + ARROWED_PATH_SEPARATOR + StoragePane.SteamCommonFolderGuess);
+            SavedPaths.Add(InstallCollection.FolderBrowserDefaultLocation + ARROWED_PATH_SEPARATOR +
+                           StorageCollection.FolderBrowserDefaultLocation);
+            SavedPaths.Add(@"C:\Users\Nick\Desktop\folder a -> C:\Users\Nick\Desktop\folder b");
         }
 
         private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
@@ -75,7 +85,8 @@ namespace GameMover.ViewModels
             // When a new folder location is chosen, check if it is already saved and if so display select it so that it can be displayed in the combo box
             if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
             {
-                ChangeBoxPathWithoutTriggerSelectionChange(BoxPathsObservableCollection.FirstOrDefault(s => s.Equals(GetCurrentLocationsString(), StringComparison.OrdinalIgnoreCase)));
+                SilentlySetSavedPath(SavedPaths.FirstOrDefault(
+                    s => s.Equals(GetCurrentLocationsString(), StringComparison.OrdinalIgnoreCase)));
             }
         }
 
@@ -85,27 +96,30 @@ namespace GameMover.ViewModels
         public DelegateCommand SaveCurrentLocationCommand => new DelegateCommand(() => {
             string arrowedPath = GetCurrentLocationsString();
 
-            if (BoxPathsObservableCollection.Contains(arrowedPath) == false)
+            if (SavedPaths.Contains(arrowedPath) == false)
             {
-                BoxPathsObservableCollection.Add(arrowedPath);
+                SavedPaths.Add(arrowedPath);
 
-                ChangeBoxPathWithoutTriggerSelectionChange(arrowedPath);
+                SilentlySetSavedPath(arrowedPath);
             }
         }, () => true);
 
-        private void ChangeBoxPathWithoutTriggerSelectionChange(string newPath)
+        private void SilentlySetSavedPath(string newPath)
         {
-            if (SelectedBoxPath == newPath) return;
+            if (SelectedPath == newPath) return;
 
             _ignorePathsSelectionChange = true;
-            SelectedBoxPath = newPath;
+            SelectedPath = newPath;
         }
 
-        private string GetCurrentLocationsString() => $"{InstallPane.Location}{ARROWED_PATH_SEPARATOR}{StoragePane.Location}";
+        private string GetCurrentLocationsString()
+        {
+            return $"{InstallCollection.Location}{ARROWED_PATH_SEPARATOR}{StorageCollection.Location}";
+        }
 
         [AutoLazy.Lazy]
         public DelegateCommand DeleteCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedBoxPath != null) BoxPathsObservableCollection.Remove(SelectedBoxPath);
+            if (SelectedPath != null) SavedPaths.Remove(SelectedPath);
         }, () => true);
 
     }

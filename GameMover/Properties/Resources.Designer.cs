@@ -59,5 +59,14 @@ namespace GameMover.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select directory containing your game folders..
+        /// </summary>
+        internal static string SelectLocationCommand_Select_directory_containing_folders {
+            get {
+                return ResourceManager.GetString("SelectLocationCommand_Select_directory_containing_folders", resourceCulture);
+            }
+        }
     }
 }

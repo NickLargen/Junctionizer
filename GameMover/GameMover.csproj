@@ -115,6 +115,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="External Code\AsyncObservableCollection.cs" />
+    <Compile Include="External Code\ObservableRangeCollection.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="MultiSelectDataGrid.cs" />
@@ -153,6 +154,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="GameMover_TemporaryKey.pfx" />
     <None Include="packages.config" />
