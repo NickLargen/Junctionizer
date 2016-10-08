@@ -1,19 +1,16 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
-using GameMover.Model;
 using GameMover.ViewModels;
 
 using WpfBindingErrors;
 
 [assembly: CLSCompliant(false)]
 
-namespace GameMover
+namespace GameMover.UI
 {
 
     /// <summary>
@@ -21,7 +18,7 @@ namespace GameMover
     /// </summary>
     public partial class MainWindow
     {
-
+        
         //TODO: Delete on a junction gives recycle bin prompt but it's just for the junction
         //TODO: Save locations between runs
 
@@ -44,8 +41,6 @@ namespace GameMover
         public MainWindow()
         {
             BindingExceptionThrower.Attach();
-            //Silence freezable trace warnings since they don't seem to represent an actual problem
-            PresentationTraceSources.FreezableSource.Switch.Level = SourceLevels.Error;
             InitializeComponent();
 
             SetInitialSort(installGrid);
@@ -64,14 +59,6 @@ namespace GameMover
             dataGrid.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
         }
 
-        private void DataGridRow_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton != MouseButton.Left) return;
-
-            var dataGridRow = sender as DataGridRow;
-            var folder = dataGridRow?.Item as GameFolder;
-            if (folder != null) Process.Start(folder.DirectoryInfo.FullName);
-        }
 
         private void HideStorage(object sender, RoutedEventArgs e)
         {

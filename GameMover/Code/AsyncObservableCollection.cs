@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
 
-namespace GameMover.External_Code
+namespace GameMover.Code
 {
 
     public class AsyncObservableCollection<T> : ObservableCollection<T>

@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GameMover
+namespace GameMover.Code
 {
 
     internal class MultiSelectDataGrid : DataGrid

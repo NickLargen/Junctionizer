@@ -1,4 +1,4 @@
-﻿namespace GameMover
+﻿namespace GameMover.UI
 {
 
     /// <summary>

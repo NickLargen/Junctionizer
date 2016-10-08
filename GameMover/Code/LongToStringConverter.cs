@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GameMover
+namespace GameMover.Code
 {
 
     internal class LongToStringConverter : IValueConverter

@@ -7,7 +7,7 @@ using System.Windows;
 
 using Prism.Commands;
 
-namespace GameMover
+namespace GameMover.Code
 {
 
     internal static class StaticMethods

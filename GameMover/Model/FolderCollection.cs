@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using GameMover.Code;
 using GameMover.External_Code;
 using GameMover.Properties;
 
@@ -14,7 +15,7 @@ using Microsoft.VisualBasic.FileIO;
 using Prism.Commands;
 using Prism.Mvvm;
 
-using static GameMover.StaticMethods;
+using static GameMover.Code.StaticMethods;
 
 namespace GameMover.Model
 {
