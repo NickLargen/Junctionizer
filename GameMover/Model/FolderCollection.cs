@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 using GameMover.Code;
 using GameMover.External_Code;
@@ -16,6 +17,8 @@ using Prism.Commands;
 using Prism.Mvvm;
 
 using static GameMover.Code.StaticMethods;
+
+using Cursors = System.Windows.Forms.Cursors;
 
 namespace GameMover.Model
 {
@@ -70,6 +73,8 @@ namespace GameMover.Model
                 _location = value;
                 LocationSelected = true;
 
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+
                 CorrespondingCollection.BothCollectionsInitialized =
                     BothCollectionsInitialized |= LocationSelected && CorrespondingCollection.LocationSelected;
 
@@ -87,6 +92,8 @@ namespace GameMover.Model
 
                     Folders.Add(new GameFolder(directoryInfo));
                 }
+
+                Mouse.OverrideCursor = null;
             }
         }
 

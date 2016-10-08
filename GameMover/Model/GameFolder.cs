@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
+using GameMover.Code;
 using GameMover.External_Code;
 
 using Prism.Mvvm;
@@ -27,9 +29,23 @@ namespace GameMover.Model
 
                 if (_size == 0)
                 {
-                    var sizeInBytes =
-                        DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
-                    _size = sizeInBytes / 1024 / 1024;
+                    try
+                    {
+                        var sizeInBytes =
+                      DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
+                        _size = sizeInBytes / 1024 / 1024;
+                    }
+                    catch (IOException e)
+                    {
+                        var message = e.Message;
+                        var maybeFullPath = e.GetType().GetField("_maybeFullPath", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (maybeFullPath != null)
+                        {
+                            message += $" \"{maybeFullPath.GetValue(e)}\"";
+                        }
+                        StaticMethods.DisplayError(message, e);
+                    }
+                   
                 }
 
                 return _size;

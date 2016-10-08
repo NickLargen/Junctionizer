@@ -35,9 +35,6 @@ namespace GameMover.UI
         //Feature: support drag and drop
         //Feature: Update folder size in the UI if it is changed externally
 
-        //Feature: show spinner when hard drive is turning on on first access
-
-
         public MainWindow()
         {
             BindingExceptionThrower.Attach();
