@@ -12,9 +12,9 @@ namespace GameMover.External_Code
 {
 
 /**
-                    Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-                    By Jeff Brown
-                    **/
+                            Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
+                            By Jeff Brown
+                            **/
 
     /// <summary>
     ///     Provides access to NTFS junction points in .Net.
@@ -347,8 +347,13 @@ namespace GameMover.External_Code
         /// </exception>
         public static bool Exists(DirectoryInfo junctionDirectory)
         {
-            return Exists(junctionDirectory.FullName);
+            return junctionDirectory.IsReparsePoint() && Exists(junctionDirectory.FullName);
         }
+
+        /// <summary>
+        ///     Convenience method for checking if the provided directory info is a reparse point.
+        /// </summary>
+        public static bool IsReparsePoint(this DirectoryInfo directoryInfo) => (directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0;
 
         private static bool Exists(string path)
         {

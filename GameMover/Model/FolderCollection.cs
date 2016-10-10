@@ -4,21 +4,18 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
-using System.Windows.Input;
 
 using GameMover.Code;
 using GameMover.External_Code;
 using GameMover.Properties;
 
 using Microsoft.VisualBasic.FileIO;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
 using Prism.Mvvm;
 
 using static GameMover.Code.StaticMethods;
-
-using Cursors = System.Windows.Forms.Cursors;
 
 namespace GameMover.Model
 {
@@ -73,27 +70,28 @@ namespace GameMover.Model
                 _location = value;
                 LocationSelected = true;
 
-                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+                ShowLoadingSpinnerDuring(() => {
+                    CorrespondingCollection.BothCollectionsInitialized =
+                        BothCollectionsInitialized |= LocationSelected && CorrespondingCollection.LocationSelected;
 
-                CorrespondingCollection.BothCollectionsInitialized =
-                    BothCollectionsInitialized |= LocationSelected && CorrespondingCollection.LocationSelected;
+                    DirectoryWatcher.Path = Location;
+                    if (DirectoryWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
 
-                DirectoryWatcher.Path = Location;
-                if (DirectoryWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
-
-                var directories = new DirectoryInfo(Location).GetDirectories();
-
-                Folders.Clear();
-                foreach (var directoryInfo in directories)
-                {
-                    //Skip folders that we don't have access to
-                    var attributes = directoryInfo.Attributes;
-                    if (attributes.HasFlag(FileAttributes.System) || attributes.HasFlag(FileAttributes.Hidden)) continue;
-
-                    Folders.Add(new GameFolder(directoryInfo));
-                }
-
-                Mouse.OverrideCursor = null;
+                    Folders.Clear();
+                    try
+                    {
+                        foreach (var directoryInfo in new DirectoryInfo(Location)
+                            .EnumerateDirectories()
+                            .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) != 0))
+                        {
+                            Folders.Add(new GameFolder(directoryInfo));
+                        }
+                    }
+                    catch (IOException e)
+                    {
+                        DisplayError(e.Message, e);
+                    }
+                });
             }
         }
 
@@ -151,14 +149,11 @@ namespace GameMover.Model
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectLocationCommand => new DelegateCommand(() => {
-            var folderBrowserDialog = new FolderBrowserDialog {
-                Description = Resources.SelectLocationCommand_Select_directory_containing_folders,
-                SelectedPath = FolderBrowserDefaultLocation,
-                RootFolder = Environment.SpecialFolder.MyComputer
-            };
-            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            var folderDialog = NewFolderDialog(Resources.SelectLocationCommand_Select_directory_containing_folders);
+            folderDialog.DefaultDirectory = FolderBrowserDefaultLocation;
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                Location = folderBrowserDialog.SelectedPath;
+                Location = folderDialog.FileName;
             }
         });
         #endregion

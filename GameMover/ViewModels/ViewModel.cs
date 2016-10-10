@@ -1,14 +1,20 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 
+using GameMover.Code;
+using GameMover.External_Code;
 using GameMover.Model;
 
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
+using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
+
+using static GameMover.Code.StaticMethods;
 
 namespace GameMover.ViewModels
 {
@@ -22,7 +28,7 @@ namespace GameMover.ViewModels
         public FolderCollection InstallCollection { get; private set; }
         public FolderCollection StorageCollection { get; private set; }
 
-        public ObservableCollection<string> SavedPaths { get; } = new ObservableCollection<string>();
+        public AsyncObservableCollection<string> SavedPaths { get; } = new AsyncObservableCollection<string>();
 
 
 
@@ -39,6 +45,8 @@ namespace GameMover.ViewModels
                     _ignorePathsSelectionChange = false;
                     return;
                 }
+
+                if (_selectedPath == null) return;
 
                 string[] paths = _selectedPath?.Split(new[] {ARROWED_PATH_SEPARATOR}, StringSplitOptions.RemoveEmptyEntries);
 
@@ -80,18 +88,6 @@ namespace GameMover.ViewModels
             SavedPaths.Add(@"C:\Users\Nick\Desktop\folder a -> C:\Users\Nick\Desktop\folder b");
         }
 
-        private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
-        {
-            // When a new folder location is chosen, check if it is already saved and if so display select it so that it can be displayed in the combo box
-            if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
-            {
-                SilentlySetSavedPath(SavedPaths.FirstOrDefault(
-                    s => s.Equals(GetCurrentLocationsString(), StringComparison.OrdinalIgnoreCase)));
-            }
-        }
-
-
-
         [AutoLazy.Lazy]
         public DelegateCommand SaveCurrentLocationCommand => new DelegateCommand(() => {
             string arrowedPath = GetCurrentLocationsString();
@@ -103,6 +99,45 @@ namespace GameMover.ViewModels
                 SilentlySetSavedPath(arrowedPath);
             }
         }, () => true);
+
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteCurrentLocationCommand => new DelegateCommand(() => {
+            if (SelectedPath != null) SavedPaths.Remove(SelectedPath);
+        }, () => true);
+
+
+        public InteractionRequest<FindJunctionsViewModel> ExistingJunctionSearchDisplayRequest { get; } =
+            new InteractionRequest<FindJunctionsViewModel>();
+        [AutoLazy.Lazy]
+        public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(async () =>
+        {
+            var folderDialog = NewFolderDialog("Select Root Directory");
+            if (folderDialog.ShowDialog() != CommonFileDialogResult.Ok) return;
+
+            // The same notification object is passed directly back
+            var interactionRequestViewModel = new FindJunctionsViewModel();
+            ExistingJunctionSearchDisplayRequest.Raise(interactionRequestViewModel, notification =>
+            {
+                foreach (var info in notification.junctions)
+                {
+                    var newPath = info.Parent.FullName + ARROWED_PATH_SEPARATOR +
+                                  Directory.GetParent(JunctionPoint.GetTarget(info)).FullName;
+                    if (!SavedPaths.Contains(newPath)) SavedPaths.Add(newPath);
+                }
+            });
+
+            await interactionRequestViewModel.ExecuteSearch(folderDialog.FileName);
+        }, () => true);
+
+        private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
+        {
+            // When a new folder location is chosen, check if it is already saved and if so display select it so that it can be displayed in the combo box
+            if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
+            {
+                SilentlySetSavedPath(SavedPaths.FirstOrDefault(
+                    s => s.Equals(GetCurrentLocationsString(), StringComparison.OrdinalIgnoreCase)));
+            }
+        }
 
         private void SilentlySetSavedPath(string newPath)
         {
@@ -116,11 +151,6 @@ namespace GameMover.ViewModels
         {
             return $"{InstallCollection.Location}{ARROWED_PATH_SEPARATOR}{StorageCollection.Location}";
         }
-
-        [AutoLazy.Lazy]
-        public DelegateCommand DeleteCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedPath != null) SavedPaths.Remove(SelectedPath);
-        }, () => true);
 
     }
 
