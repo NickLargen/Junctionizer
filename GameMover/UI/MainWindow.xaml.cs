@@ -43,8 +43,8 @@ namespace GameMover.UI
             BindingExceptionThrower.Attach();
             InitializeComponent();
 
-            SetInitialSort(installGrid);
-            SetInitialSort(storageGrid);
+            SetInitialSort(sourceGrid);
+            SetInitialSort(destinationGrid);
 
             ((MainWindowViewModel) DataContext).Initialize();
         }
@@ -60,14 +60,14 @@ namespace GameMover.UI
         }
 
 
-        private void HideStorage(object sender, RoutedEventArgs e)
+        private void HideDestination(object sender, RoutedEventArgs e)
         {
-            storageColumnDefinition.Width = new GridLength(0);
+            destinationColumnDefinition.Width = new GridLength(0);
         }
 
-        private void ShowStorage(object sender, RoutedEventArgs e)
+        private void ShowDestination(object sender, RoutedEventArgs e)
         {
-            storageColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
+            destinationColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
 
     }

@@ -32,8 +32,8 @@ namespace GameMover.ViewModels
             => new DelegateCommand<DialogClosingEventArgs>(args => OnDialogClosed?.Invoke());
         private event Action OnDialogClosed;
 
-        public FolderCollection InstallCollection { get; private set; }
-        public FolderCollection StorageCollection { get; private set; }
+        public FolderCollection SourceCollection { get; private set; }
+        public FolderCollection DestinationCollection { get; private set; }
 
         public AsyncObservableCollection<FolderMapping> DisplayedMappings { get; } = new AsyncObservableCollection<FolderMapping>();
 
@@ -48,8 +48,8 @@ namespace GameMover.ViewModels
                 if (previousValue?.SaveMapping == false) DisplayedMappings.Remove(previousValue);
 
                 IsSelectedMappingModificationAllowed = false;
-                InstallCollection.Location = _selectedMapping.Source;
-                StorageCollection.Location = _selectedMapping.Destination;
+                SourceCollection.Location = _selectedMapping.Source;
+                DestinationCollection.Location = _selectedMapping.Destination;
                 IsSelectedMappingModificationAllowed = true;
             }
         }
@@ -57,25 +57,24 @@ namespace GameMover.ViewModels
         public void Initialize()
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-            var installSteamCommon = regKey == null
-                                         ? @"C:"
-                                         : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
 
-            InstallCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = installSteamCommon
+            SourceCollection = new FolderCollection {
+                FolderBrowserDefaultLocation = regKey == null
+                                                   ? @"C:"
+                                                   : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common"
             };
-            StorageCollection = new FolderCollection {
+            DestinationCollection = new FolderCollection {
                 FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common"
             };
 
-            InstallCollection.CorrespondingCollection = StorageCollection;
-            StorageCollection.CorrespondingCollection = InstallCollection;
+            SourceCollection.CorrespondingCollection = DestinationCollection;
+            DestinationCollection.CorrespondingCollection = SourceCollection;
 
-            InstallCollection.PropertyChanged += OnFolderCollectionChange;
-            StorageCollection.PropertyChanged += OnFolderCollectionChange;
+            SourceCollection.PropertyChanged += OnFolderCollectionChange;
+            DestinationCollection.PropertyChanged += OnFolderCollectionChange;
 
-            DisplayedMappings.Add(new FolderMapping(InstallCollection.FolderBrowserDefaultLocation,
-                StorageCollection.FolderBrowserDefaultLocation, true));
+            DisplayedMappings.Add(new FolderMapping(SourceCollection.FolderBrowserDefaultLocation,
+                DestinationCollection.FolderBrowserDefaultLocation, true));
             DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Folder a", @"C:\Users\Nick\Desktop\Folder B", true));
         }
 
@@ -115,7 +114,7 @@ namespace GameMover.ViewModels
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
             if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)
             {
-                SelectedMapping = new FolderMapping(InstallCollection.Location, StorageCollection.Location);
+                SelectedMapping = new FolderMapping(SourceCollection.Location, DestinationCollection.Location);
             }
         }
 

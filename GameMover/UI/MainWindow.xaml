@@ -6,7 +6,7 @@
         xmlns:viewModels="clr-namespace:GameMover.ViewModels"
         xmlns:code="clr-namespace:GameMover.Code"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:ui="clr-namespace:GameMover.UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -35,7 +35,7 @@
     <materialDesign:DialogHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
             <i:EventTrigger EventName="DialogClosing">
-                <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}"/>
+                <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}" />
             </i:EventTrigger>
         </i:Interaction.Triggers>
         <DockPanel>
@@ -53,10 +53,10 @@
                         </i:Interaction.Triggers>
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Hide Storage"
+                    <MenuItem Header="Hide Destination"
                               IsCheckable="True"
-                              Checked="HideStorage"
-                              Unchecked="ShowStorage" />
+                              Checked="HideDestination"
+                              Unchecked="ShowDestination" />
                 </MenuItem>
             </Menu>
             <DockPanel Dock="Top">
@@ -66,40 +66,33 @@
                           Margin="10 3 10 3"
                           ItemsSource="{Binding DisplayedMappings}"
                           SelectedItem="{Binding SelectedMapping, Mode=TwoWay}">
-                
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                            <ContentPresenter Content="{Binding Converter={StaticResource FolderMappingConverter}}" ></ContentPresenter>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
+
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <ContentPresenter Content="{Binding Converter={StaticResource FolderMappingConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
                 </ComboBox>
             </DockPanel>
 
             <Grid Margin="10" DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="0.5*" />
-                    <ColumnDefinition x:Name="storageColumnDefinition" Width="0.5*" />
+                    <ColumnDefinition x:Name="destinationColumnDefinition" Width="0.5*" />
                 </Grid.ColumnDefinitions>
 
-                <DockPanel Grid.Column="0" DataContext="{Binding InstallCollection}">
-                    <DockPanel DockPanel.Dock="Top" LastChildFill="False">
-                        <TextBlock HorizontalAlignment="Center"
-                                   DockPanel.Dock="Top"
-                                   Text="Install Location"
-                                   TextTrimming="CharacterEllipsis" />
-                    </DockPanel>
+                <DockPanel Grid.Column="0" DataContext="{Binding SourceCollection}">
                     <DockPanel Margin="0,5,0,0"
                                HorizontalAlignment="Center"
                                DockPanel.Dock="Top"
                                LastChildFill="False">
-                        <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
-                        <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                        <Button Command="{Binding SelectLocationCommand}" Content="Select Source Folder" />
                     </DockPanel>
 
                     <DockPanel Margin="0,5,0,0"
                                HorizontalAlignment="Center"
                                DockPanel.Dock="Bottom">
-                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Storage" />
+                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Destination" />
                     </DockPanel>
 
                     <DockPanel HorizontalAlignment="Center"
@@ -109,9 +102,9 @@
                         <Button Command="{Binding CopyCommand}" Content="Copy -&gt;" />
                         <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
                         <Button Command="{Binding DeleteJunctionsCommand}" Content="Delete Junction" />
-                        <Button Command="{Binding ArchiveToStorageCommand}" Content="Archive -&gt;" />
+                        <Button Command="{Binding ArchiveCommand}" Content="Archive -&gt;" />
                     </DockPanel>
-                    <code:MultiSelectDataGrid x:Name="installGrid"
+                    <code:MultiSelectDataGrid x:Name="sourceGrid"
                                               ItemsSource="{Binding Folders}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               SelectedItemsList="{Binding SelectedItems}">
@@ -133,24 +126,17 @@
                 </DockPanel>
 
 
-                <DockPanel Grid.Column="1" DataContext="{Binding StorageCollection}">
-                    <TextBlock HorizontalAlignment="Center"
-                               DockPanel.Dock="Top"
-                               Text="Storage Location"
-                               TextAlignment="Right"
-                               TextTrimming="CharacterEllipsis" />
-
+                <DockPanel Grid.Column="1" DataContext="{Binding DestinationCollection}">
                     <DockPanel Margin="0,5,0,0"
                                HorizontalAlignment="Center"
                                DockPanel.Dock="Top">
-                        <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
-                        <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                        <Button Command="{Binding SelectLocationCommand}" Content="Select Destination Folder" />
                     </DockPanel>
 
                     <DockPanel Margin="0,5,0,0"
                                HorizontalAlignment="Center"
                                DockPanel.Dock="Bottom">
-                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not Installed" />
+                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Source" />
                     </DockPanel>
 
                     <DockPanel HorizontalAlignment="Center"
@@ -162,7 +148,7 @@
                         <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
                     </DockPanel>
 
-                    <code:MultiSelectDataGrid x:Name="storageGrid"
+                    <code:MultiSelectDataGrid x:Name="destinationGrid"
                                               ItemsSource="{Binding Folders}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               SelectedItemsList="{Binding SelectedItems}">

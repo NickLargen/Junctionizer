@@ -37,17 +37,12 @@ namespace GameMover.Model
                 _selectedItems = value;
 
                 SelectedItems.CollectionChanged += (sender, args) => {
-                    ArchiveToStorageCommand.RaiseCanExecuteChanged();
+                    ArchiveCommand.RaiseCanExecuteChanged();
                     CopyCommand.RaiseCanExecuteChanged();
                     CreateJunctionCommand.RaiseCanExecuteChanged();
                     DeleteFoldersCommand.RaiseCanExecuteChanged();
                     DeleteJunctionsCommand.RaiseCanExecuteChanged();
                 };
-//                ArchiveToStorageCommand.ObservesCollection(() => SelectedItems);
-//                CopyCommand.ObservesCollection(() => SelectedItems);
-//                CreateJunctionCommand.ObservesCollection(() => SelectedItems);
-//                DeleteFoldersCommand.ObservesCollection(() => SelectedItems);
-//                DeleteJunctionsCommand.ObservesCollection(() => SelectedItems);
             }
         }
         private IEnumerable<GameFolder> SelectedFolders
@@ -98,7 +93,7 @@ namespace GameMover.Model
         #region Commands
         //TODO test
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveToStorageCommand => new DelegateCommand(() => {
+        public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
             foreach (var folder in SelectedFolders)
             {
                 var createdFolder = CorrespondingCollection.CopyFolder(folder);
