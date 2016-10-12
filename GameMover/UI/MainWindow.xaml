@@ -64,8 +64,15 @@
                 <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
                 <ComboBox DockPanel.Dock="Left"
                           Margin="10 3 10 3"
-                          ItemsSource="{Binding SavedPaths}"
-                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}" />
+                          ItemsSource="{Binding DisplayedMappings}"
+                          SelectedItem="{Binding SelectedMapping, Mode=TwoWay}">
+                
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                            <ContentPresenter Content="{Binding Converter={StaticResource FolderMappingConverter}}" ></ContentPresenter>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+                </ComboBox>
             </DockPanel>
 
             <Grid Margin="10" DockPanel.Dock="Top">

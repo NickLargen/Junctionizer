@@ -23,6 +23,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <code:LongToStringConverter x:Key="SizeConverter" />
+            <code:FolderMappingToStringConverter x:Key="FolderMappingConverter" />
 
 
             <DataGridTextColumn x:Key="NameColumn" Width="*"

@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.25618.0
+VisualStudioVersion = 15.0.25807.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameMover", "GameMover\GameMover.csproj", "{441E1C89-6B17-45E7-9E4D-3BF20423C23E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{98069F2E-E28A-4661-B6CB-04F9470B9772}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Test|Any CPU.ActiveCfg = Release|Any CPU
 		{441E1C89-6B17-45E7-9E4D-3BF20423C23E}.Test|Any CPU.Build.0 = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Test|Any CPU.ActiveCfg = Release|Any CPU
+		{98069F2E-E28A-4661-B6CB-04F9470B9772}.Test|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
