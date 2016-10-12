@@ -46,7 +46,7 @@ namespace GameMover.UI
             SetInitialSort(installGrid);
             SetInitialSort(storageGrid);
 
-            ((ViewModel) DataContext).Initialize();
+            ((MainWindowViewModel) DataContext).Initialize();
         }
 
         private static void SetInitialSort(DataGrid dataGrid)

@@ -8,21 +8,32 @@
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:viewModels="clr-namespace:GameMover.ViewModels"
              mc:Ignorable="d"
-             Width="400">
-    <DockPanel Margin="16" DataContext="{Binding Content}" d:DataContext="{d:DesignInstance d:Type=viewModels:FindJunctionsViewModel}">
-        <TextBlock  Text="{Binding CurrentFolder}" TextWrapping="Wrap" DockPanel.Dock="Top"/>
-        <StackPanel Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Margin="0 16 0 0">
-            <Button IsCancel="True"
-                    Margin="0 0 0 0"
-                    Style="{DynamicResource MaterialDesignFlatButton}"
-                    Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
-                <Button.CommandParameter>
-                    <system:Boolean>False</system:Boolean>
-                </Button.CommandParameter>
-                CANCEL
-            </Button>
-        </StackPanel>
+             d:DataContext="{d:DesignInstance d:Type=viewModels:MainWindowViewModel}"
+             Width="400"
+             MinHeight="150">
+
+    <DockPanel Margin="16" DataContext="{Binding FindJunctionsViewModel}" LastChildFill="False">
+        <TextBlock TextWrapping="Wrap" DockPanel.Dock="Top">
+            <TextBlock.Text>
+                <MultiBinding StringFormat="Found {0} junctions after searching {1} directories.">
+                    <Binding Path="NumJunctions" Mode="OneWay" />
+                    <Binding Path="NumDirectories" Mode="OneWay"/>
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+        <TextBlock TextWrapping="Wrap" DockPanel.Dock="Top">
+            <Run Text="Searching: " FontWeight="Bold" />
+            <Run Text="{Binding CurrentFolder, Mode=OneWay}" />
+        </TextBlock>
+        <Button DockPanel.Dock="Bottom"
+                IsCancel="True"
+                Margin="0 0 0 0"
+                Style="{DynamicResource MaterialDesignFlatButton}"
+                Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+            <Button.CommandParameter>
+                <system:Boolean>False</system:Boolean>
+            </Button.CommandParameter>
+            Stop Search
+        </Button>
     </DockPanel>
 </UserControl>

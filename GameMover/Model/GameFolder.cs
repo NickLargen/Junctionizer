@@ -43,7 +43,7 @@ namespace GameMover.Model
                         {
                             message += $" \"{maybeFullPath.GetValue(e)}\"";
                         }
-                        StaticMethods.DisplayError(message, e);
+                        StaticMethods.HandleError(message, e);
                     }
                    
                 }
@@ -78,12 +78,13 @@ namespace GameMover.Model
                                                       : string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
 
         public override bool Equals(object obj) => CompareTo(obj as GameFolder) == 0;
-
         public bool Equals(GameFolder other) => CompareTo(other) == 0;
+        public static bool operator ==(GameFolder left, GameFolder right) => Equals(left, right);
+        public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
 
         public override int GetHashCode() => Name.ToLowerInvariant().GetHashCode();
 
-//        public static implicit operator DirectoryInfo(GameFolder folder) => folder.DirectoryInfo;
+        //        public static implicit operator DirectoryInfo(GameFolder folder) => folder.DirectoryInfo;
     }
 
 }

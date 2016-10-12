@@ -22,9 +22,9 @@ namespace GameMover.Code
         internal const string NoItemsSelected = "No folder selected.",
                               InvalidPermission = "Invalid permission";
 
-        public delegate void ErrorDisplayer(string message, Exception e = null);
+        public delegate void ErrorHandler(string message, Exception e = null);
 
-        public static ErrorDisplayer DisplayError = (message, exception) => {
+        public static ErrorHandler HandleError { get; }= (message, exception) => {
             MessageBox.Show(message);
             Debug.WriteLine(exception);
         };

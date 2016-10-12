@@ -6,8 +6,7 @@
         xmlns:viewModels="clr-namespace:GameMover.ViewModels"
         xmlns:code="clr-namespace:GameMover.Code"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:system="clr-namespace:System;assembly=mscorlib"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
         xmlns:prism="http://prismlibrary.com/"
         xmlns:ui="clr-namespace:GameMover.UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -22,144 +21,158 @@
         MinHeight="300"
         mc:Ignorable="d">
     <Window.DataContext>
-        <viewModels:ViewModel />
+        <viewModels:MainWindowViewModel />
     </Window.DataContext>
 
     <i:Interaction.Triggers>
-        <prism:InteractionRequestTrigger SourceObject="{Binding ExistingJunctionSearchDisplayRequest}">
-            <prism:PopupWindowAction CenterOverAssociatedObject="True">
-                <prism:PopupWindowAction.WindowContent>
-                    <ui:FindExistingJunctionsDialog />
-                </prism:PopupWindowAction.WindowContent>
-            </prism:PopupWindowAction>
+
+        <prism:InteractionRequestTrigger SourceObject="{Binding CloseDialogRequest}">
+            <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
         </prism:InteractionRequestTrigger>
     </i:Interaction.Triggers>
 
-    <DockPanel>
-        <Menu DockPanel.Dock="Top" Height="36">
-            <MenuItem Header="_File" Height="36">
-                <MenuItem Header="_Search Existing Junctions"
-                          Command="{Binding FindExistingJunctionsCommand}" />
-                <Separator />
-                <MenuItem Header="Hide Storage"
-                          IsCheckable="True"
-                          Checked="HideStorage"
-                          Unchecked="ShowStorage" />
-            </MenuItem>
-        </Menu>
-        <DockPanel Dock="Top">
-            <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
-            <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
-            <ComboBox DockPanel.Dock="Left"
-                      Margin="10 3 10 3"
-                      ItemsSource="{Binding SavedPaths}"
-                      SelectedItem="{Binding SelectedPath, Mode=TwoWay}" />
-        </DockPanel>
 
-        <Grid Margin="10" DockPanel.Dock="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.5*" />
-                <ColumnDefinition x:Name="storageColumnDefinition" Width="0.5*" />
-            </Grid.ColumnDefinitions>
+    <materialDesign:DialogHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="DialogClosing">
+                <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}"/>
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top" Height="36">
+                <MenuItem Header="_File" Height="36">
+                    <MenuItem Header="_Search Existing Junctions"
+                              Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}">
+                        <MenuItem.CommandParameter>
+                            <ui:FindExistingJunctionsDialog />
+                        </MenuItem.CommandParameter>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding FindExistingJunctionsCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Hide Storage"
+                              IsCheckable="True"
+                              Checked="HideStorage"
+                              Unchecked="ShowStorage" />
+                </MenuItem>
+            </Menu>
+            <DockPanel Dock="Top">
+                <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
+                <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
+                <ComboBox DockPanel.Dock="Left"
+                          Margin="10 3 10 3"
+                          ItemsSource="{Binding SavedPaths}"
+                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}" />
+            </DockPanel>
 
-            <DockPanel Grid.Column="0" DataContext="{Binding InstallCollection}">
-                <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+            <Grid Margin="10" DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*" />
+                    <ColumnDefinition x:Name="storageColumnDefinition" Width="0.5*" />
+                </Grid.ColumnDefinitions>
+
+                <DockPanel Grid.Column="0" DataContext="{Binding InstallCollection}">
+                    <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                        <TextBlock HorizontalAlignment="Center"
+                                   DockPanel.Dock="Top"
+                                   Text="Install Location"
+                                   TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                    <DockPanel Margin="0,5,0,0"
+                               HorizontalAlignment="Center"
+                               DockPanel.Dock="Top"
+                               LastChildFill="False">
+                        <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
+                        <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+
+                    <DockPanel Margin="0,5,0,0"
+                               HorizontalAlignment="Center"
+                               DockPanel.Dock="Bottom">
+                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Storage" />
+                    </DockPanel>
+
+                    <DockPanel HorizontalAlignment="Center"
+                               DockPanel.Dock="Bottom"
+                               LastChildFill="False">
+                        <TextBlock Text="{Binding SelectedItems.Count}" />
+                        <Button Command="{Binding CopyCommand}" Content="Copy -&gt;" />
+                        <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
+                        <Button Command="{Binding DeleteJunctionsCommand}" Content="Delete Junction" />
+                        <Button Command="{Binding ArchiveToStorageCommand}" Content="Archive -&gt;" />
+                    </DockPanel>
+                    <code:MultiSelectDataGrid x:Name="installGrid"
+                                              ItemsSource="{Binding Folders}"
+                                              CellStyle="{StaticResource CustomCellStyle}"
+                                              SelectedItemsList="{Binding SelectedItems}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="*"
+                                                MinWidth="100"
+                                                Binding="{Binding Name}"
+                                                Header="Name" />
+                            <DataGridTextColumn
+                                Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
+                                CellStyle="{StaticResource RightAlignCell}"
+                                Header="Size (MB)"
+                                HeaderStyle="{StaticResource RightAlignColumnHeader}" />
+                            <DataGridTextColumn Width="*"
+                                                Binding="{Binding JunctionTarget}"
+                                                Header="Junction Target" />
+                        </DataGrid.Columns>
+                    </code:MultiSelectDataGrid>
+                </DockPanel>
+
+
+                <DockPanel Grid.Column="1" DataContext="{Binding StorageCollection}">
                     <TextBlock HorizontalAlignment="Center"
                                DockPanel.Dock="Top"
-                               Text="Install Location"
+                               Text="Storage Location"
+                               TextAlignment="Right"
                                TextTrimming="CharacterEllipsis" />
+
+                    <DockPanel Margin="0,5,0,0"
+                               HorizontalAlignment="Center"
+                               DockPanel.Dock="Top">
+                        <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
+                        <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+
+                    <DockPanel Margin="0,5,0,0"
+                               HorizontalAlignment="Center"
+                               DockPanel.Dock="Bottom">
+                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not Installed" />
+                    </DockPanel>
+
+                    <DockPanel HorizontalAlignment="Center"
+                               DockPanel.Dock="Bottom"
+                               LastChildFill="False">
+                        <TextBlock Text="{Binding SelectedItems.Count}" />
+                        <Button Command="{Binding CopyCommand}" Content="&lt;- Copy" />
+                        <Button Command="{Binding CreateJunctionCommand}" Content="&lt;- Create Junction" />
+                        <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
+                    </DockPanel>
+
+                    <code:MultiSelectDataGrid x:Name="storageGrid"
+                                              ItemsSource="{Binding Folders}"
+                                              CellStyle="{StaticResource CustomCellStyle}"
+                                              SelectedItemsList="{Binding SelectedItems}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn
+                                Width="*"
+                                Binding="{Binding Name}"
+                                Header="Name" />
+                            <DataGridTextColumn
+                                Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
+                                CellStyle="{StaticResource RightAlignCell}"
+                                HeaderStyle="{StaticResource RightAlignColumnHeader}"
+                                Header="Size (MB)" />
+                        </DataGrid.Columns>
+                    </code:MultiSelectDataGrid>
                 </DockPanel>
-                <DockPanel Margin="0,5,0,0"
-                           HorizontalAlignment="Center"
-                           DockPanel.Dock="Top"
-                           LastChildFill="False">
-                    <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
-                    <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
-
-                <DockPanel Margin="0,5,0,0"
-                           HorizontalAlignment="Center"
-                           DockPanel.Dock="Bottom">
-                    <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Storage" />
-                </DockPanel>
-
-                <DockPanel HorizontalAlignment="Center"
-                           DockPanel.Dock="Bottom"
-                           LastChildFill="False">
-                    <TextBlock Text="{Binding SelectedItems.Count}" />
-                    <Button Command="{Binding CopyCommand}" Content="Copy -&gt;" />
-                    <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
-                    <Button Command="{Binding DeleteJunctionsCommand}" Content="Delete Junction" />
-                    <Button Command="{Binding ArchiveToStorageCommand}" Content="Archive -&gt;" />
-                </DockPanel>
-                <code:MultiSelectDataGrid x:Name="installGrid"
-                                          ItemsSource="{Binding Folders}"
-                                          CellStyle="{StaticResource CustomCellStyle}"
-                                          SelectedItemsList="{Binding SelectedItems}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Width="*"
-                                            MinWidth="100"
-                                            Binding="{Binding Name}"
-                                            Header="Name" />
-                        <DataGridTextColumn
-                            Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
-                            CellStyle="{StaticResource RightAlignCell}"
-                            Header="Size (MB)"
-                            HeaderStyle="{StaticResource RightAlignColumnHeader}" />
-                        <DataGridTextColumn Width="*"
-                                            Binding="{Binding JunctionTarget}"
-                                            Header="Junction Target" />
-                    </DataGrid.Columns>
-                </code:MultiSelectDataGrid>
-            </DockPanel>
-
-
-            <DockPanel Grid.Column="1" DataContext="{Binding StorageCollection}">
-                <TextBlock HorizontalAlignment="Center"
-                           DockPanel.Dock="Top"
-                           Text="Storage Location"
-                           TextAlignment="Right"
-                           TextTrimming="CharacterEllipsis" />
-
-                <DockPanel Margin="0,5,0,0"
-                           HorizontalAlignment="Center"
-                           DockPanel.Dock="Top">
-                    <Button Command="{Binding SelectLocationCommand}" Content="Select Folder" />
-                    <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
-
-                <DockPanel Margin="0,5,0,0"
-                           HorizontalAlignment="Center"
-                           DockPanel.Dock="Bottom">
-                    <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not Installed" />
-                </DockPanel>
-
-                <DockPanel HorizontalAlignment="Center"
-                           DockPanel.Dock="Bottom"
-                           LastChildFill="False">
-                    <TextBlock Text="{Binding SelectedItems.Count}" />
-                    <Button Command="{Binding CopyCommand}" Content="&lt;- Copy" />
-                    <Button Command="{Binding CreateJunctionCommand}" Content="&lt;- Create Junction" />
-                    <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
-                </DockPanel>
-
-                <code:MultiSelectDataGrid x:Name="storageGrid"
-                                          ItemsSource="{Binding Folders}"
-                                          CellStyle="{StaticResource CustomCellStyle}"
-                                          SelectedItemsList="{Binding SelectedItems}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn
-                            Width="*"
-                            Binding="{Binding Name}"
-                            Header="Name" />
-                        <DataGridTextColumn
-                            Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
-                            CellStyle="{StaticResource RightAlignCell}"
-                            HeaderStyle="{StaticResource RightAlignColumnHeader}"
-                            Header="Size (MB)" />
-                    </DataGrid.Columns>
-                </code:MultiSelectDataGrid>
-            </DockPanel>
-        </Grid>
-    </DockPanel>
+            </Grid>
+        </DockPanel>
+    </materialDesign:DialogHost>
 </Window>

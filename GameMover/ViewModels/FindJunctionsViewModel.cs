@@ -1,68 +1,60 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.External_Code;
 
-using MaterialDesignThemes.Wpf;
-
-using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 
 namespace GameMover.ViewModels
 {
 
-    public class FindJunctionsViewModel : BindableBase, INotification
+    public class FindJunctionsViewModel : BindableBase
     {
+        public void Cancel() => TokenSource?.Cancel();
 
-        public FindJunctionsViewModel()
+        private CancellationTokenSource TokenSource { get; set; }
+
+        public string CurrentFolder { get; private set; } = string.Empty;
+        public int NumDirectories { get; private set; }
+        public int NumJunctions { get; private set; }
+
+        public async Task<List<DirectoryInfo>> GetJunctions(string selectedPath)
         {
-            Content = this;
-        }
+            var junctions = new List<DirectoryInfo>();
 
-        public async Task ExecuteSearch(string selectedPath)
-        {
-            var stopwatch = Stopwatch.StartNew();
+            TokenSource = new CancellationTokenSource();
+            var cancellationToken = TokenSource.Token;
 
-//            var cancellationTokenSource = new CancellationTokenSource();
-            var mainDispatcher = Dispatcher.CurrentDispatcher;
+            NumDirectories = 0;
+            NumJunctions = 0;
 
-            var numDirectories = 0;
+            await Task.Run(() => {
+                foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
+                {
+                    if (cancellationToken.IsCancellationRequested) return;
 
-            var junctionFindTask = Task.Run(() => {
-                Parallel.ForEach(new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories(), info => {
-//                    if (cancellationTokenSource.Token.IsCancellationRequested) return;
-
-                    numDirectories++;
+                    NumDirectories++;
                     CurrentFolder = info.FullName;
                     // Parent could be null if it is a root directory
                     if (JunctionPoint.Exists(info) && info.Parent != null)
                     {
                         junctions.Add(info);
+                        NumJunctions++;
                     }
-                });
+                }
 
-                mainDispatcher.Invoke(() => {
-                    DialogHost.CloseDialogCommand.Execute(false, null);
-                });
-            });
+                CurrentFolder = "Complete!";
+            }, cancellationToken);
 
-            await junctionFindTask;
-//            cancellationTokenSource.Dispose();
+            var ts = TokenSource;
+            TokenSource = null;
+            ts.Dispose();
 
-//            StaticMethods.DisplayError(stopwatch.ElapsedMilliseconds / 1000f + " " + numDirectories);
+            return junctions;
         }
-
-        public string CurrentFolder { get; set; } = string.Empty;
-        public List<DirectoryInfo> junctions { get; } = new List<DirectoryInfo>();
-
-        /// <inheritdoc />
-        public string Title { get; set; } = "SEARCHING!!!!";
-        /// <inheritdoc />
-        public object Content { get; set; }
 
     }
 

@@ -82,14 +82,14 @@ namespace GameMover.Model
                     {
                         foreach (var directoryInfo in new DirectoryInfo(Location)
                             .EnumerateDirectories()
-                            .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) != 0))
+                            .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0))
                         {
                             Folders.Add(new GameFolder(directoryInfo));
                         }
                     }
                     catch (IOException e)
                     {
-                        DisplayError(e.Message, e);
+                        HandleError(e.Message, e);
                     }
                 });
             }
@@ -204,7 +204,7 @@ namespace GameMover.Model
             }
             catch (UnauthorizedAccessException e)
             {
-                DisplayError(InvalidPermission, e);
+                HandleError(InvalidPermission, e);
             }
         }
 

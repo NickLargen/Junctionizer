@@ -1,6 +1,4 @@
-﻿using System.Windows.Controls;
-
-namespace GameMover.UI
+﻿namespace GameMover.UI
 {
     /// <summary>
     /// Interaction logic for FindExistingJunctionsDialog.xaml

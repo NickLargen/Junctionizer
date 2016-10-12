@@ -7,6 +7,8 @@ using GameMover.Code;
 using GameMover.External_Code;
 using GameMover.Model;
 
+using MaterialDesignThemes.Wpf;
+
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -19,8 +21,16 @@ using static GameMover.Code.StaticMethods;
 namespace GameMover.ViewModels
 {
 
-    public class ViewModel : BindableBase
+    public class MainWindowViewModel : BindableBase
     {
+
+        public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
+
+        public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
+
+        [AutoLazy.Lazy]
+        public DelegateCommand<DialogClosingEventArgs> DialogClosedCommand => new DelegateCommand<DialogClosingEventArgs>(args => OnDialogClosed?.Invoke());
+        private event Action OnDialogClosed;
 
         /// Allows you to set the selection without trigger selection change (so that when saving a control you don't reload)
         private bool _ignorePathsSelectionChange;
@@ -30,8 +40,7 @@ namespace GameMover.ViewModels
 
         public AsyncObservableCollection<string> SavedPaths { get; } = new AsyncObservableCollection<string>();
 
-
-
+        private string _selectedPath;
         public string SelectedPath
         {
             get { return _selectedPath; }
@@ -50,14 +59,13 @@ namespace GameMover.ViewModels
 
                 string[] paths = _selectedPath?.Split(new[] {ARROWED_PATH_SEPARATOR}, StringSplitOptions.RemoveEmptyEntries);
 
-                if (paths?.Length != 2) throw new Exception($"Unable to parse selected path \"{_selectedPath}\".");
+                if (paths.Length != 2) throw new Exception($"Unable to parse selected path \"{_selectedPath}\".");
 
                 InstallCollection.Location = paths[0];
                 StorageCollection.Location = paths[1];
             }
         }
 
-        private string _selectedPath;
 
         private const string ARROWED_PATH_SEPARATOR = " -> ";
 
@@ -67,7 +75,6 @@ namespace GameMover.ViewModels
             var installSteamCommon = regKey == null
                                          ? @"C:"
                                          : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
-
 
             InstallCollection = new FolderCollection {
                 FolderBrowserDefaultLocation = installSteamCommon
@@ -105,28 +112,23 @@ namespace GameMover.ViewModels
             if (SelectedPath != null) SavedPaths.Remove(SelectedPath);
         }, () => true);
 
-
-        public InteractionRequest<FindJunctionsViewModel> ExistingJunctionSearchDisplayRequest { get; } =
-            new InteractionRequest<FindJunctionsViewModel>();
         [AutoLazy.Lazy]
-        public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(async () =>
-        {
+        public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(async () => {
             var folderDialog = NewFolderDialog("Select Root Directory");
             if (folderDialog.ShowDialog() != CommonFileDialogResult.Ok) return;
 
-            // The same notification object is passed directly back
-            var interactionRequestViewModel = new FindJunctionsViewModel();
-            ExistingJunctionSearchDisplayRequest.Raise(interactionRequestViewModel, notification =>
-            {
-                foreach (var info in notification.junctions)
-                {
-                    var newPath = info.Parent.FullName + ARROWED_PATH_SEPARATOR +
-                                  Directory.GetParent(JunctionPoint.GetTarget(info)).FullName;
-                    if (!SavedPaths.Contains(newPath)) SavedPaths.Add(newPath);
-                }
-            });
+            var selectedPath = folderDialog.FileName;
 
-            await interactionRequestViewModel.ExecuteSearch(folderDialog.FileName);
+            OnDialogClosed = () => FindJunctionsViewModel.Cancel();
+            var junctions = await FindJunctionsViewModel.GetJunctions(selectedPath);
+            CloseDialogRequest.Raise(null);
+
+            foreach (var directoryInfo in junctions)
+            {
+                var newPath = directoryInfo.Parent.FullName + ARROWED_PATH_SEPARATOR +
+                              Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName;
+                if (!SavedPaths.Contains(newPath)) SavedPaths.Add(newPath);
+            }
         }, () => true);
 
         private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
