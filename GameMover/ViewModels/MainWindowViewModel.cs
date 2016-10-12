@@ -45,12 +45,24 @@ namespace GameMover.ViewModels
                 var previousValue = _selectedMapping;
                 _selectedMapping = value;
                 if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
-                if (previousValue?.SaveMapping == false) DisplayedMappings.Remove(previousValue);
+                if (previousValue?.IsSavedMapping == false) DisplayedMappings.Remove(previousValue);
+
+                if (previousValue != null) previousValue.PropertyChanged -= SelectedMappingPropertyChanged;
+                _selectedMapping.PropertyChanged += SelectedMappingPropertyChanged;
 
                 IsSelectedMappingModificationAllowed = false;
                 SourceCollection.Location = _selectedMapping.Source;
                 DestinationCollection.Location = _selectedMapping.Destination;
                 IsSelectedMappingModificationAllowed = true;
+            }
+        }
+
+        private void SelectedMappingPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName.Equals(nameof(FolderMapping.IsSavedMapping)))
+            {
+                SaveCurrentLocationCommand.RaiseCanExecuteChanged();
+                DeleteCurrentLocationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -80,13 +92,13 @@ namespace GameMover.ViewModels
 
         [AutoLazy.Lazy]
         public DelegateCommand SaveCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedMapping != null) SelectedMapping.SaveMapping = true;
-        }, () => true);
+            if (SelectedMapping != null) SelectedMapping.IsSavedMapping = true;
+        }, () => SelectedMapping?.IsSavedMapping == false).ObservesProperty(() => SelectedMapping);
 
         [AutoLazy.Lazy]
         public DelegateCommand DeleteCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedMapping != null) SelectedMapping.SaveMapping = false;
-        });
+            if (SelectedMapping != null) SelectedMapping.IsSavedMapping = false;
+        }, () => SelectedMapping?.IsSavedMapping == true).ObservesProperty(() => SelectedMapping);
 
         [AutoLazy.Lazy]
         public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(async () => {

@@ -10,13 +10,13 @@ namespace GameMover.Model
 
         public string Source { get; }
         public string Destination { get; }
-        public bool SaveMapping { get; set; }
+        public bool IsSavedMapping { get; set; }
 
-        public FolderMapping(string source, string destination, bool saveMapping = false)
+        public FolderMapping(string source, string destination, bool isSavedMapping = false)
         {
             Source = source;
             Destination = destination;
-            SaveMapping = saveMapping;
+            IsSavedMapping = isSavedMapping;
         }
 
         private bool EqualsInternal(FolderMapping other)
