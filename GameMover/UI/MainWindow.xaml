@@ -69,7 +69,10 @@
 
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <ContentPresenter Content="{Binding Converter={StaticResource FolderMappingConverter}}" />
+                            <DockPanel>
+                                <materialDesign:PackIcon Visibility="{Binding IsSavedMapping, Converter={StaticResource BooleanToVisibilityConverter}}" Kind="Star" />
+                                <ContentPresenter Content="{Binding Converter={StaticResource FolderMappingConverter}}" />
+                            </DockPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
