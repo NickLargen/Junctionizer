@@ -1,5 +1,3 @@
-using System;
-
 using GameMover.Model;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
