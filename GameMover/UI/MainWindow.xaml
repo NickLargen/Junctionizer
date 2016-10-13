@@ -24,16 +24,20 @@
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
 
-    <i:Interaction.Triggers>
-
-        <prism:InteractionRequestTrigger SourceObject="{Binding CloseDialogRequest}">
-            <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
-        </prism:InteractionRequestTrigger>
-    </i:Interaction.Triggers>
-
-
-    <materialDesign:DialogHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <materialDesign:DialogHost OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
+            <prism:InteractionRequestTrigger SourceObject="{Binding DisplayFindJunctionsDialogRequest}">
+                <i:InvokeCommandAction Command="{x:Static ui:MainWindow.OpenDialogDelegateCommand}">
+                    <i:InvokeCommandAction.CommandParameter>
+                        <ui:FindExistingJunctionsDialog />
+                    </i:InvokeCommandAction.CommandParameter>
+                </i:InvokeCommandAction>
+            </prism:InteractionRequestTrigger>
+            
+            <prism:InteractionRequestTrigger SourceObject="{Binding CloseDialogRequest}">
+                <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
+            </prism:InteractionRequestTrigger>
+
             <i:EventTrigger EventName="DialogClosing">
                 <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}" />
             </i:EventTrigger>
@@ -42,16 +46,7 @@
             <Menu DockPanel.Dock="Top" Height="36">
                 <MenuItem Header="_File" Height="36">
                     <MenuItem Header="_Search Existing Junctions"
-                              Command="{x:Static materialDesign:DialogHost.OpenDialogCommand}">
-                        <MenuItem.CommandParameter>
-                            <ui:FindExistingJunctionsDialog />
-                        </MenuItem.CommandParameter>
-                        <i:Interaction.Triggers>
-                            <i:EventTrigger EventName="Click">
-                                <i:InvokeCommandAction Command="{Binding FindExistingJunctionsCommand}" />
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>
-                    </MenuItem>
+                              Command="{Binding FindExistingJunctionsCommand}" />
                     <Separator />
                     <MenuItem Header="Hide Destination"
                               IsCheckable="True"

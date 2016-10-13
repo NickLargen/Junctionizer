@@ -25,6 +25,8 @@ namespace GameMover.ViewModels
 
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
 
+        public InteractionRequest<INotification> DisplayFindJunctionsDialogRequest { get; } = new InteractionRequest<INotification>();
+
         public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
 
         [AutoLazy.Lazy]
@@ -36,6 +38,8 @@ namespace GameMover.ViewModels
         public FolderCollection DestinationCollection { get; private set; }
 
         public AsyncObservableCollection<FolderMapping> DisplayedMappings { get; } = new AsyncObservableCollection<FolderMapping>();
+
+        private bool IsSelectedMappingModificationAllowed { get; set; } = true;
 
         private FolderMapping _selectedMapping;
         public FolderMapping SelectedMapping
@@ -107,8 +111,11 @@ namespace GameMover.ViewModels
 
             var selectedPath = folderDialog.FileName;
 
+            DisplayFindJunctionsDialogRequest.Raise(null);
             OnDialogClosed = () => FindJunctionsViewModel.Cancel();
+
             var junctions = await FindJunctionsViewModel.GetJunctions(selectedPath);
+
             CloseDialogRequest.Raise(null);
 
             foreach (var directoryInfo in junctions)
@@ -118,8 +125,6 @@ namespace GameMover.ViewModels
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
         });
-
-        private bool IsSelectedMappingModificationAllowed { get; set; } = true;
 
         private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
         {

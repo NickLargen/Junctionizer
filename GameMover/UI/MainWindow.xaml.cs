@@ -6,6 +6,10 @@ using System.Windows.Controls;
 
 using GameMover.ViewModels;
 
+using MaterialDesignThemes.Wpf;
+
+using Prism.Commands;
+
 using WpfBindingErrors;
 
 [assembly: CLSCompliant(false)]
@@ -70,6 +74,9 @@ namespace GameMover.UI
             destinationColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
 
+        public static DelegateCommand<object> OpenDialogDelegateCommand = new DelegateCommand<object>(async obj => {
+            await DialogHost.Show(obj);
+        });
     }
 
 }
