@@ -22,21 +22,34 @@ namespace GameMover.Model
 
     public sealed class FolderCollection : BindableBase, IDisposable
     {
+        public FolderCollection()
+        {
+            SelectedItems = new ObservableCollection<object>();
+        }
 
-        public FolderCollection CorrespondingCollection { get; set; }
-
+        private FolderCollection _correspondingCollection;
+        public FolderCollection CorrespondingCollection
+        {
+            get { return _correspondingCollection; }
+            set {
+                if (_correspondingCollection != null) _correspondingCollection._correspondingCollection = null;
+                _correspondingCollection = value;
+                if (_correspondingCollection != null) _correspondingCollection._correspondingCollection = this;
+            }
+        }
 
         public string FolderBrowserDefaultLocation { get; set; }
 
         public AsyncObservableCollection<GameFolder> Folders { get; } = new AsyncObservableCollection<GameFolder>();
 
+        private ObservableCollection<object> _selectedItems;
         public ObservableCollection<object> SelectedItems
         {
             get { return _selectedItems; }
             set {
                 _selectedItems = value;
 
-                SelectedItems.CollectionChanged += (sender, args) => {
+                _selectedItems.CollectionChanged += (sender, args) => {
                     ArchiveCommand.RaiseCanExecuteChanged();
                     CopyCommand.RaiseCanExecuteChanged();
                     CreateJunctionCommand.RaiseCanExecuteChanged();
@@ -45,16 +58,14 @@ namespace GameMover.Model
                 };
             }
         }
-        private IEnumerable<GameFolder> SelectedFolders
+        public IEnumerable<GameFolder> SelectedFolders
             => SelectedItems?.Reverse().Cast<GameFolder>() ?? Enumerable.Empty<GameFolder>();
 
         private FileSystemWatcher DirectoryWatcher { get; } = new FileSystemWatcher();
 
         private bool BothCollectionsInitialized { get; set; }
-        private bool LocationSelected { get; set; }
 
         private string _location;
-        private ObservableCollection<object> _selectedItems;
         public string Location
         {
             get { return _location; }
@@ -63,16 +74,17 @@ namespace GameMover.Model
                 if (!Directory.Exists(value)) return;
 
                 _location = value;
-                LocationSelected = true;
 
-                ShowLoadingSpinnerDuring(() => {
+                DisplayBusyDuring(() => {
                     CorrespondingCollection.BothCollectionsInitialized =
-                        BothCollectionsInitialized |= LocationSelected && CorrespondingCollection.LocationSelected;
+                        BothCollectionsInitialized |= Location != null && CorrespondingCollection.Location != null;
 
                     DirectoryWatcher.Path = Location;
                     if (DirectoryWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
 
                     Folders.Clear();
+                    if (Location == null) return;
+
                     try
                     {
                         foreach (var directoryInfo in new DirectoryInfo(Location)
@@ -153,7 +165,7 @@ namespace GameMover.Model
         });
         #endregion
 
-        private void SelectFolders(IEnumerable<GameFolder> folders)
+        public void SelectFolders(IEnumerable<GameFolder> folders)
         {
             SelectedItems.Clear();
             foreach (var folder in folders)

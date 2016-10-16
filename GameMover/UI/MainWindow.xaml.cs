@@ -41,6 +41,7 @@ namespace GameMover.UI
         //Feature: select all corresponding elements
         //Feature: support drag and drop
         //Feature: Update folder size in the UI if it is changed externally
+        //Feature: Single pane merged UI
 
         public MainWindow()
         {

@@ -347,6 +347,13 @@ namespace GameMover.External_Code
         /// </exception>
         public static bool Exists(DirectoryInfo junctionDirectory)
         {
+            if (junctionDirectory.CreationTimeUtc.AddMilliseconds(25) > DateTime.UtcNow)
+            {
+                // If the directory has just been created its attributes may not be set yet
+                // Waiting and refreshing fixes ReparsePoint not appearing on newly created reparse points
+                Thread.Sleep(25);
+                junctionDirectory.Refresh();
+            }
             return junctionDirectory.IsReparsePoint() && Exists(junctionDirectory.FullName);
         }
 

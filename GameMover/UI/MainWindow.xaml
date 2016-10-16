@@ -15,8 +15,8 @@
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         Title="Game Mover"
-        Width="650"
-        Height="400"
+        Width="750"
+        Height="450"
         MinWidth="500"
         MinHeight="300"
         mc:Ignorable="d">

@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Test
 {
     [TestClass]
-    public class FolderMappingTests
+    public class FolderMappingTests : TestBase
     {
 
         [TestMethod]

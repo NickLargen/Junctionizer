@@ -80,11 +80,9 @@ namespace GameMover.ViewModels
                                                    : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common"
             };
             DestinationCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common"
+                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common",
+                CorrespondingCollection = SourceCollection
             };
-
-            SourceCollection.CorrespondingCollection = DestinationCollection;
-            DestinationCollection.CorrespondingCollection = SourceCollection;
 
             SourceCollection.PropertyChanged += OnFolderCollectionChange;
             DestinationCollection.PropertyChanged += OnFolderCollectionChange;

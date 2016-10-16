@@ -16,7 +16,7 @@ using Prism.Commands;
 namespace GameMover.Code
 {
 
-    internal static class StaticMethods
+    public static class StaticMethods
     {
 
         internal const string NoItemsSelected = "No folder selected.",
@@ -24,17 +24,16 @@ namespace GameMover.Code
 
         public delegate void ErrorHandler(string message, Exception e = null);
 
-        public static ErrorHandler HandleError { get; }= (message, exception) => {
+        public static ErrorHandler HandleError { get; set; } = (message, exception) => {
             MessageBox.Show(message);
             Debug.WriteLine(exception);
         };
 
-        public static void ShowLoadingSpinnerDuring(Action action)
-        {
+        public static Action<Action> DisplayBusyDuring { get; set; } = action => {
             Mouse.OverrideCursor = Cursors.Wait;
             action();
             Mouse.OverrideCursor = null;
-        }
+        };
 
         public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
         {
