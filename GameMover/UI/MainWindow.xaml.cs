@@ -37,7 +37,6 @@ namespace GameMover.UI
         //Performance: sorting by size on hdd hangs ui
         //Performance: test opening giant folder
 
-        //Feature: Loading spinners when calculating size of a directory (it's useful for checking size of Blizzard games on hdd)
         //Feature: select all corresponding elements
         //Feature: support drag and drop
         //Feature: Update folder size in the UI if it is changed externally
@@ -75,9 +74,10 @@ namespace GameMover.UI
             destinationColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
 
-        public static DelegateCommand<object> OpenDialogDelegateCommand = new DelegateCommand<object>(async obj => {
+        public static DelegateCommand<object> OpenDialogDelegateCommand { get; } = new DelegateCommand<object>(async obj => {
             await DialogHost.Show(obj);
         });
+
     }
 
 }

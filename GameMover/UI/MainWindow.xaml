@@ -9,6 +9,7 @@
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:ui="clr-namespace:GameMover.UI"
+        xmlns:columns="clr-namespace:GameMover.UI.Columns"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -17,8 +18,8 @@
         Title="Game Mover"
         Width="750"
         Height="450"
-        MinWidth="500"
-        MinHeight="300"
+        MinWidth="600"
+        MinHeight="400"
         mc:Ignorable="d">
     <Window.DataContext>
         <viewModels:MainWindowViewModel />
@@ -33,7 +34,7 @@
                     </i:InvokeCommandAction.CommandParameter>
                 </i:InvokeCommandAction>
             </prism:InteractionRequestTrigger>
-            
+
             <prism:InteractionRequestTrigger SourceObject="{Binding CloseDialogRequest}">
                 <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
             </prism:InteractionRequestTrigger>
@@ -107,18 +108,10 @@
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               SelectedItemsList="{Binding SelectedItems}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Width="*"
-                                                MinWidth="100"
-                                                Binding="{Binding Name}"
-                                                Header="Name" />
-                            <DataGridTextColumn
-                                Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
-                                CellStyle="{StaticResource RightAlignCell}"
-                                Header="Size (MB)"
-                                HeaderStyle="{StaticResource RightAlignColumnHeader}" />
-                            <DataGridTextColumn Width="*"
-                                                Binding="{Binding JunctionTarget}"
-                                                Header="Junction Target" />
+                            <columns:NameColumn />
+                            <columns:SizeColumn />
+                            <columns:JunctionTargetColumn />
+                            <columns:LastUpdated />
                         </DataGrid.Columns>
                     </code:MultiSelectDataGrid>
                 </DockPanel>
@@ -151,15 +144,9 @@
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               SelectedItemsList="{Binding SelectedItems}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn
-                                Width="*"
-                                Binding="{Binding Name}"
-                                Header="Name" />
-                            <DataGridTextColumn
-                                Binding="{Binding Size, IsAsync=True, Converter={StaticResource SizeConverter}}"
-                                CellStyle="{StaticResource RightAlignCell}"
-                                HeaderStyle="{StaticResource RightAlignColumnHeader}"
-                                Header="Size (MB)" />
+                            <columns:NameColumn />
+                            <columns:SizeColumn />
+                            <columns:LastUpdated />
                         </DataGrid.Columns>
                     </code:MultiSelectDataGrid>
                 </DockPanel>

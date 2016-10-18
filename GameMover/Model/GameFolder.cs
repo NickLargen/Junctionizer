@@ -20,34 +20,52 @@ namespace GameMover.Model
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
 
+        private DateTime? _lastWriteTime;
+        public DateTime? LastWriteTime
+        {
+            get {
+                return _lastWriteTime ?? (_lastWriteTime = DirectoryInfo.EnumerateAllAccessibleDirectories()
+                                                                        .DefaultIfEmpty(DirectoryInfo)
+                                                                        .Max(info => info.LastWriteTime));
+            }
+            private set { _lastWriteTime = value; }
+        }
+
         public bool IsJunction { get; }
 
-        private long _size;
+        public bool IsSizeUnknown { get; set; } = true;
 
+        private long _size;
         public long Size
         {
             get {
-                if (IsJunction) return -1;
+                if (IsJunction)
+                {
+                    IsSizeUnknown = false;
+                    return -1;
+                }
 
-                if (_size == 0)
+                if (IsSizeUnknown)
                 {
                     try
                     {
-                        var sizeInBytes =
-                      DirectoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fileInfo => fileInfo.Length);
-                        _size = sizeInBytes / 1024 / 1024;
+                        _size = DirectoryInfo.EnumerateAllAccessibleDirectories()
+                                             .SelectMany(info => info.EnumerateFiles())
+                                             .Sum(fileInfo => fileInfo.Length);
+                        IsSizeUnknown = false;
                     }
                     catch (IOException e)
                     {
                         var message = e.Message;
-                        var maybeFullPath = e.GetType().GetField("_maybeFullPath", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        var maybeFullPath = e.GetType()
+                                             .GetField("_maybeFullPath",
+                                                 BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
                         if (maybeFullPath != null)
                         {
                             message += $" \"{maybeFullPath.GetValue(e)}\"";
                         }
                         StaticMethods.HandleError(message, e);
                     }
-                   
                 }
 
                 return _size;

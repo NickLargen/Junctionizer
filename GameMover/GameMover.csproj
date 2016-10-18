@@ -19,6 +19,8 @@
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -35,8 +37,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,7 +48,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\..\MinimalRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -78,6 +79,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>spiral_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AutoLazy, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -118,7 +122,6 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Prism.Wpf.6.2.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
       <Private>True</Private>
@@ -144,24 +147,39 @@
     <Compile Include="Code\AsyncObservableCollection.cs" />
     <Compile Include="Code\FolderMappingToStringConverter.cs" />
     <Compile Include="External Code\ObservableRangeCollection.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="Code\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />
     <Compile Include="Model\FolderMapping.cs" />
-    <Compile Include="UI\DataGridStyles.xaml.cs">
+    <Compile Include="UI\Columns\JunctionTargetColumn.xaml.cs">
+      <DependentUpon>JunctionTargetColumn.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Styles\DataGridStyles.xaml.cs">
       <DependentUpon>DataGridStyles.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\FindExistingJunctionsDialog.xaml.cs">
       <DependentUpon>FindExistingJunctionsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Columns\NameColumn.xaml.cs">
+      <DependentUpon>NameColumn.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Columns\SizeColumn.xaml.cs">
+      <DependentUpon>SizeColumn.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Columns\LastUpdatedColumn.xaml.cs">
+      <DependentUpon>LastUpdatedColumn.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Page Include="UI\Colors.xaml">
+    <Page Include="UI\Columns\JunctionTargetColumn.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Styles\Colors.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\DataGridStyles.xaml">
+    <Page Include="UI\Styles\DataGridStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -179,11 +197,23 @@
     </Compile>
     <Compile Include="Model\GameFolder.cs" />
     <Compile Include="External Code\JunctionPoint.cs" />
-    <Compile Include="Code\LongToStringConverter.cs" />
+    <Compile Include="Code\SizeToStringConverter.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="UI\Columns\NameColumn.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Columns\SizeColumn.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Columns\LastUpdatedColumn.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -250,6 +280,9 @@
     <Resource Include="FodyWeavers.xml">
       <SubType>Designer</SubType>
     </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="spiral_icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.1.29.4\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.4\build\dotnet\Fody.targets')" />

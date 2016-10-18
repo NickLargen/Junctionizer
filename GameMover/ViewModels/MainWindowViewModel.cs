@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 
 using GameMover.Code;
@@ -90,6 +91,8 @@ namespace GameMover.ViewModels
             DisplayedMappings.Add(new FolderMapping(SourceCollection.FolderBrowserDefaultLocation,
                 DestinationCollection.FolderBrowserDefaultLocation, true));
             DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Folder a", @"C:\Users\Nick\Desktop\Folder B", true));
+            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Manual Testing For GameMover\Source",
+                @"C:\Users\Nick\Desktop\Manual Testing For GameMover\Destination", true));
         }
 
         [AutoLazy.Lazy]
@@ -118,6 +121,7 @@ namespace GameMover.ViewModels
 
             foreach (var directoryInfo in junctions)
             {
+                Debug.Assert(directoryInfo.Parent != null, "directoryInfo.Parent != null");
                 var folderMapping = new FolderMapping(directoryInfo.Parent.FullName,
                     Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);

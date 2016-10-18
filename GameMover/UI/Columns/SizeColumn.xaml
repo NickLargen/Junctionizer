@@ -1,0 +1,9 @@
+﻿<DataGridTemplateColumn x:Class="GameMover.UI.Columns.SizeColumn"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        
+                        SortMemberPath="Size"
+                        Header="Size"
+                        CellStyle="{StaticResource RightAlignCell}"
+                        CellTemplate="{StaticResource SizeCellTemplate}">
+</DataGridTemplateColumn>

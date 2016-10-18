@@ -54,7 +54,7 @@ namespace GameMover.Code
         }
 
         /// <summary>
-        ///     Includes itself and all subdirectories (recursive) that can be read by the current user.
+        ///     Includes itself and all subdirectories (recursive) that can be opened by the current user.
         /// </summary>
         public static IEnumerable<DirectoryInfo> EnumerateAllAccessibleDirectories(this DirectoryInfo self, string searchPattern = "*")
         {
@@ -69,8 +69,8 @@ namespace GameMover.Code
                 var isAccessible = false;
                 try
                 {
-                    // Skip hidden or system directories that are not the root (eg C:\)
-                    if ((info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) != 0 && info.Parent != null) continue;
+                    // Skip system directories that are not the root (eg C:\)
+                   if ((info.Attributes & FileAttributes.System) != 0 && info.Parent != null) continue;
 
                     if (!info.IsReparsePoint())
                     {

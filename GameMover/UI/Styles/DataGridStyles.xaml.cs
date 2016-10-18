@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 using GameMover.Model;
 
-namespace GameMover.UI
+namespace GameMover.UI.Styles
 {
     public partial class DataGridStyles
     {

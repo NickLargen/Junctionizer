@@ -25,7 +25,7 @@ namespace Test
             var rootDirectoryInfo = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "Manual Testing For " + nameof(GameMover)));
 
-            if (rootDirectoryInfo?.Exists == true)
+            if (rootDirectoryInfo.Exists)
             {
                 FileSystem.DeleteDirectory(rootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently,
                     UICancelOption.ThrowException);
