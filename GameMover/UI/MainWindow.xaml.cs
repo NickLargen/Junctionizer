@@ -29,13 +29,9 @@ namespace GameMover.UI
         //TODO: Invalid input handling
         //TODO: Check for permissions everywhere
 
-        //BUG: double clicking column to resize introduces the empty column on the right
         //BUG: when junction scanning for small folders the search can be fast enough that it completes before the dialog exists, meaning the close command does nothing and the dialog stays open
 
-
         //Performance: notify collection change only once when batch selecting items
-        //Performance: sorting by size on hdd hangs ui
-        //Performance: test opening giant folder
 
         //Feature: select all corresponding elements
         //Feature: support drag and drop
