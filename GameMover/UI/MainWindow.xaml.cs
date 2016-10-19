@@ -28,8 +28,7 @@ namespace GameMover.UI
 
         //TODO: Invalid input handling
         //TODO: Check for permissions everywhere
-
-        //BUG: when junction scanning for small folders the search can be fast enough that it completes before the dialog exists, meaning the close command does nothing and the dialog stays open
+        //TODO: Don't repeatedly prompt when performing an action on a lot of items
 
         //Performance: notify collection change only once when batch selecting items
 

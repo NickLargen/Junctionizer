@@ -17,7 +17,8 @@ namespace GameMover.ViewModels
 
         private CancellationTokenSource TokenSource { get; set; }
 
-        public string CurrentFolder { get; private set; } = string.Empty;
+        public bool IsSearching { get; private set; }
+        public string CurrentFolder { get; private set; }
         public int NumDirectories { get; private set; }
         public int NumJunctions { get; private set; }
 
@@ -30,6 +31,7 @@ namespace GameMover.ViewModels
 
             NumDirectories = 0;
             NumJunctions = 0;
+            IsSearching = true;
 
             await Task.Run(() => {
                 foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
@@ -46,8 +48,9 @@ namespace GameMover.ViewModels
                     }
                 }
 
-                CurrentFolder = "Complete!";
             }, cancellationToken);
+
+            IsSearching = false;
 
             var ts = TokenSource;
             TokenSource = null;

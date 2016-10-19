@@ -117,8 +117,6 @@ namespace GameMover.ViewModels
 
             var junctions = await FindJunctionsViewModel.GetJunctions(selectedPath);
 
-            CloseDialogRequest.Raise(null);
-
             foreach (var directoryInfo in junctions)
             {
                 Debug.Assert(directoryInfo.Parent != null, "directoryInfo.Parent != null");

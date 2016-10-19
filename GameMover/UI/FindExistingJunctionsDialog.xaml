@@ -16,23 +16,35 @@
             <TextBlock.Text>
                 <MultiBinding StringFormat="Found {0} junctions after searching {1} directories.">
                     <Binding Path="NumJunctions" Mode="OneWay" />
-                    <Binding Path="NumDirectories" Mode="OneWay"/>
+                    <Binding Path="NumDirectories" Mode="OneWay" />
                 </MultiBinding>
             </TextBlock.Text>
         </TextBlock>
-        <TextBlock TextWrapping="Wrap" DockPanel.Dock="Top">
+        <TextBlock DockPanel.Dock="Top"
+                   TextWrapping="Wrap"
+                   Visibility="{Binding IsSearching, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Run Text="Searching: " FontWeight="Bold" />
             <Run Text="{Binding CurrentFolder, Mode=OneWay}" />
         </TextBlock>
         <Button DockPanel.Dock="Bottom"
                 IsCancel="True"
                 Margin="0 0 0 0"
-                Style="{DynamicResource MaterialDesignFlatButton}"
                 Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsSearching}" Value="True">
+                            <Setter Property="Content" Value="Stop Search" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSearching}" Value="False">
+                            <Setter Property="Content" Value="Done" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
             <Button.CommandParameter>
                 <system:Boolean>False</system:Boolean>
             </Button.CommandParameter>
-            Stop Search
         </Button>
     </DockPanel>
 </UserControl>
