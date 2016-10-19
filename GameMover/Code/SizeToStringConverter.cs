@@ -10,9 +10,9 @@ namespace GameMover.Code
 
         public object Convert(object objectValue, Type targetType, object parameter, CultureInfo culture)
         {
-            var value = (long) objectValue;
+            var value = (long?) objectValue;
 
-            if (value < 0) return "";
+            if (value == null) return "";
 
             const string format = "{0:N1} {1}";
             if (value >= 1 << 30) // Gigabyte

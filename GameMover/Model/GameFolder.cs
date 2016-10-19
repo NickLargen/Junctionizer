@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using GameMover.Code;
 using GameMover.External_Code;
@@ -20,72 +20,84 @@ namespace GameMover.Model
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
 
-        private DateTime? _lastWriteTime;
-        public DateTime? LastWriteTime
-        {
-            get {
-                return _lastWriteTime ?? (_lastWriteTime = DirectoryInfo.EnumerateAllAccessibleDirectories()
-                                                                        .DefaultIfEmpty(DirectoryInfo)
-                                                                        .Max(info => info.LastWriteTime));
-            }
-            private set { _lastWriteTime = value; }
-        }
+        public DateTime? LastWriteTime { get; private set; }
 
         public bool IsJunction { get; }
 
-        public bool IsSizeUnknown { get; set; } = true;
+        public bool IsStillSearchingSubdirectories { get; set; } = true;
 
-        private long _size;
-        public long Size
-        {
-            get {
-                if (IsJunction)
-                {
-                    IsSizeUnknown = false;
-                    return -1;
-                }
+        public long? Size { get; private set; }
 
-                if (IsSizeUnknown)
-                {
-                    try
-                    {
-                        _size = DirectoryInfo.EnumerateAllAccessibleDirectories()
-                                             .SelectMany(info => info.EnumerateFiles())
-                                             .Sum(fileInfo => fileInfo.Length);
-                        IsSizeUnknown = false;
-                    }
-                    catch (IOException e)
-                    {
-                        var message = e.Message;
-                        var maybeFullPath = e.GetType()
-                                             .GetField("_maybeFullPath",
-                                                 BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                        if (maybeFullPath != null)
-                        {
-                            message += $" \"{maybeFullPath.GetValue(e)}\"";
-                        }
-                        StaticMethods.HandleError(message, e);
-                    }
-                }
-
-                return _size;
-            }
-            private set { _size = value; }
-        }
+        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
         public GameFolder(DirectoryInfo directory)
         {
             DirectoryInfo = directory;
             IsJunction = JunctionPoint.Exists(directory);
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
+
+            UpdatePropertiesFromSubdirectories();
         }
 
-        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
+        private CancellationTokenSource TokenSource { get; set; }
+
+        public void CancelSubdirectorySearch() => TokenSource?.Cancel();
+
+        private async Task UpdatePropertiesFromSubdirectories()
+        {
+            if (TokenSource != null)
+            {
+                CancelSubdirectorySearch();
+                while (TokenSource != null)
+                {
+                    await Task.Delay(25);
+                }
+            }
+
+            TokenSource = new CancellationTokenSource();
+            var cancellationToken = TokenSource.Token;
+
+            await Task.Run(() => {
+                    IsStillSearchingSubdirectories = true;
+                    LastWriteTime = DirectoryInfo.LastWriteTime;
+
+                    if (!IsJunction)
+                    {
+                        StaticMethods.HandleIOExceptionsDuring(() => {
+                            Size = 0;
+                            foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
+                            {
+                                if (cancellationToken.IsCancellationRequested) return;
+
+                                if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;
+
+                                foreach (var fileInfo in info.EnumerateFiles())
+                                {
+                                    Size += fileInfo.Length;
+                                }
+                            }
+                        });
+                    }
+
+                    IsStillSearchingSubdirectories = false;
+                }, cancellationToken);
+
+            DisposeTokenSource();
+        }
+
+        private void DisposeTokenSource()
+        {
+            if (TokenSource != null)
+            {
+                var ts = TokenSource;
+                TokenSource = null;
+                ts.Dispose();
+            }
+        }
 
         public void RecalculateSize()
         {
-            // Mark size as unknown so that calculation is deferred until next time it is needed
-            Size = 0;
+            UpdatePropertiesFromSubdirectories();
         }
 
         public void Rename(string newName)

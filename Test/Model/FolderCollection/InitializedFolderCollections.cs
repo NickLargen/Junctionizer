@@ -6,7 +6,7 @@ using static NUnit.Framework.Assert;
 
 namespace Test.Model.FolderCollection
 {
-    public class InitializedFolderCollections : FolderCollectionNotInitializedTests
+    public class InitializedFolderCollections : FolderCollectionTestBase
     {
 
         private static IReadOnlyList<string> CapitalLetters { get; } = Enumerable.Range(start: 'A', count: 3).Select(i => ((char)i).ToString()).ToList();

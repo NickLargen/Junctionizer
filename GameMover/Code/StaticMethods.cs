@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 
@@ -118,6 +119,27 @@ namespace GameMover.Code
                 ShowPlacesList = true,
                 ShowHiddenItems = false
             };
+        }
+
+        public static void HandleIOExceptionsDuring(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (IOException e)
+            {
+                // Handle drive failures
+                var message = e.Message;
+                var maybeFullPath = e.GetType()
+                                     .GetField("_maybeFullPath",
+                                         BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (maybeFullPath != null)
+                {
+                    message += $" \"{maybeFullPath.GetValue(e)}\"";
+                }
+                HandleError(message, e);
+            }
         }
 
     }

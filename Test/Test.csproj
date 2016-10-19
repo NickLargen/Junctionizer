@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="FolderMappingTests.cs" />
     <Compile Include="Model\FolderCollection\FolderCollectionNotInitializedTests.cs" />
+    <Compile Include="Model\FolderCollection\FolderCollectionTestBase.cs" />
     <Compile Include="Model\FolderCollection\InitializedFolderCollections.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

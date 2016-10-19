@@ -9,6 +9,6 @@
 
                     d:DataContext="{d:DesignInstance d:Type=model:GameFolder}"
 
-                    Binding="{Binding LastWriteTime, IsAsync=True}"
+                    Binding="{Binding LastWriteTime}"
                     Header="Last Updated">
 </DataGridTextColumn>

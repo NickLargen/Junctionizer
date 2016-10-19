@@ -9,6 +9,7 @@
 
         <Setter Property="TextBlock.Foreground" Value="Black" />
 
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="Transparent" />
@@ -21,7 +22,7 @@
                 <ControlTemplate TargetType="{x:Type DataGridCell}">
                     <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                             Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center"
                                           Margin="{TemplateBinding Padding}" />
                     </Border>
                 </ControlTemplate>
@@ -120,6 +121,11 @@
     <Style x:Key="RightAlignCell" TargetType="DataGridCell" BasedOn="{StaticResource CustomCellStyle}">
         <Setter Property="materialDesign:DataGridAssist.CellPadding" Value="0 5 5 5" />
         <Setter Property="TextBlock.TextAlignment" Value="Right" />
+        <Style.Resources>
+            <Style TargetType="ProgressBar">
+                <Setter Property="HorizontalAlignment" Value="Right" />
+            </Style>
+        </Style.Resources>
     </Style>
 
     <Style TargetType="code:MultiSelectDataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
@@ -127,7 +133,7 @@
         <Setter Property="RowStyle" Value="{StaticResource CustomDataGridRow}" />
         <Setter Property="AlternatingRowBackground" Value="#FFFAFBFA" />
         <Setter Property="SelectionUnit" Value="FullRow" />
-        <!--                <Setter Property="EnableRowVirtualization" Value="True" />-->
+        <Setter Property="EnableRowVirtualization" Value="True" />
         <Setter Property="materialDesign:DataGridAssist.CellPadding" Value="5 5 0 5" />
         <Setter Property="materialDesign:DataGridAssist.ColumnHeaderPadding" Value="6" />
         <Setter Property="AutoGenerateColumns" Value="False" />

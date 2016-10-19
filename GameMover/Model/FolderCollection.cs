@@ -82,6 +82,10 @@ namespace GameMover.Model
                     DirectoryWatcher.Path = Location;
                     if (DirectoryWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
 
+                    foreach (var folder in Folders)
+                    {
+                        folder.CancelSubdirectorySearch();
+                    }
                     Folders.Clear();
                     if (Location == null) return;
 
@@ -187,8 +191,6 @@ namespace GameMover.Model
             };
             DirectoryWatcher.Renamed += (sender, args) => {
                 Folders.First(folder => folder.Name.Equals(args.OldName, StringComparison.OrdinalIgnoreCase)).Rename(args.Name);
-                //Performance: A full reset isn't necessary here, but trying to use replace on the single element produced inconsistent results - renaming the same directory multiple times would frequently result in failure to refresh sort order. May be able to solve it by setting the synchronizing object? https://msdn.microsoft.com/en-us/library/system.io.filesystemwatcher.synchronizingobject(v=vs.110).aspx
-//                Folders.RaiseCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             };
         }
 
