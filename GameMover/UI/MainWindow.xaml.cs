@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,8 +31,6 @@ namespace GameMover.UI
         //TODO: Check for permissions everywhere
         //TODO: Don't repeatedly prompt when performing an action on a lot of items
 
-        //Performance: notify collection change only once when batch selecting items
-
         //Feature: select all corresponding elements
         //Feature: support drag and drop
         //Feature: Update folder size in the UI if it is changed externally
@@ -39,6 +38,8 @@ namespace GameMover.UI
 
         public MainWindow()
         {
+            //Silence freezable trace warnings since they don't seem to represent an actual problem
+            PresentationTraceSources.FreezableSource.Switch.Level = SourceLevels.Error;
             BindingExceptionThrower.Attach();
             InitializeComponent();
 

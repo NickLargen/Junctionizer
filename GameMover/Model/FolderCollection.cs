@@ -169,14 +169,7 @@ namespace GameMover.Model
         });
         #endregion
 
-        public void SelectFolders(IEnumerable<GameFolder> folders)
-        {
-            SelectedItems.Clear();
-            foreach (var folder in folders)
-            {
-                SelectedItems.Add(folder);
-            }
-        }
+        public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.AddRange(folders, clearCollectionFirst:true);
 
         private void InitFileSystemWatcher()
         {

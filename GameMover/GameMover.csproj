@@ -49,7 +49,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\..\MinimalRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -146,7 +146,6 @@
     </ApplicationDefinition>
     <Compile Include="Code\AsyncObservableCollection.cs" />
     <Compile Include="Code\FolderMappingToStringConverter.cs" />
-    <Compile Include="External Code\ObservableRangeCollection.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="Code\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />

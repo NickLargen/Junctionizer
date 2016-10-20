@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -71,7 +72,7 @@ namespace GameMover.Code
                 try
                 {
                     // Skip system directories that are not the root (eg C:\)
-                   if ((info.Attributes & FileAttributes.System) != 0 && info.Parent != null) continue;
+                    if ((info.Attributes & FileAttributes.System) != 0 && info.Parent != null) continue;
 
                     if (!info.IsReparsePoint())
                     {
@@ -140,6 +141,34 @@ namespace GameMover.Code
                 }
                 HandleError(message, e);
             }
+        }
+
+        private const string CountString = "Count";
+        private const string IndexerName = "Item[]";
+
+        private static MethodInfo OnPropertyChangedMethodInfo { get; } = typeof(ObservableCollection<object>).GetMethod("OnPropertyChanged",
+            BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, new[] {typeof(string)}, null);
+        private static MethodInfo OnCollectionChangedMethodInfo { get; } =
+            typeof(ObservableCollection<object>).GetMethod("OnCollectionChanged",
+                BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, new[] {typeof(NotifyCollectionChangedEventArgs)}, null);
+
+        private static PropertyInfo ItemsPropertyInfo { get; } = typeof(ObservableCollection<object>).GetProperty("Items",
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+        /// <summary>
+        /// Implemented using reflection on an extension method so that it can be used after data binding to a <see cref="System.Windows.Controls.SelectedItemCollection"/>.
+        /// </summary>
+        public static void AddRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems, bool clearCollectionFirst = false)
+        {
+            var backingItems = (List<T>) ItemsPropertyInfo.GetValue(self);
+
+            if (clearCollectionFirst) backingItems.Clear();
+
+            backingItems.AddRange(newItems);
+            OnPropertyChangedMethodInfo.Invoke(self, new object[] {CountString});
+            OnPropertyChangedMethodInfo.Invoke(self, new object[] {IndexerName});
+            OnCollectionChangedMethodInfo.Invoke(self,
+                new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
         }
 
     }
