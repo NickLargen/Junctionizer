@@ -121,11 +121,6 @@
     <Style x:Key="RightAlignCell" TargetType="DataGridCell" BasedOn="{StaticResource CustomCellStyle}">
         <Setter Property="materialDesign:DataGridAssist.CellPadding" Value="0 5 5 5" />
         <Setter Property="TextBlock.TextAlignment" Value="Right" />
-        <Style.Resources>
-            <Style TargetType="ProgressBar">
-                <Setter Property="HorizontalAlignment" Value="Right" />
-            </Style>
-        </Style.Resources>
     </Style>
 
     <Style TargetType="code:MultiSelectDataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">

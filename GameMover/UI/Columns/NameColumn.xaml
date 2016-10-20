@@ -8,8 +8,8 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 
                     d:DataContext="{d:DesignInstance d:Type=model:GameFolder}"
-                    
+
                     Width="*"
-                    Header="Name" 
+                    Header="Name"
                     Binding="{Binding Name}">
 </DataGridTextColumn>

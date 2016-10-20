@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -16,6 +17,8 @@ namespace GameMover.Model
     public class GameFolder : BindableBase, IComparable<GameFolder>, IEquatable<GameFolder>
     {
 
+        private static ConcurrentDictionary<string, TaskQueue> TaskQueueDictionary { get; } = new ConcurrentDictionary<string, TaskQueue>();
+
         public DirectoryInfo DirectoryInfo { get; private set; }
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
@@ -23,8 +26,6 @@ namespace GameMover.Model
         public DateTime? LastWriteTime { get; private set; }
 
         public bool IsJunction { get; }
-
-        public bool IsStillSearchingSubdirectories { get; set; } = true;
 
         public long? Size { get; private set; }
 
@@ -48,7 +49,7 @@ namespace GameMover.Model
             if (TokenSource != null)
             {
                 CancelSubdirectorySearch();
-                while (TokenSource != null)
+                while (IsSearchingSubdirectories)
                 {
                     await Task.Delay(25);
                 }
@@ -57,33 +58,33 @@ namespace GameMover.Model
             TokenSource = new CancellationTokenSource();
             var cancellationToken = TokenSource.Token;
 
-            await Task.Run(() => {
-                    IsStillSearchingSubdirectories = true;
-                    LastWriteTime = DirectoryInfo.LastWriteTime;
+            await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2)).Enqueue(() =>
+                                         Task.Run(() => {
+                                             LastWriteTime = DirectoryInfo.LastWriteTime;
 
-                    if (!IsJunction)
-                    {
-                        StaticMethods.HandleIOExceptionsDuring(() => {
-                            Size = 0;
-                            foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
-                            {
-                                if (cancellationToken.IsCancellationRequested) return;
+                                             if (!IsJunction)
+                                             {
+                                                 StaticMethods.HandleIOExceptionsDuring(() => {
+                                                     Size = 0;
+                                                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
+                                                     {
+                                                         if (cancellationToken.IsCancellationRequested) return;
 
-                                if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;
+                                                         if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;
 
-                                foreach (var fileInfo in info.EnumerateFiles())
-                                {
-                                    Size += fileInfo.Length;
-                                }
-                            }
-                        });
-                    }
-
-                    IsStillSearchingSubdirectories = false;
-                }, cancellationToken);
+                                                         foreach (var fileInfo in info.EnumerateFiles())
+                                                         {
+                                                             Size += fileInfo.Length;
+                                                         }
+                                                     }
+                                                 });
+                                             }
+                                         }, cancellationToken));
 
             DisposeTokenSource();
         }
+
+        public bool IsSearchingSubdirectories => TokenSource != null;
 
         private void DisposeTokenSource()
         {

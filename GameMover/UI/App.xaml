@@ -42,19 +42,7 @@
                 <Setter Property="Margin" Value="3,0,3,0" />
                 <Setter Property="TextElement.FontSize" Value="12" />
             </Style>
-
-
-            <ItemContainerTemplate d:DataContext="{d:DesignInstance d:Type=model:GameFolder}" x:Key="SizeCellTemplate">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="{Binding Size, Converter={StaticResource SizeConverter}}" />
-                    <ProgressBar DockPanel.Dock="Bottom"
-                                 Visibility="{Binding IsStillSearchingSubdirectories, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                 Width="50"
-                                 VerticalAlignment="Bottom"
-                                 IsIndeterminate="True" />
-                </DockPanel>
-            </ItemContainerTemplate>
-
+            
         </ResourceDictionary>
 
 
