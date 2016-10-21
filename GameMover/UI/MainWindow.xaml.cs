@@ -29,7 +29,6 @@ namespace GameMover.UI
 
         //TODO: Invalid input handling
         //TODO: Check for permissions everywhere
-        //TODO: Don't repeatedly prompt when performing an action on a lot of items
 
         //Feature: select all corresponding elements
         //Feature: support drag and drop

@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 using GameMover.Code;
 
+using Microsoft.VisualStudio.Threading;
+
 using Prism.Mvvm;
 
 namespace GameMover.Model
@@ -24,11 +26,12 @@ namespace GameMover.Model
             IsJunction = JunctionPoint.Exists(directory);
             if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
 
-            UpdatePropertiesFromSubdirectories();
+            UpdatePropertiesFromSubdirectories().Forget();
         }
 
         private static ConcurrentDictionary<string, TaskQueue> TaskQueueDictionary { get; } = new ConcurrentDictionary<string, TaskQueue>();
 
+        public bool IsBeingDeleted { get; set; }
         public DirectoryInfo DirectoryInfo { get; private set; }
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
@@ -42,7 +45,7 @@ namespace GameMover.Model
 
         public void CancelSubdirectorySearch() => TokenSource?.Cancel();
 
-        private async void UpdatePropertiesFromSubdirectories()
+        private async Task UpdatePropertiesFromSubdirectories()
         {
             if (TokenSource != null)
             {
@@ -52,7 +55,7 @@ namespace GameMover.Model
                     await Task.Delay(25);
                 }
             }
-
+            
             Size = null;
             LastWriteTime = null;
 
@@ -95,7 +98,7 @@ namespace GameMover.Model
             }
         }
 
-        public void RecalculateSize() => UpdatePropertiesFromSubdirectories();
+        public void RecalculateSize() => UpdatePropertiesFromSubdirectories().Forget();
 
         public void Rename(string newName)
         {

@@ -34,19 +34,19 @@ namespace GameMover.ViewModels
             IsSearching = true;
 
             await Task.Run(() => {
-                foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
-                {
-                    if (cancellationToken.IsCancellationRequested) return;
-
-                    NumDirectories++;
-                    CurrentFolder = info.FullName;
-                    // Parent could be null if it is a root directory
-                    if (JunctionPoint.Exists(info) && info.Parent != null)
+                    foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
                     {
-                        junctions.Add(info);
-                        NumJunctions++;
+                        if (cancellationToken.IsCancellationRequested) return;
+
+                        NumDirectories++;
+                        CurrentFolder = info.FullName;
+                        // Parent could be null if it is a root directory
+                        if (JunctionPoint.Exists(info) && info.Parent != null)
+                        {
+                            junctions.Add(info);
+                            NumJunctions++;
+                        }
                     }
-                }
             }, cancellationToken);
 
             IsSearching = false;

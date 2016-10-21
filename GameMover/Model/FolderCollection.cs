@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using GameMover.Code;
 using GameMover.Properties;
@@ -111,24 +112,21 @@ namespace GameMover.Model
         #region Commands
         //TODO test
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
+        public DelegateCommand ArchiveCommand => new DelegateCommand(async () => {
             foreach (var folder in SelectedFolders)
             {
-                var createdFolder = CorrespondingCollection.CopyFolder(folder);
+                GameFolder createdFolder = await CorrespondingCollection.CopyFolder(folder);
                 if (createdFolder != null)
                 {
-                    var isFolderDeleted = DeleteFolder(folder);
+                    var isFolderDeleted = await DeleteFolder(folder);
                     if (isFolderDeleted) CreateJunctionTo(createdFolder);
                 }
             }
         }, () => SelectedFolders.Any());
 
         [AutoLazy.Lazy]
-        public DelegateCommand CopyCommand => new DelegateCommand(() => {
-            foreach (var folder in SelectedFolders)
-            {
-                CorrespondingCollection.CopyFolder(folder);
-            }
+        public DelegateCommand CopyCommand => new DelegateCommand(async () => {
+            await Task.WhenAll(SelectedFolders.Select(CorrespondingCollection.CopyFolder));
         }, () => SelectedFolders.Any(folder => !folder.IsJunction));
 
         [AutoLazy.Lazy]
@@ -223,64 +221,75 @@ namespace GameMover.Model
         /// <summary>
         ///     Returns the created/overwritten folder on success, null otherwise (if operation is canceled)
         /// </summary>
-        /// <param name="folderToCopy"></param>
-        /// <returns></returns>
-        private GameFolder CopyFolder(GameFolder folderToCopy)
+        private Task<GameFolder> CopyFolder(GameFolder folderToCopy)
         {
-            string targetDirectory = $@"{Location}\{folderToCopy.Name}";
+            return Task.Run(() => {
+                string targetDirectory = $@"{Location}\{folderToCopy.Name}";
 
-            var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
-            var isOverwrite = targetDirectoryInfo.Exists;
+                var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
+                var isOverwrite = targetDirectoryInfo.Exists;
 
-            try
-            {
-                if (isOverwrite)
+                try
                 {
-                    var overwrittenFolder = FolderByName(targetDirectoryInfo.Name);
-                    if (overwrittenFolder.IsJunction == false)
+                    if (isOverwrite)
                     {
-                        FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                        overwrittenFolder.RecalculateSize();
-                        return overwrittenFolder;
+                        var overwrittenFolder = FolderByName(targetDirectoryInfo.Name);
+                        if (overwrittenFolder.IsJunction == false)
+                        {
+                            FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
+                            overwrittenFolder.RecalculateSize();
+                            return overwrittenFolder;
+                        }
+
+                        //If the target is a junction, delete it and proceed normally
+                        DeleteJunction(targetDirectoryInfo);
                     }
 
-                    //If the target is a junction, delete it and proceed normally
-                    DeleteJunction(targetDirectoryInfo);
+                    FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
+                    var createdFolder = new GameFolder(targetDirectoryInfo);
+                    return createdFolder;
+                }
+                catch (OperationCanceledException e)
+                {
+                    Debug.WriteLine(e);
+//                if (isOverwrite) return new GameFolder(targetDirectoryInfo);
+                }
+                catch (IOException e)
+                {
+                    HandleException(e);
                 }
 
-                FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                var createdFolder = new GameFolder(targetDirectoryInfo);
-                return createdFolder;
-            }
-            catch (OperationCanceledException e)
-            {
-                Debug.WriteLine(e);
-//                if (isOverwrite) return new GameFolder(targetDirectoryInfo);
-            }
-
-            return null;
+                return null;
+            });
         }
 
         /// <summary>Returns true on successful delete, false if user cancels operation</summary>
-        private bool DeleteFolder(GameFolder folderToDelete)
+        private Task<bool> DeleteFolder(GameFolder folderToDelete)
         {
-            try
-            {
-                FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.AllDialogs,
-                    RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
-            }
-            catch (OperationCanceledException)
-            {
-                //Do nothing if they cancel
-                return false;
-            }
+            folderToDelete.IsBeingDeleted = true;
+            return Task.Run(() => {
+                try
+                {
+                    FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.OnlyErrorDialogs,
+                        RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
+                }
+                catch (OperationCanceledException)
+                {
+                    folderToDelete.IsBeingDeleted = false;
+                    //Do nothing if they cancel
+                    return false;
+                }
+                catch (IOException e)
+                {
+                    HandleException(e);
+                }
 
-            //Delete junctions pointing to the deleted folder
-            CorrespondingCollection.Folders.Where(folder => folder.IsJunction &&
-                                                            folder.JunctionTarget.Equals(folderToDelete.DirectoryInfo.FullName))
-                                   .ForEach(DeleteJunction);
-
-            return true;
+                //Delete junctions pointing to the deleted folder
+                CorrespondingCollection.Folders.Where(folder => folder.IsJunction &&
+                                                                folder.JunctionTarget.Equals(folderToDelete.DirectoryInfo.FullName))
+                                       .ForEach(DeleteJunction);
+                return true;
+            });
         }
 
         /// <exception cref="IOException">If it is not a junction path.</exception>

@@ -24,6 +24,8 @@ namespace GameMover.Code
 
         public delegate void ErrorHandler(string message, Exception e = null);
 
+        public static void HandleException(Exception e) => HandleError(e.Message, e);
+
         public static ErrorHandler HandleError { get; set; } = (message, exception) => {
             MessageBox.Show(message);
             Debug.WriteLine(exception);
@@ -82,7 +84,7 @@ namespace GameMover.Code
 
                     isAccessible = true;
                 }
-                catch (UnauthorizedAccessException) {}
+                catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {}
 
                 if (isAccessible) yield return info;
             }
@@ -154,9 +156,9 @@ namespace GameMover.Code
             BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
         /// <summary>
-        /// Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
-        /// 
-        /// Implemented using reflection on an extension method so that it can be used after data binding to a <see cref="System.Windows.Controls.SelectedItemCollection"/>.
+        ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
+        ///     Implemented using reflection on an extension method so that it can be used after data binding to a
+        ///     <see cref="System.Windows.Controls.SelectedItemCollection" />.
         /// </summary>
         public static void ReplaceWithRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems)
         {
