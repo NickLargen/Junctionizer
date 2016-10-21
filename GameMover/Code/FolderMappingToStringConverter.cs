@@ -6,7 +6,8 @@ using GameMover.Model;
 
 namespace GameMover.Code
 {
-    class FolderMappingToStringConverter :IValueConverter
+
+    internal class FolderMappingToStringConverter : IValueConverter
     {
 
         private const string SEPARATOR = " => ";
@@ -25,4 +26,5 @@ namespace GameMover.Code
         }
 
     }
+
 }

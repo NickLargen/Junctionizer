@@ -196,7 +196,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Model\GameFolder.cs" />
-    <Compile Include="External Code\JunctionPoint.cs" />
+    <Compile Include="Code\JunctionPoint.cs" />
     <Compile Include="Code\SizeToStringConverter.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

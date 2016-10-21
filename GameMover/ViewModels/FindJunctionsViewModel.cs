@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using GameMover.Code;
-using GameMover.External_Code;
 
 using Prism.Mvvm;
 
@@ -13,7 +12,6 @@ namespace GameMover.ViewModels
 
     public class FindJunctionsViewModel : BindableBase
     {
-        public void Cancel() => TokenSource?.Cancel();
 
         private CancellationTokenSource TokenSource { get; set; }
 
@@ -21,6 +19,8 @@ namespace GameMover.ViewModels
         public string CurrentFolder { get; private set; }
         public int NumDirectories { get; private set; }
         public int NumJunctions { get; private set; }
+
+        public void Cancel() => TokenSource?.Cancel();
 
         public async Task<List<DirectoryInfo>> GetJunctions(string selectedPath)
         {
@@ -47,7 +47,6 @@ namespace GameMover.ViewModels
                         NumJunctions++;
                     }
                 }
-
             }, cancellationToken);
 
             IsSearching = false;

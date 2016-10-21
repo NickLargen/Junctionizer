@@ -5,12 +5,11 @@ using Prism.Mvvm;
 namespace GameMover.Model
 {
 
+    /// <summary>
+    ///     Container for two directory location.
+    /// </summary>
     public sealed class FolderMapping : BindableBase, IEquatable<FolderMapping>
     {
-
-        public string Source { get; }
-        public string Destination { get; }
-        public bool IsSavedMapping { get; set; }
 
         public FolderMapping(string source, string destination, bool isSavedMapping = false)
         {
@@ -19,11 +18,9 @@ namespace GameMover.Model
             IsSavedMapping = isSavedMapping;
         }
 
-        private bool EqualsInternal(FolderMapping other)
-        {
-            return string.Equals(Destination, other.Destination, StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(Source, other.Source, StringComparison.OrdinalIgnoreCase);
-        }
+        public string Source { get; }
+        public string Destination { get; }
+        public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc />
         public bool Equals(FolderMapping other)
@@ -32,6 +29,12 @@ namespace GameMover.Model
             if (ReferenceEquals(this, other)) return true;
 
             return EqualsInternal(other);
+        }
+
+        private bool EqualsInternal(FolderMapping other)
+        {
+            return string.Equals(Destination, other.Destination, StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(Source, other.Source, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc />

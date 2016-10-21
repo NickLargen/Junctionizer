@@ -9,8 +9,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 
-using GameMover.External_Code;
-
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
@@ -156,13 +154,15 @@ namespace GameMover.Code
             BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
         /// <summary>
+        /// Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
+        /// 
         /// Implemented using reflection on an extension method so that it can be used after data binding to a <see cref="System.Windows.Controls.SelectedItemCollection"/>.
         /// </summary>
-        public static void AddRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems, bool clearCollectionFirst = false)
+        public static void ReplaceWithRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems)
         {
             var backingItems = (List<T>) ItemsPropertyInfo.GetValue(self);
 
-            if (clearCollectionFirst) backingItems.Clear();
+            backingItems.Clear();
 
             backingItems.AddRange(newItems);
             OnPropertyChangedMethodInfo.Invoke(self, new object[] {CountString});

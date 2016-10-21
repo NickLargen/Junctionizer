@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 
 using GameMover.Code;
-using GameMover.External_Code;
 using GameMover.Model;
 
 using MaterialDesignThemes.Wpf;
@@ -24,16 +23,39 @@ namespace GameMover.ViewModels
     public class MainWindowViewModel : BindableBase
     {
 
+        public void Initialize()
+        {
+            RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
+
+            SourceCollection = new FolderCollection {
+                FolderBrowserDefaultLocation = regKey == null
+                                                   ? @"C:"
+                                                   : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common"
+            };
+            DestinationCollection = new FolderCollection {
+                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common",
+                CorrespondingCollection = SourceCollection
+            };
+
+            SourceCollection.PropertyChanged += OnFolderCollectionPropertyChange;
+            DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChange;
+
+            DisplayedMappings.Add(new FolderMapping(SourceCollection.FolderBrowserDefaultLocation,
+                DestinationCollection.FolderBrowserDefaultLocation, true));
+            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Folder a", @"C:\Users\Nick\Desktop\Folder B", true));
+            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Manual Testing For GameMover\Source",
+                @"C:\Users\Nick\Desktop\Manual Testing For GameMover\Destination", true));
+        }
+
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
-
         public InteractionRequest<INotification> DisplayFindJunctionsDialogRequest { get; } = new InteractionRequest<INotification>();
-
         public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
 
         [AutoLazy.Lazy]
         public DelegateCommand<DialogClosingEventArgs> DialogClosedCommand
             => new DelegateCommand<DialogClosingEventArgs>(args => OnDialogClosed?.Invoke());
         private event Action OnDialogClosed;
+
 
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
@@ -71,28 +93,13 @@ namespace GameMover.ViewModels
             }
         }
 
-        public void Initialize()
+        private void OnFolderCollectionPropertyChange(object sender, PropertyChangedEventArgs args)
         {
-            RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-
-            SourceCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = regKey == null
-                                                   ? @"C:"
-                                                   : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common"
-            };
-            DestinationCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common",
-                CorrespondingCollection = SourceCollection
-            };
-
-            SourceCollection.PropertyChanged += OnFolderCollectionChange;
-            DestinationCollection.PropertyChanged += OnFolderCollectionChange;
-
-            DisplayedMappings.Add(new FolderMapping(SourceCollection.FolderBrowserDefaultLocation,
-                DestinationCollection.FolderBrowserDefaultLocation, true));
-            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Folder a", @"C:\Users\Nick\Desktop\Folder B", true));
-            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Manual Testing For GameMover\Source",
-                @"C:\Users\Nick\Desktop\Manual Testing For GameMover\Destination", true));
+            // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
+            if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)
+            {
+                SelectedMapping = new FolderMapping(SourceCollection.Location, DestinationCollection.Location);
+            }
         }
 
         [AutoLazy.Lazy]
@@ -126,14 +133,10 @@ namespace GameMover.ViewModels
             }
         });
 
-        private void OnFolderCollectionChange(object sender, PropertyChangedEventArgs args)
-        {
-            // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
-            if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)
-            {
-                SelectedMapping = new FolderMapping(SourceCollection.Location, DestinationCollection.Location);
-            }
-        }
+
+        [AutoLazy.Lazy]
+        public DelegateCommand RefreshFoldersCommand => new DelegateCommand(() => {});
+
 
     }
 

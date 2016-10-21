@@ -49,6 +49,10 @@ namespace GameMover.UI
             ((MainWindowViewModel) DataContext).Initialize();
         }
 
+        public static DelegateCommand<object> OpenDialogDelegateCommand { get; } = new DelegateCommand<object>(async obj => {
+            await DialogHost.Show(obj);
+        });
+
         private static void SetInitialSort(DataGrid dataGrid)
         {
             var firstCol = dataGrid.Columns.First();
@@ -59,7 +63,6 @@ namespace GameMover.UI
             dataGrid.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
         }
 
-
         private void HideDestination(object sender, RoutedEventArgs e)
         {
             destinationColumnDefinition.Width = new GridLength(0);
@@ -69,10 +72,6 @@ namespace GameMover.UI
         {
             destinationColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
-
-        public static DelegateCommand<object> OpenDialogDelegateCommand { get; } = new DelegateCommand<object>(async obj => {
-            await DialogHost.Show(obj);
-        });
 
     }
 

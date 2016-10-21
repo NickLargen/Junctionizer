@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 
 using GameMover.Code;
-using GameMover.External_Code;
 using GameMover.Properties;
 
 using Microsoft.VisualBasic.FileIO;
@@ -58,6 +57,7 @@ namespace GameMover.Model
                 };
             }
         }
+
         public IEnumerable<GameFolder> SelectedFolders
             => SelectedItems?.Reverse().Cast<GameFolder>() ?? Enumerable.Empty<GameFolder>();
 
@@ -80,7 +80,7 @@ namespace GameMover.Model
                         BothCollectionsInitialized |= Location != null && CorrespondingCollection.Location != null;
 
                     DirectoryWatcher.Path = Location;
-                    if (DirectoryWatcher.EnableRaisingEvents == false) InitFileSystemWatcher();
+                    if (DirectoryWatcher.EnableRaisingEvents == false) InitDirectoryWatcher();
 
                     foreach (var folder in Folders)
                     {
@@ -169,9 +169,9 @@ namespace GameMover.Model
         });
         #endregion
 
-        public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.AddRange(folders, clearCollectionFirst:true);
+        public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceWithRange(folders);
 
-        private void InitFileSystemWatcher()
+        private void InitDirectoryWatcher()
         {
             DirectoryWatcher.EnableRaisingEvents = true;
             DirectoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
@@ -217,7 +217,7 @@ namespace GameMover.Model
         /// <returns></returns>
         private GameFolder CopyFolder(GameFolder folderToCopy)
         {
-            string targetDirectory = $"{Location}\\{folderToCopy.Name}";
+            string targetDirectory = $@"{Location}\{folderToCopy.Name}";
 
             var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
             var isOverwrite = targetDirectoryInfo.Exists;
@@ -245,7 +245,7 @@ namespace GameMover.Model
             catch (OperationCanceledException e)
             {
                 Debug.WriteLine(e);
-                if (isOverwrite) return new GameFolder(targetDirectoryInfo);
+//                if (isOverwrite) return new GameFolder(targetDirectoryInfo);
             }
 
             return null;

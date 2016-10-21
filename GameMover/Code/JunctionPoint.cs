@@ -8,13 +8,14 @@ using Microsoft.Win32.SafeHandles;
 
 // ReSharper disable UnusedMember.Local
 
-namespace GameMover.External_Code
+namespace GameMover.Code
 {
 
-/**
-                            Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-                            By Jeff Brown
-                            **/
+    /**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
+    By Jeff Brown
+                                                                        
+    Modified by Nick Largen
+    **/
 
     /// <summary>
     ///     Provides access to NTFS junction points in .Net.

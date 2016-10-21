@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GameMover.Model
+namespace GameMover.Code
 {
 
     public class TaskQueue
