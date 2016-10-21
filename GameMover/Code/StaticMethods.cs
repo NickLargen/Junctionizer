@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
@@ -143,18 +144,6 @@ namespace GameMover.Code
             }
         }
 
-        private const string CountString = "Count";
-        private const string IndexerName = "Item[]";
-
-        private static MethodInfo OnPropertyChangedMethodInfo { get; } = typeof(ObservableCollection<object>).GetMethod("OnPropertyChanged",
-            BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, new[] {typeof(string)}, null);
-        private static MethodInfo OnCollectionChangedMethodInfo { get; } =
-            typeof(ObservableCollection<object>).GetMethod("OnCollectionChanged",
-                BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, new[] {typeof(NotifyCollectionChangedEventArgs)}, null);
-
-        private static PropertyInfo ItemsPropertyInfo { get; } = typeof(ObservableCollection<object>).GetProperty("Items",
-            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
-
         /// <summary>
         ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
         ///     Implemented using reflection on an extension method so that it can be used after data binding to a
@@ -162,14 +151,19 @@ namespace GameMover.Code
         /// </summary>
         public static void ReplaceWithRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems)
         {
-            var backingItems = (List<T>) ItemsPropertyInfo.GetValue(self);
+            var type = self.GetType();
+            var backingItems = (List<T>) type.GetProperty("Items", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(self);
 
             backingItems.Clear();
-
             backingItems.AddRange(newItems);
-            OnPropertyChangedMethodInfo.Invoke(self, new object[] {CountString});
-            OnPropertyChangedMethodInfo.Invoke(self, new object[] {IndexerName});
-            OnCollectionChangedMethodInfo.Invoke(self,
+
+            var onPropertyChangedMethodInfo = type.GetMethod("OnPropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance,
+                Type.DefaultBinder, new[] {typeof(PropertyChangedEventArgs)}, modifiers: null);
+            var onCollectionChangedMethodInfo = type.GetMethod("OnCollectionChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            onPropertyChangedMethodInfo.Invoke(self, new object[] {new PropertyChangedEventArgs("Count"),});
+            onPropertyChangedMethodInfo.Invoke(self, new object[] {new PropertyChangedEventArgs("Item[]"),});
+            onCollectionChangedMethodInfo.Invoke(self,
                 new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
         }
 

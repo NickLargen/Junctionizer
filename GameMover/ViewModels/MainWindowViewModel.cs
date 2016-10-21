@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 
 using GameMover.Code;
 using GameMover.Model;
@@ -10,6 +13,8 @@ using MaterialDesignThemes.Wpf;
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+
+using Newtonsoft.Json;
 
 using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
@@ -40,11 +45,15 @@ namespace GameMover.ViewModels
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChange;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChange;
 
-            DisplayedMappings.Add(new FolderMapping(SourceCollection.FolderBrowserDefaultLocation,
-                DestinationCollection.FolderBrowserDefaultLocation, true));
-            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Folder a", @"C:\Users\Nick\Desktop\Folder B", true));
-            DisplayedMappings.Add(new FolderMapping(@"C:\Users\Nick\Desktop\Manual Testing For GameMover\Source",
-                @"C:\Users\Nick\Desktop\Manual Testing For GameMover\Destination", true));
+            var appDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                nameof(GameMover));
+            SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
+
+            var deserializedMappings = JsonConvert.DeserializeObject<List<FolderMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
+            deserializedMappings.ForEach(mapping => mapping.IsSavedMapping = true);
+            DisplayedMappings.ReplaceWithRange(deserializedMappings);
+
+            DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
         }
 
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
@@ -62,6 +71,7 @@ namespace GameMover.ViewModels
 
         public AsyncObservableCollection<FolderMapping> DisplayedMappings { get; } = new AsyncObservableCollection<FolderMapping>();
 
+        private string SavedMappingsFilePath { get; set; }
         private bool IsSelectedMappingModificationAllowed { get; set; } = true;
 
         private FolderMapping _selectedMapping;
@@ -84,10 +94,17 @@ namespace GameMover.ViewModels
             }
         }
 
+        private void WriteSavedMappings()
+        {
+            string json = JsonConvert.SerializeObject(DisplayedMappings.Where(mapping => mapping.IsSavedMapping), Formatting.Indented);
+            File.WriteAllText(SavedMappingsFilePath, json, Encoding.UTF8);
+        }
+
         private void SelectedMappingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName.Equals(nameof(FolderMapping.IsSavedMapping)))
             {
+                WriteSavedMappings();
                 SaveCurrentLocationCommand.RaiseCanExecuteChanged();
                 DeleteCurrentLocationCommand.RaiseCanExecuteChanged();
             }
@@ -128,7 +145,7 @@ namespace GameMover.ViewModels
             {
                 Debug.Assert(directoryInfo.Parent != null, "directoryInfo.Parent != null");
                 var folderMapping = new FolderMapping(directoryInfo.Parent.FullName,
-                    Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName);
+                    Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName, isSavedMapping: true);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
         });
@@ -138,7 +155,6 @@ namespace GameMover.ViewModels
             SourceCollection.Refresh();
             DestinationCollection.Refresh();
         });
-
 
     }
 

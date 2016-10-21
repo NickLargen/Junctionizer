@@ -25,7 +25,6 @@ namespace GameMover.UI
     {
 
         //TODO: Delete on a junction gives recycle bin prompt but it's just for the junction
-        //TODO: Save locations between runs
 
         //TODO: Invalid input handling
         //TODO: Check for permissions everywhere

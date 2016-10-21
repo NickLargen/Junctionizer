@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Newtonsoft.Json;
+
 using Prism.Mvvm;
 
 namespace GameMover.Model
@@ -19,7 +21,10 @@ namespace GameMover.Model
         }
 
         public string Source { get; }
+
         public string Destination { get; }
+
+        [JsonIgnore]
         public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc />
