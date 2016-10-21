@@ -135,7 +135,10 @@ namespace GameMover.ViewModels
 
 
         [AutoLazy.Lazy]
-        public DelegateCommand RefreshFoldersCommand => new DelegateCommand(() => {});
+        public DelegateCommand RefreshFoldersCommand => new DelegateCommand(() => {
+            SourceCollection.Refresh();
+            DestinationCollection.Refresh();
+        });
 
 
     }

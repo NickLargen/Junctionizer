@@ -6,7 +6,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:model="clr-namespace:GameMover.Model"
 
              StartupUri="MainWindow.xaml">
     <Application.Resources>
@@ -30,7 +29,6 @@
             </ResourceDictionary.MergedDictionaries>
 
             <code:SizeToStringConverter x:Key="SizeConverter" />
-            <code:FolderMappingToStringConverter x:Key="FolderMappingConverter" />
 
             <!-- ReSharper disable once Xaml.StaticResourceNotResolved -->
             <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">

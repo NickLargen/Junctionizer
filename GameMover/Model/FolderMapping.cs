@@ -23,6 +23,9 @@ namespace GameMover.Model
         public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc />
+        public override string ToString() => $"{Source} => {Destination}";
+
+        /// <inheritdoc />
         public bool Equals(FolderMapping other)
         {
             if (ReferenceEquals(null, other)) return false;

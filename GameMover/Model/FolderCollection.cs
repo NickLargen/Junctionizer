@@ -21,6 +21,7 @@ namespace GameMover.Model
 
     public sealed class FolderCollection : BindableBase, IDisposable
     {
+
         public FolderCollection()
         {
             SelectedItems = new ObservableCollection<object>();
@@ -77,7 +78,7 @@ namespace GameMover.Model
 
                 DisplayBusyDuring(() => {
                     CorrespondingCollection.BothCollectionsInitialized =
-                        BothCollectionsInitialized |= Location != null && CorrespondingCollection.Location != null;
+                        BothCollectionsInitialized = Location != null && CorrespondingCollection.Location != null;
 
                     DirectoryWatcher.Path = Location;
                     if (DirectoryWatcher.EnableRaisingEvents == false) InitDirectoryWatcher();
@@ -86,6 +87,7 @@ namespace GameMover.Model
                     {
                         folder.CancelSubdirectorySearch();
                     }
+
                     Folders.Clear();
                     if (Location == null) return;
 
@@ -171,6 +173,16 @@ namespace GameMover.Model
 
         public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceWithRange(folders);
 
+        public void Refresh()
+        {
+            foreach (var folder in Folders)
+            {
+                folder.RecalculateSize();
+            }
+        }
+
+        public void Dispose() => DirectoryWatcher.Dispose();
+
         private void InitDirectoryWatcher()
         {
             DirectoryWatcher.EnableRaisingEvents = true;
@@ -186,8 +198,6 @@ namespace GameMover.Model
                 Folders.First(folder => folder.Name.Equals(args.OldName, StringComparison.OrdinalIgnoreCase)).Rename(args.Name);
             };
         }
-
-        public void Dispose() => DirectoryWatcher.Dispose();
 
         private GameFolder FolderByName(string name)
         {

@@ -145,7 +145,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Code\AsyncObservableCollection.cs" />
-    <Compile Include="Code\FolderMappingToStringConverter.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="Code\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />

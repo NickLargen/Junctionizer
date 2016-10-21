@@ -42,7 +42,7 @@ namespace GameMover.Model
 
         public void CancelSubdirectorySearch() => TokenSource?.Cancel();
 
-        private async Task UpdatePropertiesFromSubdirectories()
+        private async void UpdatePropertiesFromSubdirectories()
         {
             if (TokenSource != null)
             {
@@ -52,6 +52,9 @@ namespace GameMover.Model
                     await Task.Delay(25);
                 }
             }
+
+            Size = null;
+            LastWriteTime = null;
 
             await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
                                      .Enqueue(() => {
@@ -92,10 +95,7 @@ namespace GameMover.Model
             }
         }
 
-        public void RecalculateSize()
-        {
-            UpdatePropertiesFromSubdirectories();
-        }
+        public void RecalculateSize() => UpdatePropertiesFromSubdirectories();
 
         public void Rename(string newName)
         {
