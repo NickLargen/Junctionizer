@@ -73,7 +73,7 @@
                                                       Visibility="{TemplateBinding DetailsVisibility}" />
                             <DataGridRowHeader Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
                                                Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
-                            <Path x:Name="cross" Grid.ColumnSpan="2" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="Black" StrokeThickness="1" />
+                            <Path x:Name="cross" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="Black" StrokeThickness="1" />
                         </SelectiveScrollingGrid>
                     </Border>
                     <ControlTemplate.Triggers>

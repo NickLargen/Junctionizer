@@ -11,6 +11,7 @@ using GameMover.Code;
 using Microsoft.VisualStudio.Threading;
 
 using Prism.Mvvm;
+using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
@@ -47,14 +48,14 @@ namespace GameMover.Model
 
         private CancellationTokenSource _propertyUpdateTokenSource;
 
-        public void CancelSubdirectorySearch() => StaticMethods.SafeCancelTokenSource(_propertyUpdateTokenSource);
+        public void CancelSubdirectorySearch() => SafeCancelTokenSource(_propertyUpdateTokenSource);
 
         private async Task UpdatePropertiesFromSubdirectories()
         {
             using (var tokenSource = new CancellationTokenSource())
             {
                 // Cancel the previous update task (if it exists) and save a reference to the current tokenSource so that it can be cancelled later
-                StaticMethods.SafeCancelTokenSource(Interlocked.Exchange(ref _propertyUpdateTokenSource, tokenSource));
+                SafeCancelTokenSource(Interlocked.Exchange(ref _propertyUpdateTokenSource, tokenSource));
 
                 IsSizeOutdated = true;
 
@@ -82,7 +83,8 @@ namespace GameMover.Model
 
             if (!IsJunction)
             {
-                StaticMethods.HandleIOExceptionsDuring(() => {
+                try
+                {
                     long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
                     {
@@ -97,7 +99,11 @@ namespace GameMover.Model
 
                     Size = tempSize;
                     IsSizeOutdated = false;
-                });
+                }
+                catch (IOException e)
+                {
+                    HandleException(e);
+                }
             }
         }
 

@@ -49,7 +49,8 @@ namespace GameMover.ViewModels
                 nameof(GameMover));
             SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
 
-            var deserializedMappings = JsonConvert.DeserializeObject<List<FolderMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
+            var deserializedMappings =
+                JsonConvert.DeserializeObject<List<FolderMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
             deserializedMappings.ForEach(mapping => mapping.IsSavedMapping = true);
             DisplayedMappings.ReplaceWithRange(deserializedMappings);
 
@@ -81,6 +82,17 @@ namespace GameMover.ViewModels
             set {
                 var previousValue = _selectedMapping;
                 _selectedMapping = value;
+                if (!Directory.Exists(_selectedMapping.Source))
+                {
+                    DisplayedMappings.Remove(_selectedMapping);
+                    _selectedMapping = new FolderMapping(null, _selectedMapping.Destination);
+                }
+                if (!Directory.Exists(_selectedMapping.Destination))
+                {
+                    DisplayedMappings.Remove(_selectedMapping);
+                    _selectedMapping = new FolderMapping(_selectedMapping.Source, null);
+                }
+
                 if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
                 if (previousValue?.IsSavedMapping == false) DisplayedMappings.Remove(previousValue);
 

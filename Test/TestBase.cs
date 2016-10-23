@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 
 using GameMover.Code;
 
@@ -17,7 +14,7 @@ namespace Test
         [OneTimeSetUp]
         public void Initial()
         {
-            StaticMethods.HandleError = (message, exception) => {
+            ErrorHandling.HandleError = (message, exception, errorLevel) => {
                 Console.WriteLine(message);
                 throw exception;
             };

@@ -17,6 +17,7 @@ using Prism.Commands;
 using Prism.Mvvm;
 
 using static GameMover.Code.StaticMethods;
+using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
@@ -27,6 +28,7 @@ namespace GameMover.Model
         public FolderCollection()
         {
             SelectedItems = new ObservableCollection<object>();
+            InitDirectoryWatcher();
         }
 
         private FolderCollection _correspondingCollection;
@@ -68,22 +70,21 @@ namespace GameMover.Model
 
         private bool BothCollectionsInitialized { get; set; }
 
+        private FileStream _directoryLockFileStream;
+
         private string _location;
         public string Location
         {
             get { return _location; }
             set {
-                // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
-                if (!Directory.Exists(value)) return;
-
-                _location = value;
+                _location = Directory.Exists(value) ? value : null;
 
                 DisplayBusyDuring(() => {
                     CorrespondingCollection.BothCollectionsInitialized =
                         BothCollectionsInitialized = Location != null && CorrespondingCollection.Location != null;
 
-                    DirectoryWatcher.Path = Location;
-                    if (DirectoryWatcher.EnableRaisingEvents == false) InitDirectoryWatcher();
+                    DirectoryWatcher.EnableRaisingEvents = false;
+                    _directoryLockFileStream?.Close();
 
                     foreach (var folder in Folders)
                     {
@@ -91,22 +92,43 @@ namespace GameMover.Model
                     }
 
                     Folders.Clear();
-                    if (Location == null) return;
 
-                    try
-                    {
-                        foreach (var directoryInfo in new DirectoryInfo(Location)
-                            .EnumerateDirectories()
-                            .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0))
-                        {
-                            Folders.Add(new GameFolder(directoryInfo));
-                        }
-                    }
-                    catch (IOException e)
-                    {
-                        HandleError(e.Message, e);
-                    }
+                    // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
+                    if (Directory.Exists(Location)) SetNewLocationImpl(Location);
                 });
+            }
+        }
+
+        private void SetNewLocationImpl(string loc)
+        {
+            try
+            {
+                // Attempt to create a hidden file that will prevent the user from renaming the directory currently being observed
+                var directoryLockFilePath = Path.Combine(loc, $"{nameof(GameMover)}DirectoryLock.tmp");
+                _directoryLockFileStream = new FileStream(directoryLockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096,
+                    FileOptions.DeleteOnClose);
+                File.SetAttributes(directoryLockFilePath, FileAttributes.Hidden);
+            }
+            catch (Exception)
+            {
+                // This does not need to succeed for the application to function
+            }
+
+            DirectoryWatcher.Path = Location;
+            DirectoryWatcher.EnableRaisingEvents = true;
+
+            try
+            {
+                foreach (var directoryInfo in new DirectoryInfo(loc)
+                    .EnumerateDirectories()
+                    .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0))
+                {
+                    Folders.Add(new GameFolder(directoryInfo));
+                }
+            }
+            catch (IOException e)
+            {
+                HandleException(e);
             }
         }
 
@@ -156,6 +178,7 @@ namespace GameMover.Model
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(() => {
+            //TODO: does not work correctly with junctions with a different name than their target
             SelectFolders(Folders.Except(CorrespondingCollection.Folders));
         }).ObservesCanExecute(_ => BothCollectionsInitialized);
 
@@ -174,6 +197,8 @@ namespace GameMover.Model
 
         public void Refresh()
         {
+            if (!Directory.Exists(Location)) Location = null;
+
             foreach (var folder in Folders)
             {
                 folder.RecalculateSize();
@@ -184,7 +209,6 @@ namespace GameMover.Model
 
         private void InitDirectoryWatcher()
         {
-            DirectoryWatcher.EnableRaisingEvents = true;
             DirectoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             DirectoryWatcher.InternalBufferSize = 40960;
             DirectoryWatcher.Created += (sender, args) => {
@@ -209,15 +233,17 @@ namespace GameMover.Model
         {
             try
             {
+                CheckLocationExists(Location);
+
                 var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
                 if (junctionDirectory.Exists == false)
                 {
                     JunctionPoint.Create(junctionDirectory, junctionTarget.DirectoryInfo, false);
                 }
             }
-            catch (UnauthorizedAccessException e)
+            catch (Exception e) when(e is IOException || e is UnauthorizedAccessException)
             {
-                HandleError(InvalidPermission, e);
+                HandleException(e);
             }
         }
 
@@ -235,6 +261,8 @@ namespace GameMover.Model
 
                 try
                 {
+                    CheckLocationExists(Location);
+
                     if (isOverwrite)
                     {
                         var overwrittenFolder = FolderByName(targetDirectoryInfo.Name);
@@ -272,25 +300,24 @@ namespace GameMover.Model
             });
         }
 
-        /// <summary>Returns true on successful delete, false if user cancels operation</summary>
+        /// <summary>Returns true on successful delete, false if user cancels operation or there is an error</summary>
         private Task<bool> DeleteFolder(GameFolder folderToDelete)
         {
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {
                 try
                 {
+                    CheckLocationExists(Location);
+
                     FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.OnlyErrorDialogs,
                         RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
                 }
-                catch (OperationCanceledException)
+                catch (Exception e) when (e is OperationCanceledException || e is IOException)
                 {
                     folderToDelete.IsBeingDeleted = false;
+                    if (e is IOException) HandleException(e);
                     //Do nothing if they cancel
                     return false;
-                }
-                catch (IOException e)
-                {
-                    HandleException(e);
                 }
 
                 //Delete junctions pointing to the deleted folder
@@ -301,11 +328,21 @@ namespace GameMover.Model
             });
         }
 
-        /// <exception cref="IOException">If it is not a junction path.</exception>
-        private static void DeleteJunction(GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
+        private void DeleteJunction(GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
 
-        /// <exception cref="IOException">If it is not a junction path.</exception>
-        private static void DeleteJunction(DirectoryInfo junctionDirectory) => JunctionPoint.Delete(junctionDirectory);
+        private void DeleteJunction(DirectoryInfo junctionDirectory)
+        {
+            try
+            {
+                CheckLocationExists(Location);
+
+                JunctionPoint.Delete(junctionDirectory);
+            }
+            catch (IOException e)
+            {
+                HandleException(e);
+            }
+        }
 
     }
 

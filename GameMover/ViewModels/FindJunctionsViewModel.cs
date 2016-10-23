@@ -21,7 +21,7 @@ namespace GameMover.ViewModels
         public int NumDirectories { get; private set; }
         public int NumJunctions { get; private set; }
 
-        public void Cancel() => StaticMethods.SafeCancelTokenSource(TokenSource);
+        public void Cancel() => ErrorHandling.SafeCancelTokenSource(TokenSource);
 
         public async Task<List<DirectoryInfo>> GetJunctions(string selectedPath)
         {

@@ -158,6 +158,7 @@
     </ApplicationDefinition>
     <Compile Include="Code\AsyncObservableCollection.cs" />
     <Compile Include="Code\DateTimeToStringConverter.cs" />
+    <Compile Include="Code\ErrorHandling.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="Code\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />

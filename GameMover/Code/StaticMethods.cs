@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
-using System.Windows;
 using System.Windows.Input;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -20,18 +17,6 @@ namespace GameMover.Code
 
     public static class StaticMethods
     {
-
-        internal const string NoItemsSelected = "No folder selected.",
-                              InvalidPermission = "Invalid permission";
-
-        public delegate void ErrorHandler(string message, Exception e = null);
-
-        public static void HandleException(Exception e) => HandleError(e.Message, e);
-
-        public static ErrorHandler HandleError { get; set; } = (message, exception) => {
-            MessageBox.Show(message);
-            Debug.WriteLine(exception);
-        };
 
         public static Action<Action> DisplayBusyDuring { get; set; } = action => {
             Mouse.OverrideCursor = Cursors.Wait;
@@ -124,27 +109,6 @@ namespace GameMover.Code
             };
         }
 
-        public static void HandleIOExceptionsDuring(Action action)
-        {
-            try
-            {
-                action();
-            }
-            catch (IOException e)
-            {
-                // Handle drive failures
-                var message = e.Message;
-                var maybeFullPath = e.GetType()
-                                     .GetField("_maybeFullPath",
-                                         BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                if (maybeFullPath != null)
-                {
-                    message += $" \"{maybeFullPath.GetValue(e)}\"";
-                }
-                HandleError(message, e);
-            }
-        }
-
         /// <summary>
         ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
         ///     Implemented using reflection on an extension method so that it can be used after data binding to a
@@ -168,21 +132,6 @@ namespace GameMover.Code
                 new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
         }
 
-        /// <summary>
-        ///     Cancels the provided token source if it is not null and has not yet been disposed.
-        /// </summary>
-        /// <param name="cancellationTokenSource"></param>
-        public static void SafeCancelTokenSource(CancellationTokenSource cancellationTokenSource)
-        {
-            try
-            {
-                cancellationTokenSource?.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // Ignore
-            }
-        }
 
     }
 
