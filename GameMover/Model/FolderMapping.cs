@@ -6,13 +6,11 @@ using Prism.Mvvm;
 
 namespace GameMover.Model
 {
-
     /// <summary>
     ///     Container for two directory location.
     /// </summary>
     public sealed class FolderMapping : BindableBase, IEquatable<FolderMapping>
     {
-
         public FolderMapping(string source, string destination, bool isSavedMapping = false)
         {
             Source = source;
@@ -67,7 +65,5 @@ namespace GameMover.Model
                        (Source != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(Source) : 0);
             }
         }
-
     }
-
 }

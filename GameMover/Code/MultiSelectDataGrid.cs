@@ -4,10 +4,8 @@ using System.Windows.Controls;
 
 namespace GameMover.Code
 {
-
     internal class MultiSelectDataGrid : DataGrid
     {
-
         public MultiSelectDataGrid()
         {
             Loaded += (sender, args) => {
@@ -24,7 +22,5 @@ namespace GameMover.Code
         public static readonly DependencyProperty SelectedItemsListProperty =
             DependencyProperty.Register("SelectedItemsList", typeof(IList), typeof(MultiSelectDataGrid),
                 new FrameworkPropertyMetadata(defaultValue: null, flags: FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
-
     }
-
 }

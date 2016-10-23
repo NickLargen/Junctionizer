@@ -3,10 +3,8 @@ using System.Windows.Data;
 
 namespace GameMover.Code
 {
-
     public sealed class AsyncObservableCollection<T> : ObservableCollection<T>
     {
-
         public AsyncObservableCollection()
         {
             BindingOperations.EnableCollectionSynchronization(this, new object());
@@ -14,7 +12,5 @@ namespace GameMover.Code
             var listCollectionView = CollectionViewSource.GetDefaultView(this) as ListCollectionView;
             if (listCollectionView != null) listCollectionView.IsLiveSorting = true;
         }
-
     }
-
 }

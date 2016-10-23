@@ -21,10 +21,8 @@ using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
-
     public sealed class FolderCollection : BindableBase, IDisposable
     {
-
         public FolderCollection()
         {
             SelectedItems = new ObservableCollection<object>();
@@ -241,7 +239,7 @@ namespace GameMover.Model
                     JunctionPoint.Create(junctionDirectory, junctionTarget.DirectoryInfo, false);
                 }
             }
-            catch (Exception e) when(e is IOException || e is UnauthorizedAccessException)
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 HandleException(e);
             }
@@ -343,7 +341,5 @@ namespace GameMover.Model
                 HandleException(e);
             }
         }
-
     }
-
 }

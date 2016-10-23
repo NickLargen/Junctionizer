@@ -2,10 +2,8 @@
 
 namespace Test.Model.FolderCollection
 {
-    
     public class FolderCollectionNotInitializedTests : FolderCollectionTestBase
     {
-
         [Test]
         public void CanExecuteNoCorrespondingFolder()
         {
@@ -18,6 +16,5 @@ namespace Test.Model.FolderCollection
             Assert.That(SourceCollection.DeleteJunctionsCommand.CanExecute, Is.False);
             Assert.That(SourceCollection.SelectFoldersNotInOtherPaneCommand.CanExecute, Is.False);
         }
-
     }
 }

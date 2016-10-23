@@ -10,10 +10,8 @@ using Prism.Mvvm;
 
 namespace GameMover.ViewModels
 {
-
     public class FindJunctionsViewModel : BindableBase
     {
-
         private CancellationTokenSource TokenSource { get; set; }
 
         public bool IsSearching { get; private set; }
@@ -63,7 +61,5 @@ namespace GameMover.ViewModels
 
             return junctions;
         }
-
     }
-
 }

@@ -7,10 +7,8 @@ using NUnit.Framework;
 
 namespace Test
 {
-
     public class TestBase
     {
-
         [OneTimeSetUp]
         public void Initial()
         {
@@ -25,7 +23,5 @@ namespace Test
                 Console.WriteLine($"Potentially long running action took {stopwatch.ElapsedMilliseconds}ms to complete.");
             };
         }
-
     }
-
 }

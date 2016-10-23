@@ -4,10 +4,8 @@ using System.Threading.Tasks;
 
 namespace GameMover.Code
 {
-
     public class TaskQueue
     {
-
         private readonly SemaphoreSlim _semaphore;
 
         public TaskQueue(int degreeParallelism)
@@ -27,7 +25,5 @@ namespace GameMover.Code
                 _semaphore.Release();
             }
         }
-
     }
-
 }

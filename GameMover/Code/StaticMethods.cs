@@ -14,10 +14,8 @@ using Prism.Commands;
 
 namespace GameMover.Code
 {
-
     public static class StaticMethods
     {
-
         public static Action<Action> DisplayBusyDuring { get; set; } = action => {
             Mouse.OverrideCursor = Cursors.Wait;
             action();
@@ -131,8 +129,5 @@ namespace GameMover.Code
             onCollectionChangedMethodInfo.Invoke(self,
                 new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
         }
-
-
     }
-
 }

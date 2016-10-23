@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using System.Reflection;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -57,4 +57,3 @@ using System.Windows;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: InternalsVisibleTo("GameMover.Tests")]
 [assembly: InternalsVisibleTo("GameMover.Explorables")]
-

@@ -7,10 +7,8 @@ using NUnit.Framework;
 
 namespace Test.Model.FolderCollection
 {
-
     public class FolderCollectionTestBase : TestBase
     {
-
         public DirectoryInfo RootDirectoryInfo { get; set; }
         public GameMover.Model.FolderCollection SourceCollection { get; set; }
         public GameMover.Model.FolderCollection DestinationCollection { get; set; }
@@ -35,10 +33,9 @@ namespace Test.Model.FolderCollection
                 SourceCollection?.Dispose();
                 DestinationCollection?.Dispose();
 
-                FileSystem.DeleteDirectory(RootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
+                FileSystem.DeleteDirectory(RootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin,
+                    UICancelOption.ThrowException);
             }
         }
-
     }
-
 }

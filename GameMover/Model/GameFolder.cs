@@ -11,15 +11,14 @@ using GameMover.Code;
 using Microsoft.VisualStudio.Threading;
 
 using Prism.Mvvm;
+
 using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
-
     [DebuggerDisplay(nameof(GameFolder) + " {" + nameof(DirectoryInfo) + "}")]
     public class GameFolder : BindableBase, IComparable<GameFolder>, IEquatable<GameFolder>
     {
-
         public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
         public GameFolder(DirectoryInfo directory)
@@ -144,7 +143,5 @@ namespace GameMover.Model
         public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
 
         public override int GetHashCode() => Name.ToLowerInvariant().GetHashCode();
-
     }
-
 }

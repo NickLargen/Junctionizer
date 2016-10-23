@@ -49,7 +49,7 @@
                     <MenuItem Header="_Search Existing Junctions"
                               Command="{Binding FindExistingJunctionsCommand}" />
                     <Separator />
-                    <MenuItem Header="_Refresh" Command="{Binding RefreshFoldersCommand}"/>
+                    <MenuItem Header="_Refresh" Command="{Binding RefreshFoldersCommand}" />
                     <MenuItem Header="Hide Destination"
                               IsCheckable="True"
                               Checked="HideDestination"

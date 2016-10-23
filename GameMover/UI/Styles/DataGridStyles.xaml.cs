@@ -7,10 +7,8 @@ using GameMover.Model;
 
 namespace GameMover.UI.Styles
 {
-
     public partial class DataGridStyles
     {
-
         private void DataGridRow_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton != MouseButton.Left) return;
@@ -25,7 +23,5 @@ namespace GameMover.UI.Styles
                 Process.Start(path);
             }
         }
-
     }
-
 }

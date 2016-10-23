@@ -10,19 +10,17 @@ using Microsoft.Win32.SafeHandles;
 
 namespace GameMover.Code
 {
-
-    /**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-    By Jeff Brown
-                                                                        
-    Modified by Nick Largen
-    **/
+/**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
+            By Jeff Brown
+                                                                                
+            Modified by Nick Largen
+            **/
 
     /// <summary>
     ///     Provides access to NTFS junction points in .Net.
     /// </summary>
     public static class JunctionPoint
     {
-
         /// <summary>
         ///     The file or directory is not a reparse point.
         /// </summary>
@@ -77,40 +75,33 @@ namespace GameMover.Code
         [Flags]
         private enum EFileAccess : uint
         {
-
             GenericRead = 0x80000000,
             GenericWrite = 0x40000000,
             GenericExecute = 0x20000000,
             GenericAll = 0x10000000,
-
         }
 
         [Flags]
         private enum EFileShare : uint
         {
-
             None = 0x00000000,
             Read = 0x00000001,
             Write = 0x00000002,
             Delete = 0x00000004,
-
         }
 
         private enum ECreationDisposition : uint
         {
-
             New = 1,
             CreateAlways = 2,
             OpenExisting = 3,
             OpenAlways = 4,
             TruncateExisting = 5,
-
         }
 
         [Flags]
         private enum EFileAttributes : uint
         {
-
             Readonly = 0x00000001,
             Hidden = 0x00000002,
             System = 0x00000004,
@@ -136,13 +127,11 @@ namespace GameMover.Code
             OpenReparsePoint = 0x00200000,
             OpenNoRecall = 0x00100000,
             FirstPipeInstance = 0x00080000
-
         }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct REPARSE_DATA_BUFFER
         {
-
             /// <summary>
             ///     Reparse point tag. Must be a Microsoft reparse point tag.
             /// </summary>
@@ -187,7 +176,6 @@ namespace GameMover.Code
             ///     the substitute name string and print name string.
             /// </summary>
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x3FF0)] public byte[] PathBuffer;
-
         }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -465,7 +453,5 @@ namespace GameMover.Code
         {
             throw new IOException(message, Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()));
         }
-
     }
-
 }

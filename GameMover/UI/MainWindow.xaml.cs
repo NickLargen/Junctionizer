@@ -17,13 +17,11 @@ using WpfBindingErrors;
 
 namespace GameMover.UI
 {
-
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow
     {
-
         //TODO: Delete on a junction gives recycle bin prompt but it's just for the junction
 
         //Feature: select all corresponding elements
@@ -65,7 +63,5 @@ namespace GameMover.UI
         {
             destinationColumnDefinition.Width = new GridLength(.5, GridUnitType.Star);
         }
-
     }
-
 }

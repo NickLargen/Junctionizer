@@ -4,10 +4,8 @@ using System.Windows.Data;
 
 namespace GameMover.Code
 {
-
     internal class SizeToStringConverter : IValueConverter
     {
-
         public object Convert(object objectValue, Type targetType, object parameter, CultureInfo culture)
         {
             var value = (long) objectValue;
@@ -37,7 +35,5 @@ namespace GameMover.Code
         {
             return new NotSupportedException();
         }
-
     }
-
 }

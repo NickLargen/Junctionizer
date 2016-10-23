@@ -11,10 +11,8 @@ using NUnit.Framework;
 
 namespace Test
 {
-
     public class ManualTestData
     {
-
         private static IReadOnlyList<string> CapitalLetters { get; } =
             Enumerable.Range(start: 'A', count: 3).Select(i => ((char) i).ToString()).ToList();
 
@@ -43,7 +41,5 @@ namespace Test
                 JunctionPoint.Create(sourceDirectory.CreateSubdirectory("1" + name), destinationDirectory.CreateSubdirectory(name), true);
             }
         }
-
     }
-
 }

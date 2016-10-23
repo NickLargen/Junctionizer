@@ -24,10 +24,8 @@ using static GameMover.Code.StaticMethods;
 
 namespace GameMover.ViewModels
 {
-
     public class MainWindowViewModel : BindableBase
     {
-
         public void Initialize()
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
@@ -167,7 +165,5 @@ namespace GameMover.ViewModels
             SourceCollection.Refresh();
             DestinationCollection.Refresh();
         });
-
     }
-
 }

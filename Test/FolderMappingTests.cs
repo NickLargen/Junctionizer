@@ -7,7 +7,6 @@ namespace Test
     [TestClass]
     public class FolderMappingTests : TestBase
     {
-
         [TestMethod]
         public void CaseInsensitiveEquals()
         {
@@ -18,7 +17,7 @@ namespace Test
             Assert.IsTrue(lower.Equals(upper));
             Assert.IsTrue(Equals(lower, upper));
             Assert.AreEqual(lower, upper);
-            Assert.IsFalse(ReferenceEquals(lower , upper));
+            Assert.IsFalse(ReferenceEquals(lower, upper));
             Assert.IsFalse(lower != upper);
         }
     }
