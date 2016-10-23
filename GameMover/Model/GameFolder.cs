@@ -128,7 +128,7 @@ namespace GameMover.Model
             DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
         }
 
-        public int CompareTo(GameFolder other) => other == null
+        public int CompareTo(GameFolder other) => ReferenceEquals(other, null)
                                                       ? 1
                                                       : string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
 

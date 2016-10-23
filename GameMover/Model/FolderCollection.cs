@@ -62,7 +62,7 @@ namespace GameMover.Model
         }
 
         public IEnumerable<GameFolder> SelectedFolders
-            => SelectedItems?.Reverse().Cast<GameFolder>() ?? Enumerable.Empty<GameFolder>();
+            => SelectedItems?.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted) ?? Enumerable.Empty<GameFolder>();
 
         private FileSystemWatcher DirectoryWatcher { get; } = new FileSystemWatcher();
 
@@ -73,7 +73,7 @@ namespace GameMover.Model
         {
             get { return _location; }
             set {
-                // If the location that doesn't exist (ie a saved location that has since been deleted) just ignore it
+                // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
                 if (!Directory.Exists(value)) return;
 
                 _location = value;
@@ -196,7 +196,7 @@ namespace GameMover.Model
                 Folders.Remove(FolderByName(args.Name));
             };
             DirectoryWatcher.Renamed += (sender, args) => {
-                Folders.First(folder => folder.Name.Equals(args.OldName, StringComparison.OrdinalIgnoreCase)).Rename(args.Name);
+                FolderByName(args.OldName).Rename(args.Name);
             };
         }
 

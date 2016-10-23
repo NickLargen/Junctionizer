@@ -107,7 +107,8 @@
                     <code:MultiSelectDataGrid x:Name="sourceGrid"
                                               ItemsSource="{Binding Folders}"
                                               CellStyle="{StaticResource CustomCellStyle}"
-                                              SelectedItemsList="{Binding SelectedItems}">
+                                              SelectedItemsList="{Binding SelectedItems}"
+                                              Style="{StaticResource GameFolderDataGridStyle}">
                         <DataGrid.Columns>
                             <columns:NameColumn />
                             <columns:SizeColumn />
@@ -143,7 +144,8 @@
                     <code:MultiSelectDataGrid x:Name="destinationGrid"
                                               ItemsSource="{Binding Folders}"
                                               CellStyle="{StaticResource CustomCellStyle}"
-                                              SelectedItemsList="{Binding SelectedItems}">
+                                              SelectedItemsList="{Binding SelectedItems}"
+                                              Style="{StaticResource GameFolderDataGridStyle}">
                         <DataGrid.Columns>
                             <columns:NameColumn />
                             <columns:SizeColumn />
