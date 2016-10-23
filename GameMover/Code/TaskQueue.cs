@@ -15,22 +15,9 @@ namespace GameMover.Code
             _semaphore = new SemaphoreSlim(degreeParallelism);
         }
 
-        public async Task<T> Enqueue<T>(Func<Task<T>> taskGenerator)
+        public async Task Enqueue(Func<Task> taskGenerator, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _semaphore.WaitAsync();
-            try
-            {
-                return await taskGenerator();
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
-        public async Task Enqueue(Func<Task> taskGenerator)
-        {
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(cancellationToken);
             try
             {
                 await taskGenerator();

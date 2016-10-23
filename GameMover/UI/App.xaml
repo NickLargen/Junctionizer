@@ -28,6 +28,7 @@
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <code:DateTimeToStringConverter x:Key="DateTimeConverter" />
             <code:SizeToStringConverter x:Key="SizeConverter" />
 
             <!-- ReSharper disable once Xaml.StaticResourceNotResolved -->
@@ -40,7 +41,7 @@
                 <Setter Property="Margin" Value="3,0,3,0" />
                 <Setter Property="TextElement.FontSize" Value="12" />
             </Style>
-            
+
         </ResourceDictionary>
 
 

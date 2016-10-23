@@ -13,7 +13,7 @@
     <DataGridTextColumn.CellStyle>
         <Style TargetType="DataGridCell" BasedOn="{StaticResource RightAlignCell}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSearchingSubdirectories}" Value="True">
+                <DataTrigger Binding="{Binding HasFinalSize}" Value="False">
                     <Setter Property="FontStyle" Value="Italic" />
                     <Setter Property="FontWeight" Value="SemiBold" />
                 </DataTrigger>

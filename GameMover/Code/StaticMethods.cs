@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 
@@ -72,8 +73,8 @@ namespace GameMover.Code
                 var isAccessible = false;
                 try
                 {
-                    // Skip system directories that are not the root (eg C:\)
-                    if ((info.Attributes & FileAttributes.System) != 0 && info.Parent != null) continue;
+                    // Skip system directories that are not the root (eg C:\). Newly created directories (detected from a FileSystemWatcher Created event) can have their attributes initialized to -1- assuming they are accessible is not technically correct, but should function fine for our current use case.
+                    if ((info.Attributes & FileAttributes.System) != 0 && (int) info.Attributes != -1 && info.Parent != null) continue;
 
                     if (!info.IsReparsePoint())
                     {
@@ -165,6 +166,22 @@ namespace GameMover.Code
             onPropertyChangedMethodInfo.Invoke(self, new object[] {new PropertyChangedEventArgs("Item[]"),});
             onCollectionChangedMethodInfo.Invoke(self,
                 new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
+        }
+
+        /// <summary>
+        ///     Cancels the provided token source if it is not null and has not yet been disposed.
+        /// </summary>
+        /// <param name="cancellationTokenSource"></param>
+        public static void SafeCancelTokenSource(CancellationTokenSource cancellationTokenSource)
+        {
+            try
+            {
+                cancellationTokenSource?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // Ignore
+            }
         }
 
     }

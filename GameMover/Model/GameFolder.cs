@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,74 +32,96 @@ namespace GameMover.Model
 
         private static ConcurrentDictionary<string, TaskQueue> TaskQueueDictionary { get; } = new ConcurrentDictionary<string, TaskQueue>();
 
-        public bool IsBeingDeleted { get; set; }
-        public DirectoryInfo DirectoryInfo { get; private set; }
+        public DirectoryInfo DirectoryInfo { get; set; }
         public string Name => DirectoryInfo.Name;
         public string JunctionTarget { get; }
-        public DateTime? LastWriteTime { get; private set; }
+        public DateTime LastWriteTime { get; private set; } = DateTime.MinValue;
         public bool IsJunction { get; }
-        public long? Size { get; private set; }
+        public long Size { get; private set; } = -1;
 
-        private CancellationTokenSource TokenSource { get; set; }
+        public bool IsBeingDeleted { get; set; }
+        public bool HasFinalSize => !IsSizeOutdated && !IsContinuoslyRecalculating;
 
-        public bool IsSearchingSubdirectories => TokenSource != null;
+        private bool IsContinuoslyRecalculating { get; set; }
+        private bool IsSizeOutdated { get; set; }
 
-        public void CancelSubdirectorySearch() => TokenSource?.Cancel();
+        private CancellationTokenSource _propertyUpdateTokenSource;
+
+        public void CancelSubdirectorySearch() => StaticMethods.SafeCancelTokenSource(_propertyUpdateTokenSource);
 
         private async Task UpdatePropertiesFromSubdirectories()
         {
-            if (TokenSource != null)
+            using (var tokenSource = new CancellationTokenSource())
             {
-                CancelSubdirectorySearch();
-                while (IsSearchingSubdirectories)
+                // Cancel the previous update task (if it exists) and save a reference to the current tokenSource so that it can be cancelled later
+                StaticMethods.SafeCancelTokenSource(Interlocked.Exchange(ref _propertyUpdateTokenSource, tokenSource));
+
+                IsSizeOutdated = true;
+
+                var cancellationToken = tokenSource.Token;
+                try
                 {
-                    await Task.Delay(25);
+                    await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
+                                             .Enqueue(() => {
+                                                 return Task.Run(() => SearchSubdirectories(cancellationToken), cancellationToken);
+                                             }, cancellationToken);
                 }
-            }
-            
-            Size = null;
-            LastWriteTime = null;
+                catch (TaskCanceledException)
+                {
+                    // That's fine, do nothing
+                }
 
-            await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
-                                     .Enqueue(() => {
-                                         TokenSource = new CancellationTokenSource();
-                                         var cancellationToken = TokenSource.Token;
-
-                                         return Task.Run(() => SearchSubdirectories(cancellationToken), cancellationToken);
-                                     });
-
-            if (TokenSource != null)
-            {
-                var ts = TokenSource;
-                TokenSource = null;
-                ts.Dispose();
+                // If there are no other updates on the task queue null out the token source since we no longer need it
+                Interlocked.CompareExchange(ref _propertyUpdateTokenSource, null, tokenSource);
             }
         }
 
         private void SearchSubdirectories(CancellationToken cancellationToken)
         {
-            LastWriteTime = DirectoryInfo.LastWriteTime;
+            // This method may be called simultaneously from multiple threads
 
             if (!IsJunction)
             {
                 StaticMethods.HandleIOExceptionsDuring(() => {
-                    Size = 0;
+                    long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
                     {
-                        if (cancellationToken.IsCancellationRequested) return;
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;
 
-                        foreach (var fileInfo in info.EnumerateFiles())
-                        {
-                            Size += fileInfo.Length;
-                        }
+                        tempSize += info.EnumerateFiles().Sum(fileInfo => fileInfo.Length);
+
+                        if (tempSize > Size) Size = tempSize;
                     }
+
+                    Size = tempSize;
+                    IsSizeOutdated = false;
                 });
             }
         }
 
-        public void RecalculateSize() => UpdatePropertiesFromSubdirectories().Forget();
+        public Task RecalculateSize() => UpdatePropertiesFromSubdirectories();
+
+        /// <summary>
+        ///     Periodically calls <see cref="RecalculateSize" /> until it is determined that the size is not longer changing.
+        /// </summary>
+        /// <returns></returns>
+        public async Task ContinuoslyRecalculateSize()
+        {
+            IsContinuoslyRecalculating = true;
+            long? oldSize;
+            do
+            {
+                oldSize = Size;
+                Debug.WriteLine($"{DirectoryInfo.FullName} oldSize {oldSize}  Size {Size}");
+                await Task.Delay(750);
+
+                await UpdatePropertiesFromSubdirectories();
+            } while (Size != oldSize);
+
+            IsContinuoslyRecalculating = false;
+        }
 
         public void Rename(string newName)
         {

@@ -9,12 +9,12 @@
 
                     d:DataContext="{d:DesignInstance d:Type=model:GameFolder}"
 
-                    Binding="{Binding LastWriteTime}"
+                    Binding="{Binding LastWriteTime, Converter={StaticResource DateTimeConverter}}"
                     Header="Last Updated">
     <DataGridTextColumn.CellStyle>
         <Style TargetType="DataGridCell" BasedOn="{StaticResource CustomCellStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsSearchingSubdirectories}" Value="True">
+                <DataTrigger Binding="{Binding HasFinalSize}" Value="False">
                     <Setter Property="FontStyle" Value="Italic" />
                     <Setter Property="FontWeight" Value="SemiBold" />
                 </DataTrigger>

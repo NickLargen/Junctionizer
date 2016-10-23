@@ -361,7 +361,8 @@ namespace GameMover.Code
         /// <summary>
         ///     Convenience method for checking if the provided directory info is a reparse point.
         /// </summary>
-        public static bool IsReparsePoint(this DirectoryInfo directoryInfo) => (directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0;
+        public static bool IsReparsePoint(this DirectoryInfo directoryInfo)
+            => (directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0 && (int) directoryInfo.Attributes != -1;
 
         private static bool Exists(string path)
         {

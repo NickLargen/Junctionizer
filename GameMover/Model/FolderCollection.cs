@@ -10,6 +10,7 @@ using GameMover.Code;
 using GameMover.Properties;
 
 using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
@@ -187,7 +188,9 @@ namespace GameMover.Model
             DirectoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             DirectoryWatcher.InternalBufferSize = 40960;
             DirectoryWatcher.Created += (sender, args) => {
-                Folders.Add(new GameFolder(args.FullPath));
+                var newFolder = new GameFolder(args.FullPath);
+                Folders.Add(newFolder);
+                newFolder.ContinuoslyRecalculateSize().Forget();
             };
             DirectoryWatcher.Deleted += (sender, args) => {
                 Folders.Remove(FolderByName(args.Name));
@@ -219,7 +222,8 @@ namespace GameMover.Model
         }
 
         /// <summary>
-        ///     Returns the created/overwritten folder on success, null otherwise (if operation is canceled)
+        ///     Copies the provided folder to the current directory. Returns the created/overwritten folder on success, null on
+        ///     error.
         /// </summary>
         private Task<GameFolder> CopyFolder(GameFolder folderToCopy)
         {
@@ -234,32 +238,37 @@ namespace GameMover.Model
                     if (isOverwrite)
                     {
                         var overwrittenFolder = FolderByName(targetDirectoryInfo.Name);
-                        if (overwrittenFolder.IsJunction == false)
+                        if (overwrittenFolder.IsJunction)
                         {
-                            FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                            overwrittenFolder.RecalculateSize();
-                            return overwrittenFolder;
+                            // If the target is a junction, delete it and proceed normally
+                            DeleteJunction(targetDirectoryInfo);
                         }
-
-                        //If the target is a junction, delete it and proceed normally
-                        DeleteJunction(targetDirectoryInfo);
+                        else
+                        {
+                            // Since a new folder isn't being created the file system watcher will not trigger size recalculation, so we do it here
+                            overwrittenFolder.ContinuoslyRecalculateSize().Forget();
+                        }
                     }
 
                     FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                    var createdFolder = new GameFolder(targetDirectoryInfo);
+                    var createdFolder = FolderByName(targetDirectoryInfo.Name);
+                    // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the fprompt for replacing vs skipping duplicate files.
+                    createdFolder.RecalculateSize();
                     return createdFolder;
                 }
                 catch (OperationCanceledException e)
                 {
                     Debug.WriteLine(e);
-//                if (isOverwrite) return new GameFolder(targetDirectoryInfo);
+                    // If the user cancels the folder will still be partially copied
+                    var createdFolder = FolderByName(targetDirectoryInfo.Name);
+                    createdFolder.RecalculateSize();
+                    return createdFolder;
                 }
                 catch (IOException e)
                 {
                     HandleException(e);
+                    return null;
                 }
-
-                return null;
             });
         }
 

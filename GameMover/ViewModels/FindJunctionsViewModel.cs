@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,40 +21,45 @@ namespace GameMover.ViewModels
         public int NumDirectories { get; private set; }
         public int NumJunctions { get; private set; }
 
-        public void Cancel() => TokenSource?.Cancel();
+        public void Cancel() => StaticMethods.SafeCancelTokenSource(TokenSource);
 
         public async Task<List<DirectoryInfo>> GetJunctions(string selectedPath)
         {
             var junctions = new List<DirectoryInfo>();
-
-            TokenSource = new CancellationTokenSource();
-            var cancellationToken = TokenSource.Token;
+            IsSearching = true;
 
             NumDirectories = 0;
             NumJunctions = 0;
-            IsSearching = true;
 
-            await Task.Run(() => {
-                    foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
-                    {
-                        if (cancellationToken.IsCancellationRequested) return;
+            using (TokenSource = new CancellationTokenSource())
+            {
+                var cancellationToken = TokenSource.Token;
 
-                        NumDirectories++;
-                        CurrentFolder = info.FullName;
-                        // Parent could be null if it is a root directory
-                        if (JunctionPoint.Exists(info) && info.Parent != null)
+                try
+                {
+                    await Task.Run(() => {
+                        foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
                         {
-                            junctions.Add(info);
-                            NumJunctions++;
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            NumDirectories++;
+                            CurrentFolder = info.FullName;
+                            // Parent could be null if it is a root directory
+                            if (JunctionPoint.Exists(info) && info.Parent != null)
+                            {
+                                junctions.Add(info);
+                                NumJunctions++;
+                            }
                         }
-                    }
-            }, cancellationToken);
+                    }, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // No work needed when user cancels search
+                }
+            }
 
             IsSearching = false;
-
-            var ts = TokenSource;
-            TokenSource = null;
-            ts.Dispose();
 
             return junctions;
         }
