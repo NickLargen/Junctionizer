@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -40,9 +41,9 @@ namespace GameMover.UI
             ((MainWindowViewModel) DataContext).Initialize();
         }
 
-        public static DelegateCommand<object> OpenDialogDelegateCommand { get; } = new DelegateCommand<object>(async obj => {
-            await DialogHost.Show(obj);
-        });
+        public static DelegateCommand<object> OpenDialogCommand { get; } = new DelegateCommand<object>(o => OpenDialog(o));
+
+        public static Task OpenDialog(object obj) => DialogHost.Show(obj);
 
         private static void SetInitialSort(DataGrid dataGrid)
         {

@@ -125,7 +125,7 @@ namespace GameMover.Model
             {
                 oldSize = Size;
                 Debug.WriteLine($"{DirectoryInfo.FullName} oldSize {oldSize}  Size {Size}");
-                await Task.Delay(750);
+                await Task.Delay(1500);
 
                 await UpdatePropertiesFromSubdirectories();
             } while (Size != oldSize);

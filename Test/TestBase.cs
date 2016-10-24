@@ -4,7 +4,6 @@ using System.Diagnostics;
 using GameMover.Code;
 
 using NUnit.Framework;
-
 namespace Test
 {
     public class TestBase
@@ -12,6 +11,8 @@ namespace Test
         [OneTimeSetUp]
         public void Initial()
         {
+            StaticMethods.LockActiveDirectory = false;
+
             ErrorHandling.HandleError = (message, exception, errorLevel) => {
                 Console.WriteLine(message);
                 throw exception;

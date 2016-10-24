@@ -11,19 +11,23 @@ using NUnit.Framework;
 
 namespace Test
 {
-    public class ManualTestData
+    public class TestData
     {
         private static IReadOnlyList<string> CapitalLetters { get; } =
             Enumerable.Range(start: 'A', count: 3).Select(i => ((char) i).ToString()).ToList();
 
         [Test]
         [Explicit]
-        public void SetupManualTestData()
+        public static void SetupManualTestData()
         {
-            var rootDirectoryInfo = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "Manual Testing For " + nameof(GameMover)));
+            SetupTestData(
+                new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    "Manual Testing For " + nameof(GameMover))));
+        }
 
-            if (rootDirectoryInfo.Exists)
+        public static (DirectoryInfo root, DirectoryInfo source, DirectoryInfo destination) SetupTestData(DirectoryInfo rootDirectoryInfo)
+        {
+            if (Directory.Exists(rootDirectoryInfo.FullName))
             {
                 FileSystem.DeleteDirectory(rootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently,
                     UICancelOption.ThrowException);
@@ -40,6 +44,8 @@ namespace Test
                 var name = capitalLetter + capitalLetter;
                 JunctionPoint.Create(sourceDirectory.CreateSubdirectory("1" + name), destinationDirectory.CreateSubdirectory(name), true);
             }
+
+            return (rootDirectoryInfo, sourceDirectory, destinationDirectory);
         }
     }
 }

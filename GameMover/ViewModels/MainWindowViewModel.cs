@@ -5,12 +5,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 using GameMover.Code;
 using GameMover.Model;
 
 using MaterialDesignThemes.Wpf;
 
+using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
@@ -140,7 +142,10 @@ namespace GameMover.ViewModels
         }, () => SelectedMapping?.IsSavedMapping == true).ObservesProperty(() => SelectedMapping);
 
         [AutoLazy.Lazy]
-        public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(async () => {
+        public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(() => FindExistingJunctions().Forget());
+
+        private async Task FindExistingJunctions()
+        {
             var folderDialog = NewFolderDialog("Select Root Directory");
             if (folderDialog.ShowDialog() != CommonFileDialogResult.Ok) return;
 
@@ -158,7 +163,7 @@ namespace GameMover.ViewModels
                     Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName, isSavedMapping: true);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
-        });
+        }
 
         [AutoLazy.Lazy]
         public DelegateCommand RefreshFoldersCommand => new DelegateCommand(() => {

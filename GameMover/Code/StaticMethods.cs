@@ -16,6 +16,11 @@ namespace GameMover.Code
 {
     public static class StaticMethods
     {
+        /// <summary>
+        /// Whether or not to prevent a directory that is being monitored from being renamed or deleted.
+        /// </summary>
+        public static bool LockActiveDirectory { get; set; } = true;
+
         public static Action<Action> DisplayBusyDuring { get; set; } = action => {
             Mouse.OverrideCursor = Cursors.Wait;
             action();
@@ -137,7 +142,8 @@ namespace GameMover.Code
 
             var onPropertyChangedMethodInfo = type.GetMethod("OnPropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance,
                 Type.DefaultBinder, new[] {typeof(PropertyChangedEventArgs)}, modifiers: null);
-            var onCollectionChangedMethodInfo = type.GetMethod("OnCollectionChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            var onCollectionChangedMethodInfo = type.GetMethod("OnCollectionChanged", BindingFlags.NonPublic | BindingFlags.Instance,
+                Type.DefaultBinder, new[] {typeof(NotifyCollectionChangedEventArgs)}, modifiers: null);
 
             onPropertyChangedMethodInfo.Invoke(self, ParameterCountString);
             onPropertyChangedMethodInfo.Invoke(self, ParameterIndexerName);

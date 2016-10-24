@@ -28,7 +28,7 @@
     <materialDesign:DialogHost OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
             <prism:InteractionRequestTrigger SourceObject="{Binding DisplayFindJunctionsDialogRequest}">
-                <i:InvokeCommandAction Command="{x:Static ui:MainWindow.OpenDialogDelegateCommand}">
+                <i:InvokeCommandAction Command="{x:Static ui:MainWindow.OpenDialogCommand}">
                     <i:InvokeCommandAction.CommandParameter>
                         <ui:FindExistingJunctionsDialog />
                     </i:InvokeCommandAction.CommandParameter>
@@ -119,10 +119,10 @@
                                DockPanel.Dock="Bottom"
                                LastChildFill="False">
                         <TextBlock Text="{Binding SelectedItems.Count}" />
-                        <Button Command="{Binding CopyCommand}" Content="Copy -&gt;" />
-                        <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
-                        <Button Command="{Binding DeleteJunctionsCommand}" Content="Delete Junction" />
-                        <Button Command="{Binding ArchiveCommand}" Content="Archive -&gt;" />
+                        <Button Command="{Binding CopySelectedCommand}" Content="Copy -&gt;" />
+                        <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
+                        <Button Command="{Binding DeleteSelectedJunctionsCommand}" Content="Delete Junction" />
+                        <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
                     </DockPanel>
                     <code:MultiSelectDataGrid x:Name="sourceGrid"
                                               ItemsSource="{Binding Folders}"
@@ -156,9 +156,9 @@
                                DockPanel.Dock="Bottom"
                                LastChildFill="False">
                         <TextBlock Text="{Binding SelectedItems.Count}" />
-                        <Button Command="{Binding CopyCommand}" Content="&lt;- Copy" />
-                        <Button Command="{Binding CreateJunctionCommand}" Content="&lt;- Create Junction" />
-                        <Button Command="{Binding DeleteFoldersCommand}" Content="Delete" />
+                        <Button Command="{Binding CopySelectedCommand}" Content="&lt;- Copy" />
+                        <Button Command="{Binding CreateSelectedJunctionCommand}" Content="&lt;- Create Junction" />
+                        <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
                     </DockPanel>
 
                     <code:MultiSelectDataGrid x:Name="destinationGrid"

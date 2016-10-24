@@ -52,11 +52,11 @@ namespace GameMover.Model
                 _selectedItems = value;
 
                 _selectedItems.CollectionChanged += (sender, args) => {
-                    ArchiveCommand.RaiseCanExecuteChanged();
-                    CopyCommand.RaiseCanExecuteChanged();
-                    CreateJunctionCommand.RaiseCanExecuteChanged();
-                    DeleteFoldersCommand.RaiseCanExecuteChanged();
-                    DeleteJunctionsCommand.RaiseCanExecuteChanged();
+                    ArchiveSelectedCommand.RaiseCanExecuteChanged();
+                    CopySelectedCommand.RaiseCanExecuteChanged();
+                    CreateSelectedJunctionCommand.RaiseCanExecuteChanged();
+                    DeleteSelectedFoldersCommand.RaiseCanExecuteChanged();
+                    DeleteSelectedJunctionsCommand.RaiseCanExecuteChanged();
                 };
             }
         }
@@ -66,7 +66,7 @@ namespace GameMover.Model
 
         private FileSystemWatcher DirectoryWatcher { get; } = new FileSystemWatcher();
 
-        private bool BothCollectionsInitialized { get; set; }
+        private bool BothCollectionsInitialized => Location != null && CorrespondingCollection?.Location != null;
 
         private FileStream _directoryLockFileStream;
 
@@ -76,10 +76,10 @@ namespace GameMover.Model
             get { return _location; }
             set {
                 _location = Directory.Exists(value) ? value : null;
-
+                
                 DisplayBusyDuring(() => {
-                    CorrespondingCollection.BothCollectionsInitialized =
-                        BothCollectionsInitialized = Location != null && CorrespondingCollection.Location != null;
+                    // Fody PropertyChanged handless raising a change event for this collections BothCollectionsInitialized
+                    CorrespondingCollection?.OnPropertyChanged(nameof(BothCollectionsInitialized));
 
                     DirectoryWatcher.EnableRaisingEvents = false;
                     _directoryLockFileStream?.Close();
@@ -99,17 +99,20 @@ namespace GameMover.Model
 
         private void SetNewLocationImpl(string loc)
         {
-            try
+            if (LockActiveDirectory)
             {
-                // Attempt to create a hidden file that will prevent the user from renaming the directory currently being observed
-                var directoryLockFilePath = Path.Combine(loc, $"{nameof(GameMover)}DirectoryLock.tmp");
-                _directoryLockFileStream = new FileStream(directoryLockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096,
-                    FileOptions.DeleteOnClose);
-                File.SetAttributes(directoryLockFilePath, FileAttributes.Hidden);
-            }
-            catch (Exception)
-            {
-                // This does not need to succeed for the application to function
+                try
+                {
+                    // Attempt to create a hidden file that will prevent the user from renaming the directory currently being observed
+                    var directoryLockFilePath = Path.Combine(loc, $"{nameof(GameMover)}DirectoryLock.tmp");
+                    _directoryLockFileStream = new FileStream(directoryLockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None,
+                        4096, FileOptions.DeleteOnClose);
+                    File.SetAttributes(directoryLockFilePath, FileAttributes.Hidden);
+                }
+                catch (Exception)
+                {
+                    // This does not need to succeed for the application to function
+                }
             }
 
             DirectoryWatcher.Path = Location;
@@ -133,67 +136,62 @@ namespace GameMover.Model
         #region Commands
         //TODO test
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveCommand => new DelegateCommand(async () => {
-            foreach (var folder in SelectedFolders)
-            {
-                GameFolder createdFolder = await CorrespondingCollection.CopyFolder(folder);
-                if (createdFolder != null)
-                {
-                    var isFolderDeleted = await DeleteFolder(folder);
-                    if (isFolderDeleted) CreateJunctionTo(createdFolder);
-                }
-            }
-        }, () => SelectedFolders.Any());
+        public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveSelected(),
+            () => SelectedFolders.Any());
+
+        public Task ArchiveSelected() => Task.WhenAll(SelectedFolders.Select(Archive));
 
         [AutoLazy.Lazy]
-        public DelegateCommand CopyCommand => new DelegateCommand(async () => {
-            await Task.WhenAll(SelectedFolders.Select(CorrespondingCollection.CopyFolder));
-        }, () => SelectedFolders.Any(folder => !folder.IsJunction));
+        public DelegateCommand CopySelectedCommand => new DelegateCommand(() => CopySelectedFolders(),
+            () => SelectedFolders.Any(folder => !folder.IsJunction));
+
+        public Task CopySelectedFolders() => Task.WhenAll(SelectedFolders.Select(CorrespondingCollection.CopyFolder));
 
         [AutoLazy.Lazy]
-        public DelegateCommand CreateJunctionCommand => new DelegateCommand(() => {
-            foreach (var folder in SelectedFolders)
-            {
-                CorrespondingCollection.CreateJunctionTo(folder);
-            }
-        }, () => SelectedFolders.Any(folder => !folder.IsJunction));
+        public DelegateCommand CreateSelectedJunctionCommand => new DelegateCommand(CreateSelectedJunctions,
+            () => SelectedFolders.Any(folder => !folder.IsJunction));
+
+        public void CreateSelectedJunctions() => SelectedFolders.ForEach(CorrespondingCollection.CreateJunctionTo);
 
         [AutoLazy.Lazy]
-        public DelegateCommand DeleteFoldersCommand => new DelegateCommand(() => {
-            foreach (var folder in SelectedFolders)
-            {
-                DeleteFolder(folder);
-            }
-        }, () => SelectedFolders.Any(folder => !folder.IsJunction));
+        public DelegateCommand DeleteSelectedFoldersCommand => new DelegateCommand(() => DeleteSelectedFolders(),
+            () => SelectedFolders.Any(folder => !folder.IsJunction));
+
+        public Task DeleteSelectedFolders() => Task.WhenAll(SelectedFolders.Select(DeleteFolder));
 
         [AutoLazy.Lazy]
-        public DelegateCommand DeleteJunctionsCommand => new DelegateCommand(() => {
-            foreach (var folder in SelectedFolders)
-            {
-                DeleteJunction(folder);
-            }
-        }, () => SelectedFolders.Any(folder => folder.IsJunction));
+        public DelegateCommand DeleteSelectedJunctionsCommand => new DelegateCommand(DeleteSelectedJunctions,
+            () => SelectedFolders.Any(folder => folder.IsJunction));
+
+        public void DeleteSelectedJunctions() => SelectedFolders.ForEach(DeleteJunction);
 
         [AutoLazy.Lazy]
-        public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(() => {
-            var foldersToSelect = Folders.Where(folder =>
-                CorrespondingCollection.Folders.All(ccf =>
-                                           !string.Equals(ccf.Name, folder.Name, StringComparison.OrdinalIgnoreCase) &&
-                                           !string.Equals(ccf.JunctionTarget, folder.DirectoryInfo.FullName,
-                                               StringComparison.OrdinalIgnoreCase)));
+        public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectFoldersNotInOtherPane)
+            .ObservesCanExecute(_ => BothCollectionsInitialized);
+
+        public void SelectFoldersNotInOtherPane()
+        {
+            var foldersToSelect = Folders.Where(folder => CorrespondingCollection
+                .Folders.All(ccf =>
+                    !string.Equals(ccf.Name, folder.Name, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(ccf.DirectoryInfo.FullName, folder.JunctionTarget, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(ccf.JunctionTarget, folder.DirectoryInfo.FullName, StringComparison.OrdinalIgnoreCase)));
 
             SelectFolders(foldersToSelect);
-        }).ObservesCanExecute(_ => BothCollectionsInitialized);
+        }
 
         [AutoLazy.Lazy]
-        public DelegateCommand SelectLocationCommand => new DelegateCommand(() => {
+        public DelegateCommand SelectLocationCommand => new DelegateCommand(SelectLocation);
+
+        public void SelectLocation()
+        {
             var folderDialog = NewFolderDialog(Resources.SelectLocationCommand_Select_directory_containing_folders);
             folderDialog.DefaultDirectory = FolderBrowserDefaultLocation;
             if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Location = folderDialog.FileName;
             }
-        });
+        }
         #endregion
 
         public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceWithRange(folders);
@@ -240,6 +238,16 @@ namespace GameMover.Model
         private GameFolder FolderByName(string name)
         {
             return Folders.FirstOrDefault(folder => folder.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private async Task Archive(GameFolder folder)
+        {
+            var createdFolder = await CorrespondingCollection.CopyFolder(folder);
+            if (createdFolder != null)
+            {
+                var isFolderDeleted = await DeleteFolder(folder);
+                if (isFolderDeleted) CreateJunctionTo(createdFolder);
+            }
         }
 
         private void CreateJunctionTo(GameFolder junctionTarget)
