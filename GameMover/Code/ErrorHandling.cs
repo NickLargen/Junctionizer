@@ -9,7 +9,6 @@ namespace GameMover.Code
 {
     public static class ErrorHandling
     {
-
         public enum ErrorLevel
         {
             Error,
@@ -32,6 +31,8 @@ namespace GameMover.Code
         }
 
         public static ErrorHandler HandleError { private get; set; } = (message, exception, errorLevel) => {
+            if (exception?.InnerException?.Message != null) message += " " + exception.InnerException.Message.SubstringUntil(" (Exception from");
+
 #if DEBUG
             Debug.WriteLine(exception?.ToString() ?? message);
             var stackTrace = exception?.StackTrace;
@@ -55,13 +56,15 @@ namespace GameMover.Code
             if (ioException != null)
             {
                 // Provide a useful message if the error was from a drive failure
-                var message = ioException.Message;
                 var maybeFullPath = ioException.GetType()
                                                .GetField("_maybeFullPath",
-                                                   BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                                                   BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                                               ?.GetValue(ioException);
+
+                var message = ioException.Message;
                 if (maybeFullPath != null)
                 {
-                    message += $" '{maybeFullPath.GetValue(ioException)}'";
+                    message += $" '{maybeFullPath}'";
                 }
                 HandleError(message, ioException, ErrorLevel.Warning);
             }

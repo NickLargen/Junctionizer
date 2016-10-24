@@ -261,8 +261,8 @@ namespace GameMover.Model
         }
 
         /// <summary>
-        ///     Copies the provided folder to the current directory. Returns the created/overwritten folder on success, null on
-        ///     error.
+        ///     Copies the provided folder to the current directory. Returns the created/overwritten folder on if the copy
+        ///     successfully ran to completion, null otherwise.
         /// </summary>
         private Task<GameFolder> CopyFolder(GameFolder folderToCopy)
         {
@@ -303,7 +303,7 @@ namespace GameMover.Model
                     // If the user cancels the folder will still be partially copied
                     var createdFolder = FolderByName(targetDirectoryInfo.Name);
                     createdFolder.RecalculateSize();
-                    return createdFolder;
+                    return null;
                 }
                 catch (IOException e)
                 {

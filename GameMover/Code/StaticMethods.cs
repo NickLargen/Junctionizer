@@ -40,6 +40,12 @@ namespace GameMover.Code
             return command;
         }
 
+        public static string SubstringUntil(this string self, string value)
+        {
+            var length = self.IndexOf(value, StringComparison.OrdinalIgnoreCase);
+            return length < 0 ? self : self.Substring(0, length);
+        }
+
         /// <summary>
         ///     Includes itself and all subdirectories (recursive) that can be opened by the current user.
         /// </summary>
@@ -109,7 +115,9 @@ namespace GameMover.Code
 
         private static readonly object[] ParameterCountString = {new PropertyChangedEventArgs("Count")};
         private static readonly object[] ParameterIndexerName = {new PropertyChangedEventArgs("Item[]")};
-        private static readonly object[] ParameterCollectionReset = {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)};
+        private static readonly object[] ParameterCollectionReset = {
+            new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
+        };
 
         /// <summary>
         ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
