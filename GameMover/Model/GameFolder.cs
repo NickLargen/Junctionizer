@@ -80,9 +80,13 @@ namespace GameMover.Model
         {
             // This method may be called simultaneously from multiple threads
 
-            if (!IsJunction)
+            try
             {
-                try
+                if (IsJunction)
+                {
+                    LastWriteTime = DirectoryInfo.LastWriteTime;
+                }
+                else
                 {
                     long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
@@ -97,12 +101,13 @@ namespace GameMover.Model
                     }
 
                     Size = tempSize;
-                    IsSizeOutdated = false;
                 }
-                catch (IOException e)
-                {
-                    HandleException(e);
-                }
+
+                IsSizeOutdated = false;
+            }
+            catch (IOException e)
+            {
+                HandleException(e);
             }
         }
 
