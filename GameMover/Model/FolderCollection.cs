@@ -176,8 +176,13 @@ namespace GameMover.Model
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(() => {
-            //TODO: does not work correctly with junctions with a different name than their target
-            SelectFolders(Folders.Except(CorrespondingCollection.Folders));
+            var foldersToSelect = Folders.Where(folder =>
+                CorrespondingCollection.Folders.All(ccf =>
+                                           !string.Equals(ccf.Name, folder.Name, StringComparison.OrdinalIgnoreCase) &&
+                                           !string.Equals(ccf.JunctionTarget, folder.DirectoryInfo.FullName,
+                                               StringComparison.OrdinalIgnoreCase)));
+
+            SelectFolders(foldersToSelect);
         }).ObservesCanExecute(_ => BothCollectionsInitialized);
 
         [AutoLazy.Lazy]
@@ -218,7 +223,17 @@ namespace GameMover.Model
                 Folders.Remove(FolderByName(args.Name));
             };
             DirectoryWatcher.Renamed += (sender, args) => {
-                FolderByName(args.OldName).Rename(args.Name);
+                for (var i = 0; i < Folders.Count; i++)
+                {
+                    if (Folders[i].Name == args.OldName)
+                    {
+                        var folder = Folders[i];
+                        Folders.RemoveAt(i);
+                        folder.Rename(args.Name);
+                        Folders.Add(folder);
+                        break;
+                    }
+                }
             };
         }
 

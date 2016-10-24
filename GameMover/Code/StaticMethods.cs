@@ -107,6 +107,10 @@ namespace GameMover.Code
             };
         }
 
+        private static readonly object[] ParameterCountString = {new PropertyChangedEventArgs("Count")};
+        private static readonly object[] ParameterIndexerName = {new PropertyChangedEventArgs("Item[]")};
+        private static readonly object[] ParameterCollectionReset = {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)};
+
         /// <summary>
         ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
         ///     Implemented using reflection on an extension method so that it can be used after data binding to a
@@ -117,6 +121,9 @@ namespace GameMover.Code
             var type = self.GetType();
             var backingItems = (List<T>) type.GetProperty("Items", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(self);
 
+            var checkReentrancyMethodInfo = type.GetMethod("CheckReentrancy", BindingFlags.NonPublic | BindingFlags.Instance);
+            checkReentrancyMethodInfo.Invoke(self, Array.Empty<object>());
+
             backingItems.Clear();
             backingItems.AddRange(newItems);
 
@@ -124,10 +131,9 @@ namespace GameMover.Code
                 Type.DefaultBinder, new[] {typeof(PropertyChangedEventArgs)}, modifiers: null);
             var onCollectionChangedMethodInfo = type.GetMethod("OnCollectionChanged", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            onPropertyChangedMethodInfo.Invoke(self, new object[] {new PropertyChangedEventArgs("Count"),});
-            onPropertyChangedMethodInfo.Invoke(self, new object[] {new PropertyChangedEventArgs("Item[]"),});
-            onCollectionChangedMethodInfo.Invoke(self,
-                new object[] {new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)});
+            onPropertyChangedMethodInfo.Invoke(self, ParameterCountString);
+            onPropertyChangedMethodInfo.Invoke(self, ParameterIndexerName);
+            onCollectionChangedMethodInfo.Invoke(self, ParameterCollectionReset);
         }
     }
 }

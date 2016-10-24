@@ -3,27 +3,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace GameMover.Code
 {
     public static class ErrorHandling
     {
-        static ErrorHandling()
-        {
-            Application.Current.DispatcherUnhandledException += (sender, args) => {
-                HandleException(args.Exception);
-                args.Handled = true;
-            };
-
-            TaskScheduler.UnobservedTaskException += (sender, unobservedTaskExceptionEventArgs) => {
-                foreach (var exception in unobservedTaskExceptionEventArgs.Exception.InnerExceptions)
-                {
-                    HandleException(exception);
-                }
-            };
-        }
 
         public enum ErrorLevel
         {
@@ -46,9 +31,22 @@ namespace GameMover.Code
             }
         }
 
-        public static ErrorHandler HandleError { get; set; } = (message, exception, errorLevel) => {
+        public static ErrorHandler HandleError { private get; set; } = (message, exception, errorLevel) => {
+#if DEBUG
+            Debug.WriteLine(exception?.ToString() ?? message);
+            var stackTrace = exception?.StackTrace;
+
+            exception = exception?.InnerException;
+            while (exception != null)
+            {
+                message += Environment.NewLine + "INNER EXCEPTION: " + exception.Message;
+                exception = exception.InnerException;
+            }
+
+            message += Environment.NewLine + stackTrace;
+#endif
+
             MessageBox.Show(message, errorLevel.ToString(), MessageBoxButton.OK, GetImage(errorLevel));
-            Debug.WriteLine(exception);
         };
 
         public static void HandleException(Exception exception)

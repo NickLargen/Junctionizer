@@ -128,6 +128,10 @@ namespace GameMover.Model
             IsContinuoslyRecalculating = false;
         }
 
+        /// <summary>
+        ///     Since this function affects equality and hash code calculations it should not be executed on items within a
+        ///     collection.
+        /// </summary>
         public void Rename(string newName)
         {
             DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
@@ -135,13 +139,15 @@ namespace GameMover.Model
 
         public int CompareTo(GameFolder other) => ReferenceEquals(other, null)
                                                       ? 1
-                                                      : string.Compare(Name, other.Name, StringComparison.OrdinalIgnoreCase);
+                                                      : string.Compare(DirectoryInfo.FullName, other.DirectoryInfo.FullName,
+                                                          StringComparison.OrdinalIgnoreCase);
 
         public override bool Equals(object obj) => CompareTo(obj as GameFolder) == 0;
         public bool Equals(GameFolder other) => CompareTo(other) == 0;
         public static bool operator ==(GameFolder left, GameFolder right) => Equals(left, right);
         public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
 
-        public override int GetHashCode() => Name.ToLowerInvariant().GetHashCode();
+        // ReSharper disable once NonReadonlyMemberInGetHashCode
+        public override int GetHashCode() => DirectoryInfo.FullName.ToLowerInvariant().GetHashCode();
     }
 }
