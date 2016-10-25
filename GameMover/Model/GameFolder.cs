@@ -153,6 +153,6 @@ namespace GameMover.Model
         public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
 
         // ReSharper disable once NonReadonlyMemberInGetHashCode
-        public override int GetHashCode() => DirectoryInfo.FullName.ToLowerInvariant().GetHashCode();
+        public override int GetHashCode() => DirectoryInfo.FullName.ToUpperInvariant().GetHashCode();
     }
 }

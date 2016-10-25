@@ -4,12 +4,8 @@ using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.UI
 {
-    /// <summary>
-    ///     Interaction logic for App.xaml
-    /// </summary>
     public partial class App
     {
-        /// <inheritdoc />
         public App()
         {
             Current.DispatcherUnhandledException += (sender, args) => {
