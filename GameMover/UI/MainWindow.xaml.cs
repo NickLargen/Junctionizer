@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 using GameMover.ViewModels;
 
@@ -32,10 +34,15 @@ namespace GameMover.UI
             BindingExceptionThrower.Attach();
             InitializeComponent();
 
-            SetInitialSort(sourceGrid);
-            SetInitialSort(destinationGrid);
+            var mainWindowViewModel = (MainWindowViewModel) DataContext;
+            mainWindowViewModel.Initialize();
 
-            ((MainWindowViewModel) DataContext).Initialize();
+            Loaded += (sender, args) => {
+                SetInitialSort(sourceGrid);
+                SetInitialSort(destinationGrid);
+
+                EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
+            };
         }
 
         public static DelegateCommand<object> OpenDialogCommand { get; } = new DelegateCommand<object>(o => OpenDialog(o));
@@ -50,6 +57,14 @@ namespace GameMover.UI
 
             // Actually sort the items
             dataGrid.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
+
+            EnableLiveSorting((IList)dataGrid.ItemsSource);
+        }
+
+        /// Update sort order when properties on items within the collection change
+        private static void EnableLiveSorting(IList observableCollection)
+        {
+            ((ListCollectionView)CollectionViewSource.GetDefaultView(observableCollection)).IsLiveSorting = true;
         }
 
         private void HideDestination(object sender, RoutedEventArgs e)

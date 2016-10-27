@@ -17,7 +17,7 @@ namespace GameMover.Code
     public static class StaticMethods
     {
         /// <summary>
-        /// Whether or not to prevent a directory that is being monitored from being renamed or deleted.
+        ///     Whether or not to prevent a directory that is being monitored from being renamed or deleted.
         /// </summary>
         public static bool LockActiveDirectory { get; set; } = true;
 
@@ -27,14 +27,6 @@ namespace GameMover.Code
             Mouse.OverrideCursor = null;
         };
 
-        public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
-        {
-            foreach (var item in enumerable)
-            {
-                action(item);
-            }
-        }
-
         public static TCommand ObservesCollection<TCommand, TCollection>(this TCommand command,
             Expression<Func<TCollection>> propertyExpression)
             where TCommand : DelegateCommand
@@ -43,12 +35,6 @@ namespace GameMover.Code
             propertyExpression.Compile()().CollectionChanged += (sender, args) => command.RaiseCanExecuteChanged();
             command.ObservesProperty(propertyExpression);
             return command;
-        }
-
-        public static string SubstringUntil(this string self, string value)
-        {
-            var length = self.IndexOf(value, StringComparison.OrdinalIgnoreCase);
-            return length < 0 ? self : self.Substring(0, length);
         }
 
         /// <summary>
@@ -86,18 +72,6 @@ namespace GameMover.Code
             }
         }
 
-        /// <summary>
-        ///     Concatenate a single element to the end of an IEnumerable.
-        /// </summary>
-        public static IEnumerable<T> Concat<T>(this IEnumerable<T> enumerable, T value)
-        {
-            foreach (var item in enumerable)
-            {
-                yield return item;
-            }
-
-            yield return value;
-        }
 
         /// <summary>
         ///     Wrapper for standard default values for opening a folder picker.

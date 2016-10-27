@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 using GameMover.Code;
 using GameMover.Model;
@@ -30,6 +32,8 @@ namespace GameMover.ViewModels
     {
         public void Initialize()
         {
+            BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
+
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
 
             SourceCollection = new FolderCollection {
@@ -70,7 +74,7 @@ namespace GameMover.ViewModels
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
 
-        public AsyncObservableCollection<FolderMapping> DisplayedMappings { get; } = new AsyncObservableCollection<FolderMapping>();
+        public ObservableCollection<FolderMapping> DisplayedMappings { get; } = new ObservableCollection<FolderMapping>();
 
         private string SavedMappingsFilePath { get; set; }
         private bool IsSelectedMappingModificationAllowed { get; set; } = true;

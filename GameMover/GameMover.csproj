@@ -156,7 +156,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Code\AsyncObservableCollection.cs" />
     <Compile Include="Code\DateTimeToStringConverter.cs" />
     <Compile Include="Code\ErrorHandling.cs" />
     <Compile Include="Model\FolderCollection.cs" />
@@ -296,6 +295,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="spiral_icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{B7DA8001-6355-4577-B9E2-DF60E4F4FF85}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.1.29.4\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.4\build\dotnet\Fody.targets')" />

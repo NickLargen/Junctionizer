@@ -4,6 +4,7 @@ using System.Diagnostics;
 using GameMover.Code;
 
 using NUnit.Framework;
+
 namespace Test
 {
     public class TestBase

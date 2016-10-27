@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 
+using Utilities.Strings;
+
 namespace GameMover.Code
 {
     public static class ErrorHandling
