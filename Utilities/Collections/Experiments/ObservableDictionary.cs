@@ -5,8 +5,10 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Utilities.Collections
+namespace Utilities.Collections.Experiments
 {
+    /// <summary>This collection is not immediately useful for data binding because it will create an EnumerableCollectionView which maintains an ObservableCollection behind the scenes. Observable collections should implement IList so that they will bind to a ListCollectionView.</summary>
+    [Obsolete]
     public class ObservableDictionary<TKey, TValue>
         : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
     {
@@ -39,7 +41,6 @@ namespace Utilities.Collections
             OnPropertyChanged(Constants.IndexerName);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
-
 
         public void Clear()
         {
@@ -158,12 +159,11 @@ namespace Utilities.Collections
         public ICollection<TValue> Values => MyDictionary.Values;
         IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => MyDictionary.Values;
 
+
         #region Details from Observable
-        /// <summary>
-        ///     Occurs when the collection changes, either by adding or removing an item.
-        /// </summary>
-        /// <remarks>
-        ///     see <seealso cref="INotifyCollectionChanged" />
+
+        /// <summary>Occurs when the collection changes, either by adding or removing an item.</summary>
+        /// <remarks>see <seealso cref="INotifyCollectionChanged"/>
         /// </remarks>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
@@ -185,13 +185,10 @@ namespace Utilities.Collections
             }
         }
 
-        /// <summary>
-        ///     Disallow reentrant attempts to change this dictionary. E.g. an event handler
-        ///     of the CollectionChanged event is not allowed to make changes to this collection.
-        /// </summary>
+        /// <summary>Disallow reentrant attempts to change this dictionary. E.g. an event handler of the CollectionChanged event is not allowed to make changes to this collection.</summary>
         /// <remarks>
-        ///     typical usage is to wrap e.g. a OnCollectionChanged call with a using() scope:
-        ///     <code>
+        /// typical usage is to wrap e.g. a OnCollectionChanged call with a using() scope:
+        /// <code>
         ///         using (BlockReentrancy())
         ///         {
         ///             CollectionChanged(this, new NotifyCollectionChangedEventArgs(action, item, index));
@@ -205,10 +202,7 @@ namespace Utilities.Collections
         }
 
         /// <summary> Check and assert for reentrant attempts to change this collection. </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     raised when changing the collection
-        ///     while another collection change is still being notified to other listeners
-        /// </exception>
+        /// <exception cref="InvalidOperationException">raised when changing the collection while another collection change is still being notified to other listeners</exception>
         private void CheckReentrancy()
         {
             if (_monitor.Busy)
@@ -240,6 +234,7 @@ namespace Utilities.Collections
         }
 
         private readonly SimpleMonitor _monitor = new SimpleMonitor();
+
         #endregion
     }
 }

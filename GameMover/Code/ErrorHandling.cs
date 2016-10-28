@@ -76,9 +76,7 @@ namespace GameMover.Code
             }
         }
 
-        /// <summary>
-        ///     Cancels the provided token source if it is not null and has not yet been disposed.
-        /// </summary>
+        /// <summary>Cancels the provided token source if it is not null and has not yet been disposed.</summary>
         /// <param name="cancellationTokenSource"></param>
         public static void SafeCancelTokenSource(CancellationTokenSource cancellationTokenSource)
         {

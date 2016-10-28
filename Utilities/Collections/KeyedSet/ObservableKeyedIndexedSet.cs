@@ -1,67 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Utilities.Collections
+using JetBrains.Annotations;
+
+namespace Utilities.Collections.KeyedCollection
 {
-    public abstract class ObservabledKeyedCollection<TKey, TValue>
-        : KeyedCollection<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
+    public class ObservableKeyedIndexedSet<TKey, TItem> : KeyedIndexedSet<TKey, TItem>, INotifyCollectionChanged, INotifyPropertyChanged
     {
-        /// <inheritdoc />
-        protected ObservabledKeyedCollection() {}
+        /// <inheritdoc/>
+        public ObservableKeyedIndexedSet([NotNull] Func<TItem, TKey> getKeyForItem, int capacity = 0,
+            IEqualityComparer<TKey> comparer = null) : base(getKeyForItem, capacity, comparer) {}
 
-        /// <inheritdoc />
-        protected ObservabledKeyedCollection(IEqualityComparer<TKey> comparer) : base(comparer) {}
 
-        /// <inheritdoc />
-        protected ObservabledKeyedCollection(IEqualityComparer<TKey> comparer, int dictionaryCreationThreshold)
-            : base(comparer, dictionaryCreationThreshold) {}
+        #region Overrides of KeyedIndexedSet<TKey,TItem>
 
-        public bool TryGetValue(TKey key, out TValue value)
-        {
-            return Dictionary.TryGetValue(key, out value);
-        }
-
-        /// <inheritdoc />
-        protected override void ClearItems()
+        /// <inheritdoc/>
+        protected override bool InternalInsert(int index, TItem item, bool throwIfDuplicateKey = false)
         {
             CheckReentrancy();
-            base.ClearItems();
 
+            if (base.InternalInsert(index, item, throwIfDuplicateKey))
+            {
+                OnCollectionAdded(index, item);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public override void ReplaceAt(int index, TItem item)
+        {
+            CheckReentrancy();
+
+            var existingItem = GetAt(index);
+            base.ReplaceAt(index, item);
+            OnCollectionReplaced(index, item, existingItem);
+        }
+
+        /// <inheritdoc/>
+        public override TItem RemoveAt(int index)
+        {
+            CheckReentrancy();
+
+            var removedItem = base.RemoveAt(index);
+            OnCollectionRemoved(index, removedItem);
+            return removedItem;
+        }
+
+        /// <inheritdoc/>
+        public override void Clear()
+        {
+            CheckReentrancy();
+
+            base.Clear();
             OnCollectionCleared();
         }
 
-        /// <inheritdoc />
-        protected override void InsertItem(int index, TValue item)
-        {
-            CheckReentrancy();
-            base.InsertItem(index, item);
+        #endregion
 
-            OnCollectionAdded(index, item);
-        }
-
-        /// <inheritdoc />
-        protected override void RemoveItem(int index)
-        {
-            CheckReentrancy();
-            var item = this[index];
-            base.RemoveItem(index);
-
-            OnCollectionRemoved(index, item);
-        }
-
-        /// <inheritdoc />
-        protected override void SetItem(int index, TValue item)
-        {
-            CheckReentrancy();
-            var oldItem = this[index];
-            base.SetItem(index, item);
-
-            OnCollectionReplaced(index, item, oldItem);
-        }
 
         private void OnCollectionCleared()
         {
@@ -70,21 +70,21 @@ namespace Utilities.Collections
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
-        private void OnCollectionAdded(int index, TValue item)
+        private void OnCollectionAdded(int index, TItem item)
         {
             OnPropertyChanged(nameof(Count));
             OnPropertyChanged(Constants.IndexerName);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, index));
         }
 
-        private void OnCollectionRemoved(int index, TValue item)
+        private void OnCollectionRemoved(int index, TItem item)
         {
             OnPropertyChanged(nameof(Count));
             OnPropertyChanged(Constants.IndexerName);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
         }
 
-        private void OnCollectionReplaced(int index, TValue newItem, TValue oldItem)
+        private void OnCollectionReplaced(int index, TItem newItem, TItem oldItem)
         {
             OnPropertyChanged(Constants.IndexerName);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, newItem, oldItem, index));
@@ -98,7 +98,7 @@ namespace Utilities.Collections
         }
 
         /// <summary>Occurs when the collection changes, either by adding or removing an item. </summary>
-        /// <seealso cref="INotifyCollectionChanged" />
+        /// <seealso cref="INotifyCollectionChanged"/>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
@@ -112,10 +112,7 @@ namespace Utilities.Collections
             }
         }
 
-        /// <summary>
-        ///     Disallow reentrant attempts to change this dictionary. E.g. an event handler
-        ///     of the CollectionChanged event is not allowed to make changes to this collection.
-        /// </summary>
+        /// <summary>Disallow reentrant attempts to change this dictionary. E.g. an event handler of the CollectionChanged event is not allowed to make changes to this collection.</summary>
         private IDisposable BlockReentrancy()
         {
             _monitor.Enter();
@@ -123,10 +120,7 @@ namespace Utilities.Collections
         }
 
         /// <summary> Check and assert for reentrant attempts to change this collection. </summary>
-        /// <exception cref="InvalidOperationException">
-        ///     raised when changing the collection
-        ///     while another collection change is still being notified to other listeners
-        /// </exception>
+        /// <exception cref="InvalidOperationException">raised when changing the collection while another collection change is still being notified to other listeners</exception>
         private void CheckReentrancy()
         {
             if (_monitor.Busy)

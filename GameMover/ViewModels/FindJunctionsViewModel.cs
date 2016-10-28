@@ -42,8 +42,7 @@ namespace GameMover.ViewModels
 
                             NumDirectories++;
                             CurrentFolder = info.FullName;
-                            // Parent could be null if it is a root directory
-                            if (JunctionPoint.Exists(info) && info.Parent != null)
+                            if (JunctionPoint.Exists(info))
                             {
                                 junctions.Add(info);
                                 NumJunctions++;

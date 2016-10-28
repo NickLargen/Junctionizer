@@ -32,8 +32,6 @@ namespace GameMover.ViewModels
     {
         public void Initialize()
         {
-            BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
-
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
 
             SourceCollection = new FolderCollection {
@@ -45,6 +43,10 @@ namespace GameMover.ViewModels
                 FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common",
                 CorrespondingCollection = SourceCollection
             };
+
+            BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
+            BindingOperations.EnableCollectionSynchronization(SourceCollection.Folders, new object());
+            BindingOperations.EnableCollectionSynchronization(DestinationCollection.Folders, new object());
 
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChange;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChange;

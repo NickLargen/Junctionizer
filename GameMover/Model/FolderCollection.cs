@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 
 using GameMover.Code;
 using GameMover.Properties;
@@ -19,24 +18,13 @@ using Prism.Commands;
 using Prism.Mvvm;
 
 using Utilities.Collections;
+using Utilities.Collections.KeyedCollection;
 
 using static GameMover.Code.StaticMethods;
 using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
-    public class ObservableGameFolderCollection : ObservabledKeyedCollection<string, GameFolder>
-    {
-        /// <inheritdoc />
-        public ObservableGameFolderCollection() : base(StringComparer.OrdinalIgnoreCase, 8)
-        {
-            BindingOperations.EnableCollectionSynchronization(this, new object());
-        }
-
-        /// <inheritdoc />
-        protected override string GetKeyForItem(GameFolder item) => item.Name;
-    }
-
     public sealed class FolderCollection : BindableBase, IDisposable
     {
         public FolderCollection()
@@ -73,13 +61,11 @@ namespace GameMover.Model
 
         public string FolderBrowserDefaultLocation { get; set; }
 
-        /// <summary>
-        ///     A dictionary where the keys are the full path of a junction target and the values are a list of the folders with
-        ///     that junction target.
-        /// </summary>
+        /// <summary>A dictionary where the keys are the full path of a junction target and the values are a list of the folders with that junction target.</summary>
         private MultiMap<string, GameFolder> JunctionTargetsDictionary { get; } = new MultiMap<string, GameFolder>();
 
-        public ObservableGameFolderCollection Folders { get; } = new ObservableGameFolderCollection();
+        public ObservableKeyedIndexedSet<string, GameFolder> Folders { get; } =
+            new ObservableKeyedIndexedSet<string, GameFolder>(folder => folder.Name);
 
         private ObservableCollection<object> _selectedItems;
         public ObservableCollection<object> SelectedItems
@@ -171,7 +157,9 @@ namespace GameMover.Model
             }
         }
 
+
         #region Commands
+
         //TODO test
         [AutoLazy.Lazy]
         public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveSelected(),
@@ -213,11 +201,11 @@ namespace GameMover.Model
 
             var foldersToSelect = Folders.Where(folder =>
                 // Same name
-                    !CorrespondingCollection.Folders.Contains(folder.Name) &&
+                    !CorrespondingCollection.Folders.ContainsKey(folder.Name) &&
                     // Other pane has a junction pointing to this folder
                     !CorrespondingCollection.JunctionTargetsDictionary.ContainsKey(folder.DirectoryInfo.FullName) &&
                     // This folder is a junction pointing to a folder in the other pane
-                    !(folder.IsJunction &&
+                    !(folder.JunctionTarget != null &&
                       CorrespondingCollection.Folders.TryGetValue(Path.GetFileName(folder.JunctionTarget), out junctionTargetFolder) &&
                       string.Equals(junctionTargetFolder.DirectoryInfo.FullName, folder.JunctionTarget, StringComparison.OrdinalIgnoreCase)));
 
@@ -236,7 +224,9 @@ namespace GameMover.Model
                 Location = folderDialog.FileName;
             }
         }
+
         #endregion
+
 
         public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceWithRange(folders);
 
@@ -262,11 +252,11 @@ namespace GameMover.Model
                 newFolder.ContinuoslyRecalculateSize().Forget();
             };
             DirectoryWatcher.Deleted += (sender, args) => {
-                Folders.Remove(args.Name);
+                Folders.RemoveKey(args.Name);
             };
             DirectoryWatcher.Renamed += (sender, args) => {
                 var folder = Folders[args.OldName];
-                Folders.Remove(args.OldName);
+                Folders.RemoveKey(args.OldName);
                 folder.Rename(args.Name);
                 Folders.Add(folder);
             };
@@ -305,10 +295,7 @@ namespace GameMover.Model
             }
         }
 
-        /// <summary>
-        ///     Copies the provided folder to the current directory. Returns the created/overwritten folder on if the copy
-        ///     successfully ran to completion, null otherwise.
-        /// </summary>
+        /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder on if the copy successfully ran to completion, null otherwise.</summary>
         private Task<GameFolder> CopyFolder(GameFolder folderToCopy)
         {
             return Task.Run(() => {

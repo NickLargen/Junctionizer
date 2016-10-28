@@ -16,8 +16,7 @@ namespace Test
         private static IReadOnlyList<string> CapitalLetters { get; } =
             Enumerable.Range(start: 'A', count: 3).Select(i => ((char) i).ToString()).ToList();
 
-        [Test]
-        [Explicit]
+        [Test, Explicit]
         public static void SetupManualTestData()
         {
             SetupTestData(

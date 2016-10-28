@@ -5,15 +5,15 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Utilities.Collections
+namespace Utilities.Collections.Experiments
 {
     /// <summary>
-    ///     <see cref="KeyedCollection{TKey,TItem}" />
+    ///     <see cref="KeyedCollection{TKey,TItem}"/>
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
     [DebuggerDisplay(nameof(Count) + " = {" + nameof(Count) + "}")]
-    public abstract class KeyedListManual<TKey, TValue> : IList<TValue> /*, IList*/, IReadOnlyList<TValue>
+    public abstract class KeyedList<TKey, TValue> : IList<TValue> /*, IList*/, IReadOnlyList<TValue>
     {
         protected abstract TKey GetKeyForItem(TValue item);
 
@@ -26,7 +26,7 @@ namespace Utilities.Collections
         private int _keyCount;
         private readonly IList<TValue> _list;
 
-        protected KeyedListManual(IEqualityComparer<TKey> comparer = null, int dictionaryCreationThreshold = DEFAULT_THRESHOLD)
+        protected KeyedList(IEqualityComparer<TKey> comparer = null, int dictionaryCreationThreshold = DEFAULT_THRESHOLD)
         {
             if (comparer == null)
             {
@@ -91,7 +91,7 @@ namespace Utilities.Collections
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public TValue this[int index]
         {
             get { return _list[index]; }
@@ -125,9 +125,12 @@ namespace Utilities.Collections
             _list[index] = item;
         }
 
+
         #region Addition / Replacement
+
         public void Add(TValue value)
         {
+            // this does not work
             Insert(Count, value);
         }
 
@@ -163,7 +166,9 @@ namespace Utilities.Collections
                 _keyCount++;
             }
         }
+
         #endregion
+
 
         private void ChangeItemKey(TValue item, TKey newKey)
         {
@@ -196,20 +201,22 @@ namespace Utilities.Collections
             _keyCount = 0;
         }
 
+
         #region Contains
-        /// <inheritdoc />
+
+        /// <inheritdoc/>
         public bool Contains(TValue value)
         {
             return ContainsValue(value);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public bool ContainsKey(TKey key)
         {
             return _dict?.ContainsKey(key) ?? this.Any(value => _comparer.Equals(GetKeyForItem(value), key));
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public bool ContainsValue(TValue value)
         {
             TKey key;
@@ -220,25 +227,29 @@ namespace Utilities.Collections
 
             return _dict.TryGetValue(key, out TValue itemInDict) && EqualityComparer<TValue>.Default.Equals(itemInDict, value);
         }
+
         #endregion
 
-        /// <inheritdoc />
+
+        /// <inheritdoc/>
         void ICollection<TValue>.CopyTo(TValue[] array, int arrayIndex)
         {
             _list.CopyTo(array, arrayIndex);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public IEnumerator<TValue> GetEnumerator() => _list.GetEnumerator();
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public int IndexOf(TValue item) => _list.IndexOf(item);
 
+
         #region Removal
-        /// <inheritdoc />
+
+        /// <inheritdoc/>
         public bool Remove(TKey key)
         {
             // todo test code contracts
@@ -264,7 +275,7 @@ namespace Utilities.Collections
             return false;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public bool Remove(TValue value)
         {
             int index = IndexOf(value);
@@ -284,9 +295,7 @@ namespace Utilities.Collections
             _list.RemoveAt(index);
         }
 
-        /// <summary>
-        ///     Remove an entry from the dictionary (but not the list).
-        /// </summary>
+        /// <summary>Remove an entry from the dictionary (but not the list).</summary>
         private void RemoveKey(TKey key)
         {
             Debug.Assert(key != null, "key shouldn't be null!");
@@ -299,7 +308,7 @@ namespace Utilities.Collections
                 _keyCount--;
             }
         }
-        #endregion
 
+        #endregion
     }
 }

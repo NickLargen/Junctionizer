@@ -11,65 +11,42 @@ using Microsoft.Win32.SafeHandles;
 namespace GameMover.Code
 {
 /**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-                    By Jeff Brown
-                                                                                        
-                    Modified by Nick Largen
-                    **/
+                            By Jeff Brown
+                                                                                                
+                            Modified by Nick Largen
+                            **/
 
-    /// <summary>
-    ///     Provides access to NTFS junction points in .Net.
-    /// </summary>
+    /// <summary>Provides access to NTFS junction points in .Net.</summary>
     public static class JunctionPoint
     {
-        /// <summary>
-        ///     The file or directory is not a reparse point.
-        /// </summary>
+        /// <summary>The file or directory is not a reparse point.</summary>
         private const int ERROR_NOT_A_REPARSE_POINT = 4390;
 
-        /// <summary>
-        ///     The reparse point attribute cannot be set because it conflicts with an existing attribute.
-        /// </summary>
+        /// <summary>The reparse point attribute cannot be set because it conflicts with an existing attribute.</summary>
         private const int ERROR_REPARSE_ATTRIBUTE_CONFLICT = 4391;
 
-        /// <summary>
-        ///     The data present in the reparse point buffer is invalid.
-        /// </summary>
+        /// <summary>The data present in the reparse point buffer is invalid.</summary>
         private const int ERROR_INVALID_REPARSE_DATA = 4392;
 
-        /// <summary>
-        ///     The tag present in the reparse point buffer is invalid.
-        /// </summary>
+        /// <summary>The tag present in the reparse point buffer is invalid.</summary>
         private const int ERROR_REPARSE_TAG_INVALID = 4393;
 
-        /// <summary>
-        ///     There is a mismatch between the tag specified in the request and the tag present in the reparse point.
-        /// </summary>
+        /// <summary>There is a mismatch between the tag specified in the request and the tag present in the reparse point.</summary>
         private const int ERROR_REPARSE_TAG_MISMATCH = 4394;
 
-        /// <summary>
-        ///     Command to set the reparse point data block.
-        /// </summary>
+        /// <summary>Command to set the reparse point data block.</summary>
         private const int FSCTL_SET_REPARSE_POINT = 0x000900A4;
 
-        /// <summary>
-        ///     Command to get the reparse point data block.
-        /// </summary>
+        /// <summary>Command to get the reparse point data block.</summary>
         private const int FSCTL_GET_REPARSE_POINT = 0x000900A8;
 
-        /// <summary>
-        ///     Command to delete the reparse point data base.
-        /// </summary>
+        /// <summary>Command to delete the reparse point data base.</summary>
         private const int FSCTL_DELETE_REPARSE_POINT = 0x000900AC;
 
-        /// <summary>
-        ///     Reparse point tag used to identify mount points and junction points.
-        /// </summary>
+        /// <summary>Reparse point tag used to identify mount points and junction points.</summary>
         private const uint IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003;
 
-        /// <summary>
-        ///     This prefix indicates to NTFS that the path is to be treated as a non-interpreted
-        ///     path in the virtual file system.
-        /// </summary>
+        /// <summary>This prefix indicates to NTFS that the path is to be treated as a non-interpreted path in the virtual file system.</summary>
         private const string NON_INTERPRETED_PATH_PREFIX = @"\??\";
 
         [Flags]
@@ -132,49 +109,32 @@ namespace GameMover.Code
         [StructLayout(LayoutKind.Sequential)]
         private struct REPARSE_DATA_BUFFER
         {
-            /// <summary>
-            ///     Reparse point tag. Must be a Microsoft reparse point tag.
-            /// </summary>
+            /// <summary>Reparse point tag. Must be a Microsoft reparse point tag.</summary>
             public uint ReparseTag;
 
             /// <summary>
-            ///     Size, in bytes, of the data after the Reserved member. This can be calculated by:
-            ///     <code>(4 * sizeof(ushort)) + SubstituteNameLength + PrintNameLength + 
+            /// Size, in bytes, of the data after the Reserved member. This can be calculated by:
+            /// <code>(4 * sizeof(ushort)) + SubstituteNameLength + PrintNameLength + 
             /// (namesAreNullTerminated ? 2 * sizeof(char) : 0);</code>
             /// </summary>
             public ushort ReparseDataLength;
 
-            /// <summary>
-            ///     Reserved; do not use.
-            /// </summary>
+            /// <summary>Reserved; do not use.</summary>
             public ushort Reserved;
 
-            /// <summary>
-            ///     Offset, in bytes, of the substitute name string in the PathBuffer array.
-            /// </summary>
+            /// <summary>Offset, in bytes, of the substitute name string in the PathBuffer array.</summary>
             public ushort SubstituteNameOffset;
 
-            /// <summary>
-            ///     Length, in bytes, of the substitute name string. If this string is null-terminated,
-            ///     SubstituteNameLength does not include space for the null character.
-            /// </summary>
+            /// <summary>Length, in bytes, of the substitute name string. If this string is null-terminated, SubstituteNameLength does not include space for the null character.</summary>
             public ushort SubstituteNameLength;
 
-            /// <summary>
-            ///     Offset, in bytes, of the print name string in the PathBuffer array.
-            /// </summary>
+            /// <summary>Offset, in bytes, of the print name string in the PathBuffer array.</summary>
             public ushort PrintNameOffset;
 
-            /// <summary>
-            ///     Length, in bytes, of the print name string. If this string is null-terminated,
-            ///     PrintNameLength does not include space for the null character.
-            /// </summary>
+            /// <summary>Length, in bytes, of the print name string. If this string is null-terminated, PrintNameLength does not include space for the null character.</summary>
             public ushort PrintNameLength;
 
-            /// <summary>
-            ///     A buffer containing the Unicode-encoded path string. The path string contains
-            ///     the substitute name string and print name string.
-            /// </summary>
+            /// <summary>A buffer containing the Unicode-encoded path string. The path string contains the substitute name string and print name string.</summary>
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x3FF0)] public byte[] PathBuffer;
         }
 
@@ -194,19 +154,12 @@ namespace GameMover.Code
             EFileAttributes dwFlagsAndAttributes,
             IntPtr hTemplateFile);
 
-        /// <summary>
-        ///     Creates a junction point from the specified directory to the specified target directory.
-        /// </summary>
-        /// <remarks>
-        ///     Only works on NTFS.
-        /// </remarks>
+        /// <summary>Creates a junction point from the specified directory to the specified target directory.</summary>
+        /// <remarks>Only works on NTFS.</remarks>
         /// <param name="junctionDirectory">The junction point directory</param>
         /// <param name="targetDirectory">The target directory</param>
         /// <param name="overwrite">If true overwrites an existing reparse point or empty directory</param>
-        /// <exception cref="IOException">
-        ///     Thrown when the junction point could not be created or when
-        ///     an existing directory was found and <paramref name="overwrite" /> if false
-        /// </exception>
+        /// <exception cref="IOException">Thrown when the junction point could not be created or when an existing directory was found and <paramref name="overwrite"/> if false</exception>
         public static void Create(DirectoryInfo junctionDirectory, DirectoryInfo targetDirectory, bool overwrite)
         {
             Create(junctionDirectory.FullName, targetDirectory.FullName, overwrite);
@@ -264,13 +217,8 @@ namespace GameMover.Code
             }
         }
 
-        /// <summary>
-        ///     Deletes a junction point at the specified source directory along with the directory itself.
-        ///     Does nothing if the junction point does not exist.
-        /// </summary>
-        /// <remarks>
-        ///     Only works on NTFS.
-        /// </remarks>
+        /// <summary>Deletes a junction point at the specified source directory along with the directory itself. Does nothing if the junction point does not exist.</summary>
+        /// <remarks>Only works on NTFS.</remarks>
         /// <returns>True on success</returns>
         /// <param name="junctionDirectory">The junction point directory</param>
         public static bool Delete(DirectoryInfo junctionDirectory)
@@ -325,15 +273,10 @@ namespace GameMover.Code
             return true;
         }
 
-        /// <summary>
-        ///     Determines whether the specified path exists and refers to a junction point.
-        /// </summary>
+        /// <summary>Determines whether the specified path exists and refers to a junction point.</summary>
         /// <param name="junctionDirectory">The junction point directory</param>
         /// <returns>True if the specified path represents a junction point</returns>
-        /// <exception cref="IOException">
-        ///     Thrown if the specified path is invalid
-        ///     or some other error occurs
-        /// </exception>
+        /// <exception cref="IOException">Thrown if the specified path is invalid or some other error occurs</exception>
         public static bool Exists(DirectoryInfo junctionDirectory)
         {
             if (junctionDirectory.CreationTimeUtc.AddMilliseconds(25) > DateTime.UtcNow)
@@ -346,9 +289,7 @@ namespace GameMover.Code
             return junctionDirectory.IsReparsePoint() && Exists(junctionDirectory.FullName);
         }
 
-        /// <summary>
-        ///     Convenience method for checking if the provided directory info is a reparse point.
-        /// </summary>
+        /// <summary>Convenience method for checking if the provided directory info is a reparse point.</summary>
         public static bool IsReparsePoint(this DirectoryInfo directoryInfo)
             => (directoryInfo.Attributes & FileAttributes.ReparsePoint) != 0 && (int) directoryInfo.Attributes != -1;
 
@@ -363,18 +304,11 @@ namespace GameMover.Code
             }
         }
 
-        /// <summary>
-        ///     Gets the target of the specified junction point.
-        /// </summary>
-        /// <remarks>
-        ///     Only works on NTFS.
-        /// </remarks>
+        /// <summary>Gets the target of the specified junction point.</summary>
+        /// <remarks>Only works on NTFS.</remarks>
         /// <param name="junctionDirectory">The junction point directory</param>
         /// <returns>The target of the junction point</returns>
-        /// <exception cref="IOException">
-        ///     Thrown when the specified path does not
-        ///     exist, is invalid, is not a junction point, or some other error occurs
-        /// </exception>
+        /// <exception cref="IOException">Thrown when the specified path does not exist, is invalid, is not a junction point, or some other error occurs</exception>
         public static string GetTarget(DirectoryInfo junctionDirectory)
         {
             return GetTarget(junctionDirectory.FullName);

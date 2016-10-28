@@ -58,13 +58,13 @@ namespace GameMover.UI
             // Actually sort the items
             dataGrid.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
 
-            EnableLiveSorting((IList)dataGrid.ItemsSource);
+            EnableLiveSorting((IList) dataGrid.ItemsSource);
         }
 
         /// Update sort order when properties on items within the collection change
         private static void EnableLiveSorting(IList observableCollection)
         {
-            ((ListCollectionView)CollectionViewSource.GetDefaultView(observableCollection)).IsLiveSorting = true;
+            ((ListCollectionView) CollectionViewSource.GetDefaultView(observableCollection)).IsLiveSorting = true;
         }
 
         private void HideDestination(object sender, RoutedEventArgs e)

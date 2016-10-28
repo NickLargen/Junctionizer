@@ -4,12 +4,10 @@ using System.Windows.Data;
 
 namespace GameMover.Code
 {
-    /// <summary>
-    ///     Allows a non-nullable DateTime to display the empty string by using DateTime.MinValue
-    /// </summary>
+    /// <summary>Allows a non-nullable DateTime to display the empty string by using DateTime.MinValue</summary>
     public class DateTimeToStringConverter : IValueConverter
     {
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var dateTime = (DateTime) value;

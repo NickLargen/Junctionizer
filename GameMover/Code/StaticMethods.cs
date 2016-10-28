@@ -16,9 +16,7 @@ namespace GameMover.Code
 {
     public static class StaticMethods
     {
-        /// <summary>
-        ///     Whether or not to prevent a directory that is being monitored from being renamed or deleted.
-        /// </summary>
+        /// <summary>Whether or not to prevent a directory that is being monitored from being renamed or deleted.</summary>
         public static bool LockActiveDirectory { get; set; } = true;
 
         public static Action<Action> DisplayBusyDuring { get; set; } = action => {
@@ -37,9 +35,7 @@ namespace GameMover.Code
             return command;
         }
 
-        /// <summary>
-        ///     Includes itself and all subdirectories (recursive) that can be opened by the current user.
-        /// </summary>
+        /// <summary>Includes itself and all subdirectories (recursive) that can be opened by the current user.</summary>
         public static IEnumerable<DirectoryInfo> EnumerateAllAccessibleDirectories(this DirectoryInfo self, string searchPattern = "*")
         {
             var directoriesToSearch = new Stack<DirectoryInfo>(64);
@@ -73,9 +69,7 @@ namespace GameMover.Code
         }
 
 
-        /// <summary>
-        ///     Wrapper for standard default values for opening a folder picker.
-        /// </summary>
+        /// <summary>Wrapper for standard default values for opening a folder picker.</summary>
         public static CommonOpenFileDialog NewFolderDialog(string title)
         {
             return new CommonOpenFileDialog {
@@ -98,11 +92,8 @@ namespace GameMover.Code
             new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
         };
 
-        /// <summary>
-        ///     Clears the current items, adds the provided range, and then sends a single CollectionChanged event.
-        ///     Implemented using reflection on an extension method so that it can be used after data binding to a
-        ///     <see cref="System.Windows.Controls.SelectedItemCollection" />.
-        /// </summary>
+        /// <summary>Clears the current items, adds the provided range, and then sends a single CollectionChanged event. Implemented using reflection on an extension method so that it can be used after data binding to a
+        /// <see cref="System.Windows.Controls.SelectedItemCollection"/>.</summary>
         public static void ReplaceWithRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems)
         {
             var type = self.GetType();

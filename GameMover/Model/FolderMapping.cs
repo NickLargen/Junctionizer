@@ -6,9 +6,7 @@ using Prism.Mvvm;
 
 namespace GameMover.Model
 {
-    /// <summary>
-    ///     Container for two directory location.
-    /// </summary>
+    /// <summary>Container for two directory location.</summary>
     public sealed class FolderMapping : BindableBase, IEquatable<FolderMapping>
     {
         public FolderMapping(string source, string destination, bool isSavedMapping = false)
@@ -25,10 +23,10 @@ namespace GameMover.Model
         [JsonIgnore]
         public bool IsSavedMapping { get; set; }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override string ToString() => $"{Source} => {Destination}";
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public bool Equals(FolderMapping other)
         {
             if (ReferenceEquals(null, other)) return false;
@@ -43,7 +41,7 @@ namespace GameMover.Model
                    string.Equals(Source, other.Source, StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
@@ -56,7 +54,7 @@ namespace GameMover.Model
         public static bool operator ==(FolderMapping left, FolderMapping right) => Equals(left, right);
         public static bool operator !=(FolderMapping left, FolderMapping right) => !Equals(left, right);
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked

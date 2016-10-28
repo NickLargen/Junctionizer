@@ -9,12 +9,13 @@ namespace Utilities.Collections
     public class MultiMap<TKey, TValue> : IDictionary<TKey, LinkedList<TValue>>, IDictionary<TKey, TValue>
     {
         #region Constructors
+
         public MultiMap()
         {
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>();
         }
 
-        public MultiMap(int capacity)
+     /*   public MultiMap(int capacity)
         {
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>(capacity);
         }
@@ -37,8 +38,10 @@ namespace Utilities.Collections
         public MultiMap(IDictionary<TKey, LinkedList<TValue>> dictionary, IEqualityComparer<TKey> comparer)
         {
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>(dictionary, comparer);
-        }
+        }*/
+
         #endregion
+
 
         private IDictionary<TKey, LinkedList<TValue>> BackingDictionary { get; }
 
@@ -105,7 +108,9 @@ namespace Utilities.Collections
 
         public ICollection<TValue> Values => new ReadOnlyCollection<TValue>(BackingDictionary.Values.SelectMany(list => list).ToList());
 
+
         #region Simple Interface Delegates
+
         public int Count => BackingDictionary.Count;
 
         public bool IsReadOnly => BackingDictionary.IsReadOnly;
@@ -199,6 +204,7 @@ namespace Utilities.Collections
         {
             return BackingDictionary.TryGetValue(key, out value);
         }
+
         #endregion
     }
 }

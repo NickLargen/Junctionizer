@@ -113,9 +113,7 @@ namespace GameMover.Model
 
         public Task RecalculateSize() => UpdatePropertiesFromSubdirectories();
 
-        /// <summary>
-        ///     Periodically calls <see cref="RecalculateSize" /> until it is determined that the size is not longer changing.
-        /// </summary>
+        /// <summary>Periodically calls <see cref="RecalculateSize"/> until it is determined that the size is not longer changing.</summary>
         /// <returns></returns>
         public async Task ContinuoslyRecalculateSize()
         {
@@ -133,10 +131,7 @@ namespace GameMover.Model
             IsContinuoslyRecalculating = false;
         }
 
-        /// <summary>
-        ///     Since this function affects equality and hash code calculations it should not be executed on items within a
-        ///     collection.
-        /// </summary>
+        /// <summary>Since this function affects equality and hash code calculations it should not be executed on items within a collection.</summary>
         public void Rename(string newName)
         {
             DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
