@@ -38,7 +38,7 @@ namespace Test.AsyncObservableKeyedSet
         {
             var set = new AsyncObservableKeyedSet<int, int>(param => 0, new[] {1});
 
-            await Hurls<ArgumentException>(() => Task.Run(() => set.AddAsync(463)));
+            await HurlsUsingThreadPool<ArgumentException>(() => set.AddAsync(463));
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace Test.AsyncObservableKeyedSet
         {
             var set = new AsyncObservableKeyedSet<int, int>(param => param, new[] {1});
 
-            await Hurls<ArgumentException>(() => Task.Run(() => set.AddAsync(1)));
+            await HurlsUsingThreadPool<ArgumentException>(() => set.AddAsync(1));
         }
 
         [Test]
@@ -109,12 +109,16 @@ namespace Test.AsyncObservableKeyedSet
             await EnsureUsingThreadPool(() => set.TryAddAsync(30), Is.False);
             Ensure(set.Count, Is.EqualTo(1));
             await EnsureUsingThreadPool(() => set.TryAddAsync(31), Is.True);
-            Ensure(set.Count, Is.EqualTo(2));
+            await EnsureUsingThreadPool(() => set.TryAddAsync(31), Is.False);
+            await EnsureUsingThreadPool(() => set.TryAddAsync(33), Is.True);
+            await EnsureUsingThreadPool(() => set.TryAddAsync(33), Is.False);
+            await EnsureUsingThreadPool(() => set.TryAddAsync(33), Is.False);
+            Ensure(set.Count, Is.EqualTo(3));
 
             Ensure(set.TryAddAsync(30), Is.False);
-            await EnsureUsingThreadPool(() => Task.Run(() => set.Count), Is.EqualTo(2));
+            await EnsureUsingThreadPool(() => Task.Run(() => set.Count), Is.EqualTo(3));
             Ensure(set.TryAddAsync(32), Is.True);
-            Ensure(set.Count, Is.EqualTo(3));
+            Ensure(set.Count, Is.EqualTo(4));
         }
 
         /*[Test]
@@ -134,7 +138,7 @@ namespace Test.AsyncObservableKeyedSet
                 };
             });
 
-            await Hurls<InvalidOperationException>(() => set.AddAsync("-1"));
+            await HurlsUsingThreadPool<InvalidOperationException>(() => set.AddAsync("-1"));
         }*/
     }
 }
