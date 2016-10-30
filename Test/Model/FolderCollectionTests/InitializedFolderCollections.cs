@@ -26,14 +26,9 @@ namespace Test.Model.FolderCollectionTests
 
             var(_, sourceDirectory, destinationDirectory) = TestData.SetupTestData(RootDirectoryInfo);
 
-            SourceCollection = new FolderCollection {
-                Location = sourceDirectory.FullName
-            };
-
-            DestinationCollection = new FolderCollection {
-                Location = destinationDirectory.FullName,
-                CorrespondingCollection = SourceCollection
-            };
+            (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair();
+            SourceCollection.Location = sourceDirectory.FullName;
+            DestinationCollection.Location = destinationDirectory.FullName;
         }
 
         [Test]
@@ -41,11 +36,6 @@ namespace Test.Model.FolderCollectionTests
         {
             Assert.That(SourceCollection.CorrespondingCollection, Is.EqualTo(DestinationCollection));
             Assert.That(DestinationCollection.CorrespondingCollection, Is.EqualTo(SourceCollection));
-
-            SourceCollection.CorrespondingCollection = null;
-
-            Assert.That(SourceCollection.CorrespondingCollection, Is.EqualTo(null));
-            Assert.That(DestinationCollection.CorrespondingCollection, Is.EqualTo(null));
         }
 
         [Test]

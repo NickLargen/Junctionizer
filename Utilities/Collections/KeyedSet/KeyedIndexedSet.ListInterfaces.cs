@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Utilities.Collections.KeyedCollection
+namespace Utilities.Collections.KeyedSet
 {
     public partial class KeyedIndexedSet<TKey, TItem>
     {

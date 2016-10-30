@@ -7,9 +7,9 @@ namespace Test.Model.FolderCollectionTests
     public class FolderCollectionNotInitializedTests : TestBase
     {
         [Test]
-        public void CanExecuteNoCorrespondingFolder()
+        public void CanExecuteNoLocation()
         {
-            var folderCollection = new FolderCollection();
+            var (folderCollection, _) = FolderCollection.Factory.CreatePair();
 
             Assert.That(folderCollection.SelectLocationCommand.CanExecute, Is.True);
 

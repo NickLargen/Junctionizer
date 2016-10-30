@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -86,33 +85,19 @@ namespace GameMover.Code
             };
         }
 
-        private static readonly object[] ParameterCountString = {new PropertyChangedEventArgs("Count")};
-        private static readonly object[] ParameterIndexerName = {new PropertyChangedEventArgs("Item[]")};
-        private static readonly object[] ParameterCollectionReset = {
-            new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
-        };
-
-        /// <summary>Clears the current items, adds the provided range, and then sends a single CollectionChanged event. Implemented using reflection on an extension method so that it can be used after data binding to a
-        /// <see cref="System.Windows.Controls.SelectedItemCollection"/>.</summary>
-        public static void ReplaceWithRange<T>(this ObservableCollection<T> self, IEnumerable<T> newItems)
+        /// <summary>Clears the current items, adds the provided range. Implemented using reflection on an extension method so that it can be used after data binding to a <see cref="System.Windows.Controls.SelectedItemCollection"/>. Currently sends a CollectionChanged event for every item added.</summary>
+        public static void ReplaceSelectedItems(this ObservableCollection<object> self, IEnumerable<object> newItems)
         {
             var type = self.GetType();
-            var backingItems = (List<T>) type.GetProperty("Items", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(self);
 
-            var checkReentrancyMethodInfo = type.GetMethod("CheckReentrancy", BindingFlags.NonPublic | BindingFlags.Instance);
-            checkReentrancyMethodInfo.Invoke(self, Array.Empty<object>());
+            type.GetMethod("BeginUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
+            self.Clear();
+            foreach (var item in newItems)
+            {
+                self.Add(item);
+            }
 
-            backingItems.Clear();
-            backingItems.AddRange(newItems);
-
-            var onPropertyChangedMethodInfo = type.GetMethod("OnPropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance,
-                Type.DefaultBinder, new[] {typeof(PropertyChangedEventArgs)}, modifiers: null);
-            var onCollectionChangedMethodInfo = type.GetMethod("OnCollectionChanged", BindingFlags.NonPublic | BindingFlags.Instance,
-                Type.DefaultBinder, new[] {typeof(NotifyCollectionChangedEventArgs)}, modifiers: null);
-
-            onPropertyChangedMethodInfo.Invoke(self, ParameterCountString);
-            onPropertyChangedMethodInfo.Invoke(self, ParameterIndexerName);
-            onCollectionChangedMethodInfo.Invoke(self, ParameterCollectionReset);
+            type.GetMethod("EndUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
         }
     }
 }

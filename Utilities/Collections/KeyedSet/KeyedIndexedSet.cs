@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 using JetBrains.Annotations;
 
-namespace Utilities.Collections.KeyedCollection
+namespace Utilities.Collections.KeyedSet
 {
     /// <summary>Keys must be unique and non-null. Since keys are unique and an item must generate exactly one key, items are also guaranteed unique. Null items are currently disallowed because the expectation is sets without null is the common scenario and it assists in static analysis and prevents GetKeyForItem from needing to handle nulls.
     /// <para/>
@@ -217,7 +217,7 @@ namespace Utilities.Collections.KeyedCollection
             //todo design code reuse
             if (Dictionary.TryGetValue(key, out PositionedValue existingItem))
             {
-                RemoveAt(existingItem.Position);
+                InternalRemoveAt(existingItem.Position);
                 return true;
             }
 
@@ -244,7 +244,12 @@ namespace Utilities.Collections.KeyedCollection
         }
 
         /// <summary>O(1)</summary>
-        public virtual TItem RemoveAt(int index)
+        public TItem RemoveAt(int index)
+        {
+            return InternalRemoveAt(index);
+        }
+
+        protected virtual TItem InternalRemoveAt(int index)
         {
             if (index >= Count) throw new ArgumentOutOfRangeException($"Cannot remove index {index}, it does not exist in a collection of size {Count}.");
 

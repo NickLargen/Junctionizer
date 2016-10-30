@@ -11,10 +11,10 @@ using Microsoft.Win32.SafeHandles;
 namespace GameMover.Code
 {
 /**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
-                            By Jeff Brown
-                                                                                                
-                            Modified by Nick Largen
-                            **/
+                                    By Jeff Brown
+                                                                                                        
+                                    Modified by Nick Largen
+                                    **/
 
     /// <summary>Provides access to NTFS junction points in .Net.</summary>
     public static class JunctionPoint

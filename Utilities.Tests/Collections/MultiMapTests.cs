@@ -2,7 +2,9 @@
 
 using Utilities.Collections;
 
-namespace UtilitiesTests.Collections
+// ReSharper disable UnusedVariable
+
+namespace Utilities.Tests.Collections
 {
     public class MultiMapTests
     {
@@ -62,6 +64,5 @@ namespace UtilitiesTests.Collections
         {
             var intMultiMap = new MultiMap<int, int>();
         }
-
     }
 }

@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
 namespace Utilities.Collections.Experiments
 {
     /// <summary>
-    ///     <see cref="KeyedCollection{TKey,TItem}"/>
+    ///     <see cref="System.Collections.ObjectModel.KeyedCollection{TKey,TItem}"/>
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
-    [DebuggerDisplay(nameof(Count) + " = {" + nameof(Count) + "}")]
+    [DebuggerDisplay(nameof(Count) + " = {" + nameof(Count) + "}"), Obsolete]
     public abstract class KeyedList<TKey, TValue> : IList<TValue> /*, IList*/, IReadOnlyList<TValue>
     {
         protected abstract TKey GetKeyForItem(TValue item);

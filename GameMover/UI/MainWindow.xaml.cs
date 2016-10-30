@@ -5,9 +5,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 
+using GameMover.Code;
+using GameMover.Model;
 using GameMover.ViewModels;
 
 using MaterialDesignThemes.Wpf;
@@ -38,8 +39,8 @@ namespace GameMover.UI
             mainWindowViewModel.Initialize();
 
             Loaded += (sender, args) => {
-                SetInitialSort(sourceGrid);
-                SetInitialSort(destinationGrid);
+                SetInitialSort(sourceGrid, mainWindowViewModel.SourceCollection);
+                SetInitialSort(destinationGrid, mainWindowViewModel.DestinationCollection);
 
                 EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
             };
@@ -49,16 +50,23 @@ namespace GameMover.UI
 
         public static Task OpenDialog(object obj) => DialogHost.Show(obj);
 
-        private static void SetInitialSort(DataGrid dataGrid)
+        private static void SetInitialSort(MultiSelectDataGrid dataGrid, FolderCollection folderCollection)
         {
+            var collectionViewSource = new CollectionViewSource() {
+                Source = folderCollection.Folders,
+                IsLiveSortingRequested = true
+            };
+
+            dataGrid.ItemsSource = collectionViewSource.View;
+            dataGrid.SelectedItemsList = folderCollection.SelectedItems;
+
+
             var firstCol = dataGrid.Columns.First();
             // Mark the UI with what direction it is sorted (places the correct column header arrow)
             firstCol.SortDirection = ListSortDirection.Ascending;
 
             // Actually sort the items
             dataGrid.Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
-
-            EnableLiveSorting((IList) dataGrid.ItemsSource);
         }
 
         /// Update sort order when properties on items within the collection change

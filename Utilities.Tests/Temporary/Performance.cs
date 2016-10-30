@@ -4,11 +4,10 @@ using System.Diagnostics;
 
 using NUnit.Framework;
 
-namespace UtilitiesTests.Temporary
+namespace Utilities.Tests.Temporary
 {
     public class Performance
     {
-
         [Test]
         public void RemovePerformance()
         {

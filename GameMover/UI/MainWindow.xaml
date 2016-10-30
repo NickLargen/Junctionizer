@@ -125,7 +125,6 @@
                         <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
                     </DockPanel>
                     <code:MultiSelectDataGrid x:Name="sourceGrid"
-                                              ItemsSource="{Binding Folders}"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               Style="{StaticResource GameFolderDataGridStyle}">
@@ -162,7 +161,6 @@
                     </DockPanel>
 
                     <code:MultiSelectDataGrid x:Name="destinationGrid"
-                                              ItemsSource="{Binding Folders}"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               Style="{StaticResource GameFolderDataGridStyle}">

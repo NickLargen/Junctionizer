@@ -137,10 +137,11 @@ namespace GameMover.Model
             DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
         }
 
-        public int CompareTo(GameFolder other) => ReferenceEquals(other, null)
-                                                      ? 1
-                                                      : string.Compare(DirectoryInfo.FullName, other.DirectoryInfo.FullName,
-                                                          StringComparison.OrdinalIgnoreCase);
+        public int CompareTo(GameFolder other)
+        {
+//            Debug.WriteLine($"{DirectoryInfo.FullName} compareTo {other?.DirectoryInfo.FullName}");
+            return string.Compare(DirectoryInfo.FullName, other?.DirectoryInfo.FullName, StringComparison.OrdinalIgnoreCase);
+        }
 
         public override bool Equals(object obj) => CompareTo(obj as GameFolder) == 0;
         public bool Equals(GameFolder other) => CompareTo(other) == 0;

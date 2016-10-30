@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 using JetBrains.Annotations;
 
-namespace Utilities.Collections.KeyedCollection
+namespace Utilities.Collections.KeyedSet
 {
     public class ObservableKeyedIndexedSet<TKey, TItem> : KeyedIndexedSet<TKey, TItem>, INotifyCollectionChanged, INotifyPropertyChanged
     {
@@ -42,11 +42,11 @@ namespace Utilities.Collections.KeyedCollection
         }
 
         /// <inheritdoc/>
-        public override TItem RemoveAt(int index)
+        protected override TItem InternalRemoveAt(int index)
         {
             CheckReentrancy();
 
-            var removedItem = base.RemoveAt(index);
+            var removedItem = base.InternalRemoveAt(index);
             OnCollectionRemoved(index, removedItem);
             return removedItem;
         }

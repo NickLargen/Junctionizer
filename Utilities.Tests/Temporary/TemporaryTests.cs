@@ -1,51 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
-#pragma warning disable 168
+// ReSharper disable UnusedVariable
 
-namespace UtilitiesTests.Temporary
+namespace Utilities.Tests.Temporary
 {
     // When using a numerical key with KeyedCollection this[] functions as a dictionary, so the only way to retrieve an item by index is to cast to IList
     // This is seems like it would frequently NOT be what you expect - if your key is a long and use an int to try and index, it still uses it as a key
 
     public class TemporaryTests
     {
-        public struct FlatStruct
-        {
-            public int first, second, third;
-        }
-
-        public struct TwoStruct
-        {
-            public int one, two;
-        }
-
-        public struct NestedStruct
-        {
-            public TwoStruct innerStruct;
-            public int three;
-        }
-
-        [Test]
-        public void StructSizes()
-        {
-            long StartBytes, StopBytes;
-            var count = 20000;
-            StartBytes = System.GC.GetTotalMemory(true);
-            FlatStruct[] a = new FlatStruct[count];
-            StopBytes = System.GC.GetTotalMemory(true);
-            Console.WriteLine(StopBytes - StartBytes);
-
-            StartBytes = System.GC.GetTotalMemory(true);
-            NestedStruct[] b = new NestedStruct[count];
-            StopBytes = System.GC.GetTotalMemory(true);
-             Console.WriteLine(StopBytes - StartBytes);
-                
-        }
-
         /*[Test]
         public void Unnamed()
         {
@@ -69,5 +34,39 @@ namespace UtilitiesTests.Temporary
             ImmutableDictionary<int, string> immutableDictionary;
             ImmutableSortedDictionary<int, string> immutableSortedDictionary;
         }*/
+
+        [Test]
+        public void StructSizes()
+        {
+            //Findings: nested structs have exactly the same memory usage as a flat struct
+
+            long startBytes, stopBytes;
+            var count = 20000;
+            startBytes = GC.GetTotalMemory(true);
+            FlatStruct[] a = new FlatStruct[count];
+            stopBytes = GC.GetTotalMemory(true);
+            Console.WriteLine(stopBytes - startBytes);
+
+            startBytes = GC.GetTotalMemory(true);
+            NestedStruct[] b = new NestedStruct[count];
+            stopBytes = GC.GetTotalMemory(true);
+            Console.WriteLine(stopBytes - startBytes);
+        }
+
+        public struct FlatStruct
+        {
+            public int First, Second, Third;
+        }
+
+        public struct TwoStruct
+        {
+            public int One, Two;
+        }
+
+        public struct NestedStruct
+        {
+            public TwoStruct InnerStruct;
+            public int Three;
+        }
     }
 }

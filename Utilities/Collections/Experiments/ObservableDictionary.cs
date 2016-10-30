@@ -10,7 +10,8 @@ namespace Utilities.Collections.Experiments
     /// <summary>This collection is not immediately useful for data binding because it will create an EnumerableCollectionView which maintains an ObservableCollection behind the scenes. Observable collections should implement IList so that they will bind to a ListCollectionView.</summary>
     [Obsolete]
     public class ObservableDictionary<TKey, TValue>
-        : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
+        : IDictionary<TKey, TValue>, /*IDictionary,*/ IReadOnlyDictionary<TKey, TValue>, IList, IEnumerable<TValue>,
+            INotifyCollectionChanged, INotifyPropertyChanged
     {
         private Dictionary<TKey, TValue> MyDictionary { get; }
 
@@ -25,7 +26,7 @@ namespace Utilities.Collections.Experiments
         }
 
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => Add(item.Key, item.Value);
-        void IDictionary.Add(object key, object value) => Add((TKey) key, (TValue) value);
+//        void IDictionary.Add(object key, object value) => Add((TKey) key, (TValue) value);
 
         public void Add(TKey key, TValue value)
         {
@@ -53,10 +54,56 @@ namespace Utilities.Collections.Experiments
         }
 
 
+        [Obsolete]
+        public int Add(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete]
+        public bool Contains(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete]
+        public int IndexOf(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete]
+        public void Insert(int index, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete]
+        public void Remove(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Obsolete]
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsFixedSize => false;
+        public bool IsReadOnly => false;
+        [Obsolete]
+        object IList.this[int index]
+        {
+            get { throw new NotImplementedException(); }
+            set { throw new NotImplementedException(); }
+        }
+
+
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
             => ((ICollection<KeyValuePair<TKey, TValue>>) MyDictionary).Contains(item);
 
-        bool IDictionary.Contains(object key) => ((IDictionary) MyDictionary).Contains(key);
+//        bool IDictionary.Contains(object key) => ((IDictionary) MyDictionary).Contains(key);
         public bool ContainsKey(TKey key) => MyDictionary.ContainsKey(key);
 
 
@@ -68,31 +115,38 @@ namespace Utilities.Collections.Experiments
 
         public int Count => MyDictionary.Count;
 
+        IEnumerator IEnumerable.GetEnumerator() => MyDictionary.Values.GetEnumerator();
 
-        IDictionaryEnumerator IDictionary.GetEnumerator() => ((IDictionary) MyDictionary).GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) MyDictionary).GetEnumerator();
+        public IEnumerator<TValue> GetEnumerator()
+        {
+            var enumerator = MyDictionary.Values.GetEnumerator();
+            return enumerator;
+        }
+
+//        IDictionaryEnumerator IDictionary.GetEnumerator() => ((IDictionary) MyDictionary).GetEnumerator();
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => MyDictionary.GetEnumerator();
 
 
-        bool IDictionary.IsFixedSize => ((IDictionary) MyDictionary).IsFixedSize;
+//        bool IDictionary.IsFixedSize => ((IDictionary) MyDictionary).IsFixedSize;
 
 
-        bool IDictionary.IsReadOnly => ((IDictionary) MyDictionary).IsReadOnly;
+//        bool IDictionary.IsReadOnly => ((IDictionary) MyDictionary).IsReadOnly;
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>) MyDictionary).IsReadOnly;
 
 
         bool ICollection.IsSynchronized => ((ICollection) MyDictionary).IsSynchronized;
 
 
-        object IDictionary.this[object key]
-        {
-            get { return this[(TKey) key]; }
-            set { this[(TKey) key] = (TValue) value; }
-        }
+//        object IDictionary.this[object key]
+//        {
+//            get { return this[(TKey) key]; }
+//            set { this[(TKey) key] = (TValue) value; }
+//        }
         public TValue this[TKey key]
         {
             get { return MyDictionary[key]; }
             set {
+                CheckReentrancy();
                 if (TryGetValue(key, out var existingValue))
                 {
                     if (ReferenceEquals(existingValue, value)) return;
@@ -111,14 +165,19 @@ namespace Utilities.Collections.Experiments
         }
 
 
-        ICollection IDictionary.Keys => ((IDictionary) MyDictionary).Keys;
+//        ICollection IDictionary.Keys => ((IDictionary) MyDictionary).Keys;
         public ICollection<TKey> Keys => MyDictionary.Keys;
         IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => ((IReadOnlyDictionary<TKey, TValue>) MyDictionary).Keys;
 
 
-        void IDictionary.Remove(object key) => Remove((TKey) key);
+//        void IDictionary.Remove(object key) => Remove((TKey) key);
 
         public bool Remove(TKey key)
+        {
+            return RemoveKey(key);
+        }
+
+        public bool RemoveKey(TKey key)
         {
             if (MyDictionary.TryGetValue(key, out var value))
             {
@@ -155,7 +214,7 @@ namespace Utilities.Collections.Experiments
         public bool TryGetValue(TKey key, out TValue value) => MyDictionary.TryGetValue(key, out value);
 
 
-        ICollection IDictionary.Values => ((IDictionary) MyDictionary).Values;
+//        ICollection IDictionary.Values => ((IDictionary) MyDictionary).Values;
         public ICollection<TValue> Values => MyDictionary.Values;
         IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => MyDictionary.Values;
 

@@ -5,10 +5,15 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.Properties;
+using GameMover.ViewModels;
+
+using JetBrains.Annotations;
 
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.VisualStudio.Threading;
@@ -18,7 +23,6 @@ using Prism.Commands;
 using Prism.Mvvm;
 
 using Utilities.Collections;
-using Utilities.Collections.KeyedCollection;
 
 using static GameMover.Code.StaticMethods;
 using static GameMover.Code.ErrorHandling;
@@ -27,7 +31,20 @@ namespace GameMover.Model
 {
     public sealed class FolderCollection : BindableBase, IDisposable
     {
-        public FolderCollection()
+        public static class Factory
+        {
+            public static (FolderCollection source, FolderCollection destination) CreatePair()
+            {
+                var source = new FolderCollection();
+                var destination = new FolderCollection();
+                source.CorrespondingCollection = destination;
+                destination.CorrespondingCollection = source;
+
+                return (source, destination);
+            }
+        }
+
+        private FolderCollection()
         {
             SelectedItems = new ObservableCollection<object>();
             InitDirectoryWatcher();
@@ -48,24 +65,17 @@ namespace GameMover.Model
             };
         }
 
-        private FolderCollection _correspondingCollection;
-        public FolderCollection CorrespondingCollection
-        {
-            get { return _correspondingCollection; }
-            set {
-                if (_correspondingCollection != null) _correspondingCollection._correspondingCollection = null;
-                _correspondingCollection = value;
-                if (_correspondingCollection != null) _correspondingCollection._correspondingCollection = this;
-            }
-        }
+        public FolderCollection CorrespondingCollection { get; private set; }
 
         public string FolderBrowserDefaultLocation { get; set; }
 
-        /// <summary>A dictionary where the keys are the full path of a junction target and the values are a list of the folders with that junction target.</summary>
-        private MultiMap<string, GameFolder> JunctionTargetsDictionary { get; } = new MultiMap<string, GameFolder>();
+        /// <summary>A dictionary where the keys are junction targets within this collection and the values are a list of the folders with that target (simply the opposite of the normal Folder -> junction target relationship).</summary>
+        private MultiMap<string, GameFolder> JunctionTargetsDictionary { get; } =
+            new MultiMap<string, GameFolder>(StringComparer.OrdinalIgnoreCase);
 
-        public ObservableKeyedIndexedSet<string, GameFolder> Folders { get; } =
-            new ObservableKeyedIndexedSet<string, GameFolder>(folder => folder.Name);
+        // It would be able to move the reference to DispatcherSynchronizationContext out of the model
+        public AsyncObservableKeyedSet<string, GameFolder> Folders { get; } =
+            new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name, isDesiredThread: () => SynchronizationContext.Current is DispatcherSynchronizationContext, comparer: StringComparer.OrdinalIgnoreCase);
 
         private ObservableCollection<object> _selectedItems;
         public ObservableCollection<object> SelectedItems
@@ -112,7 +122,7 @@ namespace GameMover.Model
                         folder.CancelSubdirectorySearch();
                     }
 
-                    Folders.Clear();
+                    Folders.ClearAsync().GetAwaiter().GetResult();
 
                     // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
                     if (Directory.Exists(Location)) SetNewLocationImpl(Location);
@@ -148,7 +158,7 @@ namespace GameMover.Model
                     .EnumerateDirectories()
                     .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0))
                 {
-                    Folders.Add(new GameFolder(directoryInfo));
+                    Folders.AddAsync(new GameFolder(directoryInfo));
                 }
             }
             catch (IOException e)
@@ -202,8 +212,10 @@ namespace GameMover.Model
             var foldersToSelect = Folders.Where(folder =>
                 // Same name
                     !CorrespondingCollection.Folders.ContainsKey(folder.Name) &&
+
                     // Other pane has a junction pointing to this folder
-                    !CorrespondingCollection.JunctionTargetsDictionary.ContainsKey(folder.DirectoryInfo.FullName) &&
+                    !CorrespondingCollection.GetFoldersByJunctionTarget(folder.DirectoryInfo).Any() &&
+
                     // This folder is a junction pointing to a folder in the other pane
                     !(folder.JunctionTarget != null &&
                       CorrespondingCollection.Folders.TryGetValue(Path.GetFileName(folder.JunctionTarget), out junctionTargetFolder) &&
@@ -228,7 +240,7 @@ namespace GameMover.Model
         #endregion
 
 
-        public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceWithRange(folders);
+        public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceSelectedItems(folders);
 
         public void Refresh()
         {
@@ -248,23 +260,25 @@ namespace GameMover.Model
             DirectoryWatcher.InternalBufferSize = 40960;
             DirectoryWatcher.Created += (sender, args) => {
                 var newFolder = new GameFolder(args.FullPath);
-                Folders.Add(newFolder);
                 newFolder.ContinuoslyRecalculateSize().Forget();
+                Folders.AddAsync(newFolder).Forget();
             };
             DirectoryWatcher.Deleted += (sender, args) => {
-                Folders.RemoveKey(args.Name);
+                Folders.RemoveKeyAsync(args.Name).Forget();
             };
             DirectoryWatcher.Renamed += (sender, args) => {
-                var folder = Folders[args.OldName];
-                Folders.RemoveKey(args.OldName);
-                folder.Rename(args.Name);
-                Folders.Add(folder);
+                var folder = GetFolderByName(args.OldName);
+                Folders.UpdateKeyAsync(folder, () => folder.Rename(args.Name));
             };
         }
 
-        private GameFolder GetFolderByName(string name)
+        [NotNull, Pure]
+        private GameFolder GetFolderByName([NotNull] string name) => Folders[name];
+
+        [NotNull, Pure]
+        public IEnumerable<GameFolder> GetFoldersByJunctionTarget([NotNull] DirectoryInfo info)
         {
-            return Folders[name];
+            return JunctionTargetsDictionary.TryGetValue(info.FullName, out var enumerable) ? enumerable : Enumerable.Empty<GameFolder>();
         }
 
         private async Task Archive(GameFolder folder)
@@ -366,9 +380,8 @@ namespace GameMover.Model
                 }
 
                 //Delete junctions pointing to the deleted folder
-                CorrespondingCollection.Folders.Where(folder => folder.IsJunction &&
-                                                                folder.JunctionTarget.Equals(folderToDelete.DirectoryInfo.FullName))
-                                       .ForEach(DeleteJunction);
+                CorrespondingCollection.GetFoldersByJunctionTarget(folderToDelete.DirectoryInfo).ForEach(DeleteJunction);
+
                 return true;
             });
         }

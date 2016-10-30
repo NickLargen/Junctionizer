@@ -34,19 +34,13 @@ namespace GameMover.ViewModels
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
 
-            SourceCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = regKey == null
-                                                   ? @"C:"
-                                                   : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common"
-            };
-            DestinationCollection = new FolderCollection {
-                FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common",
-                CorrespondingCollection = SourceCollection
-            };
+            (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair();
+
+            SourceCollection.FolderBrowserDefaultLocation =
+                regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
+            DestinationCollection.FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common";
 
             BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
-            BindingOperations.EnableCollectionSynchronization(SourceCollection.Folders, new object());
-            BindingOperations.EnableCollectionSynchronization(DestinationCollection.Folders, new object());
 
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChange;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChange;
@@ -57,8 +51,10 @@ namespace GameMover.ViewModels
 
             var deserializedMappings =
                 JsonConvert.DeserializeObject<List<FolderMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
-            deserializedMappings.ForEach(mapping => mapping.IsSavedMapping = true);
-            DisplayedMappings.ReplaceWithRange(deserializedMappings);
+            deserializedMappings.ForEach(mapping => {
+                mapping.IsSavedMapping = true;
+                DisplayedMappings.Add(mapping);
+            });
 
             DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
         }

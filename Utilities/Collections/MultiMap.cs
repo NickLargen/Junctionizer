@@ -15,7 +15,7 @@ namespace Utilities.Collections
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>();
         }
 
-     /*   public MultiMap(int capacity)
+        public MultiMap(int capacity)
         {
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>(capacity);
         }
@@ -38,7 +38,7 @@ namespace Utilities.Collections
         public MultiMap(IDictionary<TKey, LinkedList<TValue>> dictionary, IEqualityComparer<TKey> comparer)
         {
             BackingDictionary = new Dictionary<TKey, LinkedList<TValue>>(dictionary, comparer);
-        }*/
+        }
 
         #endregion
 
@@ -81,7 +81,7 @@ namespace Utilities.Collections
             return BackingDictionary.TryGetValue(key, out var existingList) && existingList.Remove(value);
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        bool IDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value)
         {
             if (BackingDictionary.TryGetValue(key, out var existingList) && existingList.Count > 0)
             {
@@ -96,7 +96,7 @@ namespace Utilities.Collections
         TValue IDictionary<TKey, TValue>.this[TKey key]
         {
             get {
-                if (TryGetValue(key, out var value))
+                if (((IDictionary<TKey, TValue>) this).TryGetValue(key, out var value))
                 {
                     return value;
                 }
@@ -109,7 +109,7 @@ namespace Utilities.Collections
         public ICollection<TValue> Values => new ReadOnlyCollection<TValue>(BackingDictionary.Values.SelectMany(list => list).ToList());
 
 
-        #region Simple Interface Delegates
+        #region Pass through calls to the backing dictionary
 
         public int Count => BackingDictionary.Count;
 
@@ -200,7 +200,7 @@ namespace Utilities.Collections
             return BackingDictionary.Remove(key);
         }
 
-        bool IDictionary<TKey, LinkedList<TValue>>.TryGetValue(TKey key, out LinkedList<TValue> value)
+        public bool TryGetValue(TKey key, out LinkedList<TValue> value)
         {
             return BackingDictionary.TryGetValue(key, out value);
         }
