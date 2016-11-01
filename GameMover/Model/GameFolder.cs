@@ -131,11 +131,6 @@ namespace GameMover.Model
             IsContinuoslyRecalculating = false;
         }
 
-        /// <summary>Since this function affects equality and hash code calculations it should not be executed on items within a collection.</summary>
-        public void Rename(string newName)
-        {
-            DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
-        }
 
         public int CompareTo(GameFolder other)
         {
@@ -148,7 +143,12 @@ namespace GameMover.Model
         public static bool operator ==(GameFolder left, GameFolder right) => Equals(left, right);
         public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
 
-        // ReSharper disable once NonReadonlyMemberInGetHashCode
         public override int GetHashCode() => DirectoryInfo.FullName.ToUpperInvariant().GetHashCode();
+        
+        /// <summary>Since this function affects equality and hash code calculations it should not be executed on items within a collection.</summary>
+        public void Rename(string newName)
+        {
+            DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
+        }
     }
 }

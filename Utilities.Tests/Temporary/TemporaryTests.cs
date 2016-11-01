@@ -2,14 +2,14 @@
 
 using NUnit.Framework;
 
-// ReSharper disable UnusedVariable
+using Utilities.Testing;
 
 namespace Utilities.Tests.Temporary
 {
     // When using a numerical key with KeyedCollection this[] functions as a dictionary, so the only way to retrieve an item by index is to cast to IList
     // This is seems like it would frequently NOT be what you expect - if your key is a long and use an int to try and index, it still uses it as a key
 
-    public class TemporaryTests
+    public class TemporaryTests : ExtendedAssertionHelper
     {
         /*[Test]
         public void Unnamed()
@@ -45,12 +45,16 @@ namespace Utilities.Tests.Temporary
             startBytes = GC.GetTotalMemory(true);
             FlatStruct[] a = new FlatStruct[count];
             stopBytes = GC.GetTotalMemory(true);
-            Console.WriteLine(stopBytes - startBytes);
+            var flatStructBytes = stopBytes - startBytes;
+            Console.WriteLine(flatStructBytes);
 
             startBytes = GC.GetTotalMemory(true);
             NestedStruct[] b = new NestedStruct[count];
             stopBytes = GC.GetTotalMemory(true);
-            Console.WriteLine(stopBytes - startBytes);
+            var nestedStructBytes = stopBytes - startBytes;
+            Console.WriteLine(nestedStructBytes);
+
+            Ensure(flatStructBytes, EqualTo(nestedStructBytes));
         }
 
         public struct FlatStruct

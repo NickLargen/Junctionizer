@@ -3,7 +3,6 @@
                     xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
 
 
-    <!-- ReSharper disable Xaml.InvalidResourceType -->
     <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{StaticResource Primary100}" po:Freeze="True" />
     <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="{StaticResource Primary200Foreground}" po:Freeze="True" />
     <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="{StaticResource Primary500}" po:Freeze="True" />
@@ -12,7 +11,6 @@
     <SolidColorBrush x:Key="PrimaryHueDarkForegroundBrush" Color="{StaticResource Primary700Foreground}" po:Freeze="True" />
     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource Accent700}" po:Freeze="True" />
     <SolidColorBrush x:Key="SecondaryAccentForegroundBrush" Color="{StaticResource Accent700Foreground}" po:Freeze="True" />
-    <!-- ReSharper restore Xaml.InvalidResourceType -->
 
 
 

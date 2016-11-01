@@ -8,15 +8,15 @@ using Nito.AsyncEx;
 
 using NUnit.Framework;
 
-using static Utilities.Testing.NUnit;
+using Utilities.Testing;
 
 namespace Test.AsyncObservableKeyedSet
 {
-    /// <summary>The intent is that in normal execution the lack of a synchronization context causes <see cref="AsyncObservableKeyedSet{TKey,TItem}.RunOnSynchronizationContext"/> to be a noop, so <see cref="RunningOnWpfSynchronizationContext"/> will run them all with a context so that both behaviors are tested.</summary>
-    public class AsyncObservableKeyedSetUnitTests
+    /// <summary>The intent is that in normal execution the lack of a synchronization context causes <see cref="AsyncObservableKeyedSet{TKey,TItem}.RunOnSynchronizationContext"/> to be a noop, so <see cref="RunningWithSynchronizationContext"/> will run them all with a context so that both behaviors are tested.</summary>
+    public class AsyncObservableKeyedSetUnitTests : ExtendedAssertionHelper
     {
         [Test]
-        public void RunningOnWpfSynchronizationContext()
+        public void RunningWithSynchronizationContext()
         {
             AsyncContext.Run(async () => {
                 Console.WriteLine("----- Executing tests using a synchronization context -----");
@@ -24,7 +24,7 @@ namespace Test.AsyncObservableKeyedSet
                     var methodInfo in GetType()
                         .GetMethods()
                         .Where(info => info.CustomAttributes.Any(data => data.AttributeType == typeof(TestAttribute)))
-                        .Where(info => !string.Equals(info.Name, nameof(RunningOnWpfSynchronizationContext))))
+                        .Where(info => !string.Equals(info.Name, nameof(RunningWithSynchronizationContext))))
                 {
                     Console.WriteLine($"Running {methodInfo.Name}...");
                     await (Task) methodInfo.Invoke(this, Array.Empty<object>());
@@ -68,9 +68,9 @@ namespace Test.AsyncObservableKeyedSet
             Ensure(set.Count, Is.EqualTo(3));
             await EnsureUsingThreadPool(() => set.RemoveKeyAsync(3), Is.True);
             Ensure(set.Count, Is.EqualTo(2));
-            Ensure(set.RemoveKeyAsync(67532), Is.False);
+            EnsureSynchronously(set.RemoveKeyAsync(67532), Is.False);
             Ensure(set.Count, Is.EqualTo(2));
-            Ensure(set.RemoveKeyAsync(15), Is.False);
+            EnsureSynchronously(set.RemoveKeyAsync(15), Is.False);
             Ensure(set.Count, Is.EqualTo(2));
         }
 
@@ -97,7 +97,7 @@ namespace Test.AsyncObservableKeyedSet
 
             await EnsureUsingThreadPool(() => set.TryAddAsync(2), Is.False);
             Ensure(set.Count, Is.EqualTo(3));
-            Ensure(set.TryAddAsync(67532), Is.True);
+            await Ensure(set.TryAddAsync(67532), Is.True);
             Ensure(set.Count, Is.EqualTo(4));
         }
 
@@ -115,9 +115,9 @@ namespace Test.AsyncObservableKeyedSet
             await EnsureUsingThreadPool(() => set.TryAddAsync(33), Is.False);
             Ensure(set.Count, Is.EqualTo(3));
 
-            Ensure(set.TryAddAsync(30), Is.False);
+            await Ensure(set.TryAddAsync(30), Is.False);
             await EnsureUsingThreadPool(() => Task.Run(() => set.Count), Is.EqualTo(3));
-            Ensure(set.TryAddAsync(32), Is.True);
+            await Ensure(set.TryAddAsync(32), Is.True);
             Ensure(set.Count, Is.EqualTo(4));
         }
 

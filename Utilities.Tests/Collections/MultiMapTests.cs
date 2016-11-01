@@ -1,12 +1,12 @@
 ﻿using NUnit.Framework;
 
 using Utilities.Collections;
+using Utilities.Testing;
 
-// ReSharper disable UnusedVariable
 
 namespace Utilities.Tests.Collections
 {
-    public class MultiMapTests
+    public class MultiMapTests : ExtendedAssertionHelper
     {
         private MultiMap<int, int> GetIntMultimap()
         {
@@ -19,14 +19,14 @@ namespace Utilities.Tests.Collections
         [Test]
         public void Add()
         {
-            var intMultiMap = new MultiMap<int, int>();
-            intMultiMap.Add(1, 2);
-            intMultiMap.Add(1, 3);
-            intMultiMap.Add(1, 2);
-            intMultiMap.Add(5, 252);
-            intMultiMap.Add(4363461, 2);
+            var intMultiMap = new MultiMap<int, int> {{1, 2}, {5, 252}, {4363461, 2}};
 
-            Assert.That(intMultiMap.Count, Is.EqualTo(4));
+            Ensure(intMultiMap.Count, Is.EqualTo(3), "Adding individual items failed...");
+
+            intMultiMap.Add(1,34);
+            intMultiMap.Add(1,35);
+
+//            Ensure(intMultiMap, Count.EqualTo(5));
         }
 
         [Test]

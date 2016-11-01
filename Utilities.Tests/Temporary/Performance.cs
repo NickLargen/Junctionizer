@@ -8,7 +8,7 @@ namespace Utilities.Tests.Temporary
 {
     public class Performance
     {
-        [Test]
+        [Test, Explicit]
         public void RemovePerformance()
         {
             //Findings: swapping on removal is successfully O(1) instead of default O(n)

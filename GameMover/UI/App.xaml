@@ -31,7 +31,6 @@
             <code:DateTimeToStringConverter x:Key="DateTimeConverter" />
             <code:SizeToStringConverter x:Key="SizeConverter" />
 
-            <!-- ReSharper disable once Xaml.StaticResourceNotResolved -->
             <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
