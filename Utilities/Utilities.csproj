@@ -59,7 +59,10 @@
       <HintPath>..\packages\JetBrains.Annotations.10.2.1\lib\net\JetBrains.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.5.0\lib\net45\nunit.framework.dll</HintPath>
+      <HintPath>..\..\..\..\..\GitHubNUnit\bin\Debug\net-4.5\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="OneOf">
+      <HintPath>..\packages\OneOf.2.1.61\lib\netstandard1.1\OneOf.dll</HintPath>
     </Reference>
     <Reference Include="PresentationFramework">
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\PresentationFramework.dll</HintPath>

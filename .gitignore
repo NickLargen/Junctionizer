@@ -129,6 +129,7 @@ publish/
 #*.pubxml
 
 # NuGet Packages Directory
+project.lock.json
 packages/*
 ## TODO: If the tool you use requires repositories.config
 ## uncomment the next line

@@ -4,57 +4,94 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using JetBrains.Annotations;
+
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
+using OneOf;
+
 namespace Utilities.Testing
 {
-    public class ExtendedAssertionHelper : AssertionHelper
+    public class ExtendedAssertionHelper : ConstraintFactory
     {
-        /// <inheritdoc cref="AssertionHelper.Expect{T}(T,IResolveConstraint,string,object[])"/>
-        /// <remarks> Delegating to a different name to emphasize that behavior of other Ensure overloads may differ in behavior to Expect, and to reduce the number of completion options Intellisense pops up with.</remarks>
+        #region Standard Assertions - Asserting on values
+
+        /// <inheritdoc cref="Assert.That{T}(T,IResolveConstraint,string,object[])"/>
+        /// <remarks> Delegating to a different name to emphasize that behavior of other Ensure overloads may differ in behavior to Assert.That, and to reduce the number of completion options Intellisense pops up with.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void Ensure<T>(T actual, IResolveConstraint constraint, string message = null, params object[] args)
+        public static void Ensure<T>(T actual, IResolveConstraint constraint, string message = null, params object[] args)
         {
-            Expect(actual, constraint, message, args);
+            Assert.That(actual, constraint, message, args);
         }
 
-        /// <summary>Awaits the task in order to use that as the value - this avoids accidentally applying a constraint to a task, since performing operations assertions on Task objects is rarely the desired behavior. <inheritdoc cref="AssertionHelper.Expect{T}(T,IResolveConstraint,string,object[])"/></summary>
-        protected async Task Ensure<T>(Task<T> task, IResolveConstraint constraint, string message = null, params object[] args)
+        /// <inheritdoc cref="Assert.That(bool, string, object[])"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Ensure(bool condition, string message = null, params object[] args)
         {
-            Expect(await task, constraint, message, args);
+            Assert.That(condition, message, args);
         }
 
-        /// <summary>Synchronously evaluates the provided task in order to assert on its value. <inheritdoc cref="Ensure{T}(T,IResolveConstraint,string,object[])"/></summary>
-        protected void EnsureSynchronously<T>(Task<T> task, IResolveConstraint constraint, string message = null, params object[] args)
+        /// <summary>Synchronously waits for the task to complete in order to use that as the value - this avoids accidentally applying a constraint to a task, since performing assertions on Task objects is rarely the desired behavior. <inheritdoc cref="Assert.That{T}(T,IResolveConstraint,string,object[])"/></summary>
+        public static void Ensure<T>([NotNull] Task<T> task, IResolveConstraint constraint, string message = null, params object[] args)
         {
-            Expect(task.GetAwaiter().GetResult(), constraint, message, args);
+            Assert.That(task.GetAwaiter().GetResult(), constraint, message, args);
         }
 
-        protected async Task EnsureUsingThreadPool<T>(Func<Task<T>> asyncFunction, IResolveConstraint constraint, string message = null)
+        /// <summary>Shortcut for <see cref="Ensure{T}(Task{T},IResolveConstraint,string,object[])"/> with a constraint of Is.True</summary>
+        public static void Ensure([NotNull] Task<bool> conditionTask, string message = null, params object[] args)
         {
-            await Task.Run(() => Assert.That(() => asyncFunction(), constraint, message));
+            Assert.That(conditionTask.GetAwaiter().GetResult(), message, args);
         }
 
-        protected async Task HurlsUsingThreadPool<T>(Func<Task> asyncFunction) where T : Exception
+        #endregion
+
+
+        #region Exception Handling - Asserting on functions and actions that should throw an assertion
+
+        /// <summary>Asserts that the code represented by a delegate throws an exception that satisfies the constraint provided.</summary>
+        public static void EnsureException<T>([NotNull] Func<T> function, OneOf<TypeConstraint, ThrowsNothingConstraint> constraint,
+            string message = null, params object[] args)
         {
-            await Hurls<T>(() => Task.Run(asyncFunction));
+            var typedConstraint = constraint.Match<IResolveConstraint>(t1 => t1, t2 => t2);
+
+            var asyncFunction = function as Func<Task>;
+            if (asyncFunction != null)
+            {
+                Assert.That(new AsyncTestDelegate(asyncFunction), typedConstraint, message, args);
+            }
+            else
+            {
+                Assert.That(new TestDelegate(() => function()), typedConstraint, message, args);
+            }
         }
+
+        /// <inheritdoc cref="EnsureException{T}"/>
+        public static void EnsureException([NotNull] Action action, OneOf<TypeConstraint, ThrowsNothingConstraint> constraint,
+            string message = null, params object[] args)
+        {
+            var typedConstraint = constraint.Match<IResolveConstraint>(t1 => t1, t2 => t2);
+
+            Assert.That(new TestDelegate(action), typedConstraint, message, args);
+        }
+
+        #endregion
+
 
         /// <summary>
         /// Alternative to Assert.Throws that allows assertion propagation between threads using await.
         /// <para/>
         /// Usage:
         /// <code>
-        ///     await Hurls&lt;NotSupportedException>(()=>{throw new NotSupportedException();});
+        ///     await HurlsException&lt;NotSupportedException>(()=>{throw new NotSupportedException();});
         /// </code>
         /// </summary>
         /// <typeparam name="T">The expected exception.</typeparam>
-        protected async Task Hurls<T>(Func<Task> function) where T : Exception
+        public async Task HurlsException<T>(Func<Task> asyncAction) where T : Exception
         {
             try
             {
-                await function();
+                await asyncAction();
             }
             catch (T)
             {
