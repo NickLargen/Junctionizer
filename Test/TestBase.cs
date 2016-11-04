@@ -8,6 +8,8 @@ using GameMover.Code;
 
 using NUnit.Framework;
 
+[assembly: Timeout(1000)]
+
 namespace Test
 {
     public class TestBase

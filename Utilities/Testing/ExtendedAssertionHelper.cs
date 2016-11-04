@@ -1,15 +1,14 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
-
-using OneOf;
+using NUnit.Framework.Internal;
 
 namespace Utilities.Testing
 {
@@ -19,29 +18,39 @@ namespace Utilities.Testing
 
         /// <inheritdoc cref="Assert.That{T}(T,IResolveConstraint,string,object[])"/>
         /// <remarks> Delegating to a different name to emphasize that behavior of other Ensure overloads may differ in behavior to Assert.That, and to reduce the number of completion options Intellisense pops up with.</remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Ensure<T>(T actual, IResolveConstraint constraint, string message = null, params object[] args)
+        public static void Ensure<T>(T actual, IConstraint constraint, string message = null, params object[] args)
         {
-            Assert.That(actual, constraint, message, args);
+            constraint = constraint.Resolve();
+
+            TestExecutionContext.CurrentContext.IncrementAssertCount();
+            var result = constraint.ApplyTo(actual);
+            if (!result.IsSuccess)
+            {
+                MessageWriter writer = new TextMessageWriter(message, args);
+                result.WriteMessageTo(writer);
+                // If an exception was thrown its stack trace should be displayed, not the stack trace of this assertion exception.
+                throw new AssertionExceptionWithTrimmedStackTrace(writer.ToString(), (result.ActualValue as Exception)?.StackTrace);
+            }
         }
 
-        /// <inheritdoc cref="Assert.That(bool, string, object[])"/>
+        /// <summary>Shortcut for <see cref="Ensure{T}(T,IConstraint,string,object[])"/> with a constraint of Is.True</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ensure(bool condition, string message = null, params object[] args)
         {
-            Assert.That(condition, message, args);
+            Ensure(condition, Is.True, message, args);
         }
 
-        /// <summary>Synchronously waits for the task to complete in order to use that as the value - this avoids accidentally applying a constraint to a task, since performing assertions on Task objects is rarely the desired behavior. <inheritdoc cref="Assert.That{T}(T,IResolveConstraint,string,object[])"/></summary>
-        public static void Ensure<T>([NotNull] Task<T> task, IResolveConstraint constraint, string message = null, params object[] args)
+        /// <summary>Synchronously waits for the task to complete in order to use that as the value - this avoids accidentally applying a constraint to a task, since performing assertions on Task objects is rarely the desired behavior.</summary>
+        public static void Ensure<T>([NotNull] Task<T> task, IConstraint constraint, string message = null, params object[] args)
         {
-            Assert.That(task.GetAwaiter().GetResult(), constraint, message, args);
+            Ensure(task.GetAwaiter().GetResult(), constraint, message, args);
         }
 
-        /// <summary>Shortcut for <see cref="Ensure{T}(Task{T},IResolveConstraint,string,object[])"/> with a constraint of Is.True</summary>
+        /// <summary>Shortcut for <see cref="Ensure{T}(Task{T},IConstraint,string,object[])"/> with a constraint of Is.True</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ensure([NotNull] Task<bool> conditionTask, string message = null, params object[] args)
         {
-            Assert.That(conditionTask.GetAwaiter().GetResult(), message, args);
+            Ensure(conditionTask, Is.True, message, args);
         }
 
         #endregion
@@ -50,70 +59,44 @@ namespace Utilities.Testing
         #region Exception Handling - Asserting on functions and actions that should throw an assertion
 
         /// <summary>Asserts that the code represented by a delegate throws an exception that satisfies the constraint provided.</summary>
-        public static void EnsureException<T>([NotNull] Func<T> function, OneOf<TypeConstraint, ThrowsNothingConstraint> constraint,
+        public static void EnsureException<T>([NotNull] Func<T> function, IConstraint constraint,
             string message = null, params object[] args)
         {
-            var typedConstraint = constraint.Match<IResolveConstraint>(t1 => t1, t2 => t2);
-
             var asyncFunction = function as Func<Task>;
             if (asyncFunction != null)
             {
-                Assert.That(new AsyncTestDelegate(asyncFunction), typedConstraint, message, args);
+                Ensure(new AsyncTestDelegate(asyncFunction), constraint, message, args);
             }
             else
             {
-                Assert.That(new TestDelegate(() => function()), typedConstraint, message, args);
+                Ensure(new TestDelegate(() => function()), constraint, message, args);
             }
         }
 
         /// <inheritdoc cref="EnsureException{T}"/>
-        public static void EnsureException([NotNull] Action action, OneOf<TypeConstraint, ThrowsNothingConstraint> constraint,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void EnsureException([NotNull] Action action, IConstraint constraint,
             string message = null, params object[] args)
         {
-            var typedConstraint = constraint.Match<IResolveConstraint>(t1 => t1, t2 => t2);
-
-            Assert.That(new TestDelegate(action), typedConstraint, message, args);
+            Ensure(new TestDelegate(action), constraint, message, args);
         }
 
         #endregion
 
-
-        /// <summary>
-        /// Alternative to Assert.Throws that allows assertion propagation between threads using await.
-        /// <para/>
-        /// Usage:
-        /// <code>
-        ///     await HurlsException&lt;NotSupportedException>(()=>{throw new NotSupportedException();});
-        /// </code>
-        /// </summary>
-        /// <typeparam name="T">The expected exception.</typeparam>
-        public async Task HurlsException<T>(Func<Task> asyncAction) where T : Exception
-        {
-            try
-            {
-                await asyncAction();
-            }
-            catch (T)
-            {
-                // $"Caught expected exception {typeof(T)}."
-                return;
-            }
-            catch (Exception e)
-            {
-                throw new AssertionExceptionWithTrimmedStackTrace($"Expected: <{typeof(T)}>\n" +
-                                                                  $" But was: <{e.GetType()}> {e.Message}\n"
-                    , e.StackTrace);
-            }
-
-            throw new AssertionExceptionWithTrimmedStackTrace($"Expected: <{typeof(T)}> but no exceptions were encountered.\n");
-        }
-
-        /// <summary>Remove visual noise from the stack trace - we aren't debugging testing framework methods showing up</summary>
+        /// <summary>Remove visual noise from the stack trace - we don't need to see testing framework methods.</summary>
         public class AssertionExceptionWithTrimmedStackTrace : AssertionException
         {
-            public string ReplacementStackTrace { get; }
-            private const string END_OF_STACK_TRACE =
+            private const string END_OF_STACK_TRACE_PREVIOUS_LOCATION =
                 "--- End of stack trace from previous location where exception was thrown ---";
+
+            private string[] NamespacesToIgnore { get; } = {
+                typeof(ExtendedAssertionHelper).Namespace,
+                "System.Runtime.CompilerServices.TaskAwaiter.",
+                "NUnit.Framework.Internal.",
+                "System.ThrowHelper"
+            };
+
+            public string ReplacementStackTrace { get; }
 
             public AssertionExceptionWithTrimmedStackTrace(string message, string replacementStackTrace = null) : base(message)
             {
@@ -128,19 +111,18 @@ namespace Utilities.Testing
 
                     string lastLineAdded = null;
 
-                    foreach (string line in stackLines)
+                    foreach (string line in stackLines
+                        .Select(line => line.TrimStart())
+                        .Where(line => NamespacesToIgnore.All(
+                            ignorableNamespace => !line.StartsWith($"at {ignorableNamespace}", StringComparison.OrdinalIgnoreCase)))
+                            // If an entire section of the stacktrace has been removed, don't start with a divider
+                        .Where(line => lastLineAdded != null || !line.Equals(END_OF_STACK_TRACE_PREVIOUS_LOCATION)))
                     {
-                        var trimmedLine = line.Trim();
-                        if (Regex.IsMatch(line, $".*{nameof(ExtendedAssertionHelper)}\\.cs.*")
-                            || trimmedLine.StartsWith("at System.Runtime.CompilerServices.TaskAwaiter.", StringComparison.OrdinalIgnoreCase)
-                            || trimmedLine.StartsWith("at NUnit.Framework.Internal.", StringComparison.OrdinalIgnoreCase)
-                            || lastLineAdded == null && trimmedLine.Equals(END_OF_STACK_TRACE)) continue;
-
                         stringBuilder.AppendLine(line);
                         lastLineAdded = line;
                     }
 
-                    if (lastLineAdded == END_OF_STACK_TRACE) stringBuilder.Remove(stringBuilder.Length - END_OF_STACK_TRACE.Length - 2, END_OF_STACK_TRACE.Length);
+                    if (lastLineAdded == END_OF_STACK_TRACE_PREVIOUS_LOCATION) stringBuilder.Remove(stringBuilder.Length - END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length - 2, END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length);
 
                     return stringBuilder.ToString();
                 }

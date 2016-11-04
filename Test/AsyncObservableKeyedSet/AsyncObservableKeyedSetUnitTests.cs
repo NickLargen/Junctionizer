@@ -53,9 +53,8 @@ namespace Test.AsyncObservableKeyedSet
         public void AddDuplicateKeyThrowsException()
         {
             var set = new AsyncObservableKeyedSet<int, int>(param => 0, Context, new[] {1});
-
-            Ensure(set.TryAddAsync(1), Is.False);
-            EnsureException(() => set.AddAsync(13), Throws.ArgumentException);
+            
+            EnsureException(() => set.AddAsync(13), Hurls.ArgumentException);
         }
 
         [Test]
@@ -63,7 +62,7 @@ namespace Test.AsyncObservableKeyedSet
         {
             var set = new AsyncObservableKeyedSet<int, int>(param => param, Context, new[] {1});
 
-            EnsureException(() => set.AddAsync(1), Throws.ArgumentException);
+            EnsureException(() => set.AddAsync(1), Hurls.ArgumentException);
         }
 
         [Test]
@@ -151,7 +150,7 @@ namespace Test.AsyncObservableKeyedSet
                     "Modifying a collection within a CollectionChanged event while there are two or more CollectionChanged listeners should not work, even in purely single threaded circumstances.");
             };
 
-            EnsureException(() => set.AddAsync("-1"), Throws.InvalidOperationException);
+            EnsureException(() => set.AddAsync("-1"), Hurls.InvalidOperationException);
         }*/
     }
 }

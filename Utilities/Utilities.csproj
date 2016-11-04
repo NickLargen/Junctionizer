@@ -52,6 +52,7 @@
     <Compile Include="Strings\StringExtensions.cs" />
     <Compile Include="Tasks\TaskExtensions.cs" />
     <Compile Include="Testing\ExtendedAssertionHelper.cs" />
+    <Compile Include="Testing\HurlsConstraint.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -59,13 +60,7 @@
       <HintPath>..\packages\JetBrains.Annotations.10.2.1\lib\net\JetBrains.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
-      <HintPath>..\..\..\..\..\GitHubNUnit\bin\Debug\net-4.5\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="OneOf">
-      <HintPath>..\packages\OneOf.2.1.61\lib\netstandard1.1\OneOf.dll</HintPath>
-    </Reference>
-    <Reference Include="PresentationFramework">
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\PresentationFramework.dll</HintPath>
+      <HintPath>..\packages\NUnit.3.5.0\lib\portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System.Diagnostics.Contracts">
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.6\Profile\Profile151\System.Diagnostics.Contracts.dll</HintPath>
