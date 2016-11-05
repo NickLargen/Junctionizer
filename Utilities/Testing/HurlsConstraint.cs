@@ -70,8 +70,8 @@ namespace Utilities.Testing
             }
 
             Task.Delay(TimeLimit, token).ContinueWith(task => {
-                    throw new InvalidOperationException($"Task did not complete within {TimeLimit}ms.");
-                }, TaskContinuationOptions.OnlyOnRanToCompletion).GetAwaiter().GetResult();
+                    if(!task.IsCanceled) throw new InvalidOperationException($"Task did not complete within {TimeLimit}ms.");
+                }).GetAwaiter().GetResult();
 
             return new HurlsConstraintResult(this, caughtException,
                 caughtException != null

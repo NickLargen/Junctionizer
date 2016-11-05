@@ -64,7 +64,7 @@ namespace Utilities.Collections
             return BackingDictionary.TryGetValue(key, out var existingList) && existingList.Contains(value);
         }
 
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             foreach (KeyValuePair<TKey, LinkedList<TValue>> pair in BackingDictionary)
             {
@@ -107,7 +107,27 @@ namespace Utilities.Collections
         }
 
         public ICollection<TValue> Values => new ReadOnlyCollection<TValue>(BackingDictionary.Values.SelectMany(list => list).ToList());
+        
+        
+        public bool Contains(KeyValuePair<TKey, TValue> item)
+        {
+            return Contains(item.Key, item.Value);
+        }
 
+        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+        {
+            return Remove(item.Key, item.Value);
+        }
+
+        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
+        {
+            Add(item.Key, item.Value);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         #region Pass through calls to the backing dictionary
 
@@ -130,11 +150,6 @@ namespace Utilities.Collections
             BackingDictionary.Add(item);
         }
 
-        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
-        {
-            Add(item.Key, item.Value);
-        }
-
         void IDictionary<TKey, LinkedList<TValue>>.Add(TKey key, LinkedList<TValue> value)
         {
             BackingDictionary.Add(key, value);
@@ -148,11 +163,6 @@ namespace Utilities.Collections
         bool ICollection<KeyValuePair<TKey, LinkedList<TValue>>>.Contains(KeyValuePair<TKey, LinkedList<TValue>> item)
         {
             return BackingDictionary.Contains(item);
-        }
-
-        bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item)
-        {
-            return Contains(item.Key, item.Value);
         }
 
         public bool ContainsKey(TKey key)
@@ -170,11 +180,6 @@ namespace Utilities.Collections
             throw new NotImplementedException();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable) BackingDictionary).GetEnumerator();
-        }
-
         IEnumerator<KeyValuePair<TKey, LinkedList<TValue>>> IEnumerable<KeyValuePair<TKey, LinkedList<TValue>>>.GetEnumerator()
         {
             return BackingDictionary.GetEnumerator();
@@ -183,11 +188,6 @@ namespace Utilities.Collections
         bool ICollection<KeyValuePair<TKey, LinkedList<TValue>>>.Remove(KeyValuePair<TKey, LinkedList<TValue>> item)
         {
             return BackingDictionary.Remove(item);
-        }
-
-        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
-        {
-            return Remove(item.Key, item.Value);
         }
 
         bool IDictionary<TKey, TValue>.Remove(TKey key)
