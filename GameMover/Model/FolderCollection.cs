@@ -70,8 +70,8 @@ namespace GameMover.Model
         public string FolderBrowserDefaultLocation { get; set; }
 
         /// <summary>A dictionary where the keys are junction targets within this collection and the values are a list of the folders with that target (simply the opposite of the normal Folder -> junction target relationship).</summary>
-        private MultiMap<string, GameFolder> JunctionTargetsDictionary { get; } =
-            new MultiMap<string, GameFolder>(StringComparer.OrdinalIgnoreCase);
+        private MultiValueDictionary<string, GameFolder> JunctionTargetsDictionary { get; } =
+            new MultiValueDictionary<string, GameFolder>(StringComparer.OrdinalIgnoreCase);
 
         // It would be able to move the reference to DispatcherSynchronizationContext out of the model
         public AsyncObservableKeyedSet<string, GameFolder> Folders { get; } =

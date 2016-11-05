@@ -65,7 +65,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\MultiMapTests.cs" />
     <Compile Include="Temporary\Performance.cs" />
     <Compile Include="Temporary\TemporaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

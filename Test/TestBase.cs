@@ -6,6 +6,8 @@ using System.Windows.Threading;
 
 using GameMover.Code;
 
+using Microsoft.VisualStudio.Threading;
+
 using NUnit.Framework;
 
 [assembly: Timeout(1000)]
@@ -62,7 +64,7 @@ namespace Test
                 var frame = new DispatcherFrame();
                 task.ContinueWith(x => {
                     frame.Continue = false;
-                }, TaskScheduler.Default);
+                }, TaskScheduler.Default).Forget();
                 Dispatcher.PushFrame(frame); // execute all tasks until frame.Continue == false
 
                 await task; // rethrow exception when task has failed 

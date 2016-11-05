@@ -21,12 +21,7 @@ namespace Test.AsyncObservableKeyedSet
 
             var stopwatch = Stopwatch.StartNew();
 
-//            AsyncContext.Run(Function);
-
-//            await Function();
             await TestBase.RunInWpfSyncContext(Function);
-
-
 
             Console.WriteLine(stopwatch.ElapsedMilliseconds + "ms taken to execute.");
 
@@ -40,30 +35,26 @@ namespace Test.AsyncObservableKeyedSet
             var count = 1_000_000;
             var ints = new AsyncObservableKeyedSet<int, int>(i => i);
 
-            var t1 = Task.Run(() => {
-//                for (int i = 0; i < count; i++)
-//                {
-//                    await ints.AddAsync(i);//.ConfigureAwait(false);
-//                }
+            var t1 = Task.Run(async () => {
+                for (int i = 0; i < count; i++)
+                {
+                    await ints.AddAsync(i);
+                }
 
 
                 Console.WriteLine($"FINISHED ADDING FROM THE FIRST THREAD, {ints.Count} ITEMS IN DICTIONARY");
             });
-//            var t2 = Task.Run(async () => {
+            var t2 = Task.Run(async () => {
+                for (int i = 0; i < count; i++)
+                {
+                    await ints.AddAsync(i + 1_000_000); //.ConfigureAwait(false);
+                }
 
 
-//                for (int i = 0; i < count; i++)
-//                {
-//                    await ints.AddAsync(i + 1_000_000); //.ConfigureAwait(false);
-//                }
+                Console.WriteLine($"FINISHED ADDING FROM THE second THREAD, {ints.Count} ITEMS IN DICTIONARY");
+            });
 
-
-            Console.WriteLine($"FINISHED ADDING FROM THE second THREAD, {ints.Count} ITEMS IN DICTIONARY");
-//            });
-
-            await t1;
-
-//            await Task.WhenAll(t1, t2);
+            await Task.WhenAll(t1, t2);
 
             Console.WriteLine(ints.Count + " items");
         }
