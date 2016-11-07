@@ -6,18 +6,24 @@ namespace Utilities.Comparers
     /// <summary>Compares two strings based on their natural sort order (<see cref="http://en.wikipedia.org/wiki/Natural_sort_order"/>) instead of ASCII code order.</summary>
     public class NaturalStringComparer : IComparer<string>
     {
-        public static NaturalStringComparer InvariantIgnoreCase { get; } = new NaturalStringComparer();
+        public static NaturalStringComparer OrdinalIgnoreCase { get; } = new NaturalStringComparer(true);
+        public static NaturalStringComparer Ordinal { get; } = new NaturalStringComparer(false);
 
-        private NaturalStringComparer() {}
+        private bool IgnoreCase { get; }
+
+        private NaturalStringComparer(bool ignoreCase)
+        {
+            IgnoreCase = ignoreCase;
+        }
 
         private static readonly char[] Digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
         private const char CHAR_NULL = '\0';
-        
-        /// <inheritdoc />
-        int IComparer<string>.Compare(string x, string y) => Compare(x, y);
 
         /// <inheritdoc/>
-        public static int Compare(string x, string y)
+        int IComparer<string>.Compare(string x, string y) => CompareOrdinal(x, y, IgnoreCase);
+
+        /// <inheritdoc/>
+        public static int CompareOrdinal(string x, string y, bool ignoreCase)
         {
             if (ReferenceEquals(x, y)) return 0;
             if (x == null) return -1;
@@ -77,11 +83,15 @@ namespace Utilities.Comparers
                     }
                 }
 
-                if (x[i] != y[i])
+                var ordinalComparison = x[i].CompareTo(y[i]);
+                if (ordinalComparison != 0)
                 {
-                    // Check for case insensitive equality - this is not done initially due to the relatively high cost of ToUpperInvariant and the expectation that most comparisons will not be between two characters that only vary in case.
-                    int ordinalCaseInsensitiveCompare = char.ToLowerInvariant(x[i]).CompareTo(char.ToLowerInvariant(y[i]));
-                    if (ordinalCaseInsensitiveCompare != 0) return ordinalCaseInsensitiveCompare;
+                    if (!ignoreCase) return ordinalComparison;
+
+                    // Check for case insensitive equality - this is not done initially due to the relatively high cost of ToLowerInvariant and the expectation that most comparisons will not be between two characters that only vary in case.
+                    // ToLowerInvariant is used instead of the standard ToUpperInvariant so that the characters [\]^_` appear before letters instead of after them
+                    int ordinalCaseInsensitiveComparison = char.ToLowerInvariant(x[i]).CompareTo(char.ToLowerInvariant(y[i]));
+                    if (ordinalCaseInsensitiveComparison != 0) return ordinalCaseInsensitiveComparison;
                 }
             }
 

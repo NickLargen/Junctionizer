@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 using NUnit.Framework;
 
@@ -117,7 +119,7 @@ namespace Utilities.Tests
         public void MatchesExpected()
         {
             var customSorted = new List<string>(WindowsFileSystemSorting);
-            customSorted.Sort(NaturalStringComparer.InvariantIgnoreCase);
+            customSorted.Sort(NaturalStringComparer.OrdinalIgnoreCase);
 
             const int columnSize = 27;
             Console.WriteLine($"{"Actual",columnSize} ***** Expected");
@@ -129,6 +131,60 @@ namespace Utilities.Tests
 
             Ensure(customSorted, Not.SameAs(Expected));
             Ensure(customSorted, Is.EqualTo(Expected));
+        }
+
+        private static Random Random { get; }= new Random();
+        
+            const string ALPHA_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz";
+            const string ALPHANUMERIC_CHARS = ALPHA_CHARS + "0123456789";
+        private const string AsciiPrintable =
+            " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+        public static string RandomString(string charSet, int length)
+        {
+            return new string(Enumerable.Repeat(charSet, length)
+                                        .Select(s => s[Random.Next(s.Length)])
+                                        .ToArray());
+        }
+        
+        private Lazy<int> RepeatEvery { get; }= new Lazy<int>(() => 2 + Random.Next(20));
+
+        [TestCase(ALPHA_CHARS, TestName = nameof(ALPHA_CHARS)),
+         TestCase(ALPHANUMERIC_CHARS, TestName = nameof(ALPHANUMERIC_CHARS)),
+         TestCase(AsciiPrintable, TestName = nameof(AsciiPrintable))]
+        public void NaturalSortVsOrdinalSortAlphabetical(string charSet)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var repeatEvery = RepeatEvery.Value;
+            const int count = 100_000;
+            Console.WriteLine($"Character set: {charSet}");
+            Console.WriteLine($"Repeating one in every {repeatEvery} strings");
+            List<string> randomStrings = new List<string>((int) (count * 1.4));
+
+            for (int i = 0; i < count; i++)
+            {
+                var randomString = RandomString(charSet, 10 + Random.Next(30));
+                randomStrings.Add(randomString);
+                if (i % repeatEvery == 0) randomStrings.Add(randomString);
+            }
+
+            var copiedRandomStrings = new List<string>(randomStrings);
+
+            Console.WriteLine($"Sorting {randomStrings.Count} strings");
+            Console.WriteLine();
+
+
+
+            stopwatch.Restart();
+            copiedRandomStrings.Sort(NaturalStringComparer.OrdinalIgnoreCase);
+            stopwatch.Stop();
+            Console.WriteLine($"Natural sort took {stopwatch.ElapsedMilliseconds}ms");
+
+
+            stopwatch.Restart();
+            randomStrings.Sort(StringComparer.OrdinalIgnoreCase);
+            stopwatch.Stop();
+            Console.WriteLine($"Built in sort took {stopwatch.ElapsedMilliseconds}ms");
         }
     }
 }
