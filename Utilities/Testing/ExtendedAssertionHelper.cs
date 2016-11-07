@@ -34,7 +34,6 @@ namespace Utilities.Testing
         }
 
         /// <summary>Shortcut for <see cref="Ensure{T}(T,IConstraint,string,object[])"/> with a constraint of Is.True</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ensure(bool condition, string message = null, params object[] args)
         {
             Ensure(condition, Is.True, message, args);
@@ -47,7 +46,6 @@ namespace Utilities.Testing
         }
 
         /// <summary>Shortcut for <see cref="Ensure{T}(Task{T},IConstraint,string,object[])"/> with a constraint of Is.True</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Ensure([NotNull] Task<bool> conditionTask, string message = null, params object[] args)
         {
             Ensure(conditionTask, Is.True, message, args);
@@ -74,7 +72,6 @@ namespace Utilities.Testing
         }
 
         /// <inheritdoc cref="EnsureException{T}"/>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EnsureException([NotNull] Action action, IConstraint constraint,
             string message = null, params object[] args)
         {
