@@ -20,7 +20,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -39,30 +39,30 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\KeyedSet\ObservableKeyedIndexedSet.cs" />
+    <Compile Include="Collections\AsyncObservableKeyedSet.cs" />
     <Compile Include="Collections\Constants.cs" />
     <Compile Include="Collections\CollectionExtensions.cs" />
-    <Compile Include="Collections\KeyedSet\KeyedIndexedSet.SetInterfaces.cs" />
-    <Compile Include="Collections\KeyedSet\KeyedIndexedSet.ListInterfaces.cs" />
-    <Compile Include="Collections\Experiments\KeyedList.cs" />
-    <Compile Include="Collections\Experiments\ObservableDictionary.cs" />
-    <Compile Include="Collections\KeyedSet\KeyedIndexedSet.cs" />
+    <Compile Include="Collections\SimpleList.cs" />
+    <Compile Include="Collections\SortedValueList.cs" />
     <Compile Include="Comparers\EnumerableComparer.cs" />
     <Compile Include="Comparers\NaturalStringComparer.cs" />
     <Compile Include="Comparers\StringOrIntegerComparer.cs" />
+    <Compile Include="Chronometer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Comparers\ReverseComparer.cs" />
     <Compile Include="Strings\StringExtensions.cs" />
     <Compile Include="Tasks\TaskExtensions.cs" />
-    <Compile Include="Testing\ExtendedAssertionHelper.cs" />
-    <Compile Include="Testing\HurlsConstraint.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <Reference Include="JetBrains.Annotations">
       <HintPath>..\packages\JetBrains.Annotations.10.2.1\lib\net\JetBrains.Annotations.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.3.5.0\lib\portable-net45+win8+wp8+wpa81+Xamarin.Mac+MonoAndroid10+MonoTouch10+Xamarin.iOS10\nunit.framework.dll</HintPath>
+    <Reference Include="PresentationFramework">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\PresentationFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

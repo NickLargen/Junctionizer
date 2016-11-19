@@ -20,7 +20,7 @@ namespace Utilities.Comparers
         private const char CHAR_NULL = '\0';
 
         /// <inheritdoc/>
-        int IComparer<string>.Compare(string x, string y) => CompareOrdinal(x, y, IgnoreCase);
+        public int Compare(string x, string y) => CompareOrdinal(x, y, IgnoreCase);
 
         /// <inheritdoc/>
         public static int CompareOrdinal(string x, string y, bool ignoreCase)
@@ -81,6 +81,8 @@ namespace Utilities.Comparers
                             return yHasDigit ? -1 : 1;
                         }
                     }
+
+                    if (i >= shorterLength) break;
                 }
 
                 var ordinalComparison = x[i].CompareTo(y[i]);
@@ -89,7 +91,7 @@ namespace Utilities.Comparers
                     if (!ignoreCase) return ordinalComparison;
 
                     // Check for case insensitive equality - this is not done initially due to the relatively high cost of ToLowerInvariant and the expectation that most comparisons will not be between two characters that only vary in case.
-                    // ToLowerInvariant is used instead of the standard ToUpperInvariant so that the characters [\]^_` appear before letters instead of after them
+                    // ToLowerInvariant is used instead of the standard ToUpperInvariant so that the characters [\]^_` appear before letters
                     int ordinalCaseInsensitiveComparison = char.ToLowerInvariant(x[i]).CompareTo(char.ToLowerInvariant(y[i]));
                     if (ordinalCaseInsensitiveComparison != 0) return ordinalCaseInsensitiveComparison;
                 }

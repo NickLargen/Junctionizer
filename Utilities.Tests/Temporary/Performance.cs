@@ -1,77 +1,55 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using NUnit.Framework;
+
+using Utilities.Comparers;
 
 namespace Utilities.Tests.Temporary
 {
     public class Performance
     {
-        [Test, Explicit]
-        public void RemovePerformance()
+        [Test]
+        public void Sorting()
         {
-            //Findings: swapping on removal is successfully O(1) instead of default O(n)
-
-            var fastRemoveCollection = new FastRemove();
-            var standardRemoveCollection = new StandardRemove();
-
-            var count = 50000;
+            var random = new Random();
+            var count = 1_000_000;
+            var intsBuiltInSort = new List<int>(count);
+            var intsReverse = new List<int>(count);
+            var intsInsertion = new List<int>(count);
             for (int i = 0; i < count; i++)
             {
-                fastRemoveCollection.Add(i);
-                standardRemoveCollection.Add(i);
+                var next = random.Next(count);
+                intsBuiltInSort.Add(next);
+                intsReverse.Add(next);
+//                intsInsertion.Add(next);
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            for (int i = 0; i < count; i++)
-            {
-                fastRemoveCollection.RemoveAt(0);
-            }
+            var comparer = Comparer<int>.Create((x, y) => x - y);
 
-            // Stop unused warnings
-            Debug.WriteLine(fastRemoveCollection[6] + standardRemoveCollection[7]);
-
+            var stopwatch = Stopwatch.StartNew();
+            intsBuiltInSort.Sort(comparer);
             stopwatch.Stop();
-            Console.WriteLine($"Fast removal {stopwatch.ElapsedMilliseconds}ms");
+            Console.WriteLine("Standard compare " + stopwatch.ElapsedMilliseconds);
 
             stopwatch.Restart();
-            for (int i = 0; i < count; i++)
-            {
-                standardRemoveCollection.RemoveAt(0);
-            }
-
+            intsBuiltInSort.Reverse();
             stopwatch.Stop();
-            Console.WriteLine($"Standard removal {stopwatch.ElapsedMilliseconds}ms");
-        }
-    }
+            Console.WriteLine("Reverse " + stopwatch.ElapsedMilliseconds);
 
-    public class FastRemove : KeyedCollection<string, int>
-    {
-        /// <inheritdoc/>
-        protected override void RemoveItem(int index)
-        {
-            var lastIndex = Count - 1;
-            if (index != lastIndex)
-            {
-                Items[index] = Items[lastIndex];
-            }
-            base.RemoveItem(lastIndex);
-        }
+            intsBuiltInSort.Reverse();
 
-        /// <inheritdoc/>
-        protected override string GetKeyForItem(int item)
-        {
-            return item.ToString();
-        }
-    }
+            stopwatch.Restart();
+            intsReverse.Sort(new ReverseComparer<int>(Comparer<int>.Default));
+            stopwatch.Stop();
+            Console.WriteLine("Reverse compare " + stopwatch.ElapsedMilliseconds);
 
-    public class StandardRemove : KeyedCollection<string, int>
-    {
-        /// <inheritdoc/>
-        protected override string GetKeyForItem(int item)
-        {
-            return item.ToString();
+
+//            stopwatch.Restart();
+//            intsInsertion.InsertionSort(Comparer<int>.Default);
+//            stopwatch.Stop();
+//            Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
     }
 }

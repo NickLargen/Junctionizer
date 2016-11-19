@@ -104,7 +104,6 @@
     <Compile Include="AsyncObservableKeyedSet\AsyncObservableKeyedSetUnitTests.cs" />
     <Compile Include="FolderMappingTests.cs" />
     <Compile Include="GameFolderTests.cs" />
-    <Compile Include="GameMoverPerf.cs" />
     <Compile Include="Model\FolderCollectionTests\FolderCollectionNotInitializedTests.cs" />
     <Compile Include="Model\FolderCollectionTests\InitializedFolderCollections.cs" />
     <Compile Include="AsyncObservableKeyedSet\Investigations.cs" />

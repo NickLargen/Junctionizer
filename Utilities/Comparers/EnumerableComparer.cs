@@ -7,7 +7,7 @@ namespace Utilities.Comparers
     /// <typeparam name="T">The type of the elements in the enumerables.</typeparam>
     public class EnumerableComparer<T> : IComparer<IEnumerable<T>>
     {
-        /// <summary>If a comparison function is not provided, the default value is used. //todo explain what default is</summary>
+        /// <summary>If a comparison function is not provided Comparer&lt;T&gt;.Default.Compare is used.</summary>
         public EnumerableComparer(Func<T, T, int> elementComparisonFunciton = null)
         {
             ElementComparisonFunction = elementComparisonFunciton ?? Comparer<T>.Default.Compare;
@@ -18,9 +18,9 @@ namespace Utilities.Comparers
         /// <inheritdoc/>
         public int Compare(IEnumerable<T> x, IEnumerable<T> y) => Compare(x, y, ElementComparisonFunction);
 
-        public static int Compare(IEnumerable<T> x, IEnumerable<T> y, IComparer<T> elementComparer)
+        public static int Compare(IEnumerable<T> x, IEnumerable<T> y, System.Collections.Generic.IComparer<T> elementComparer)
             => Compare(x, y, elementComparer.Compare);
-        
+
         public static int Compare(IEnumerable<T> x, IEnumerable<T> y, Func<T, T, int> elementComparisonFunction)
         {
             if (ReferenceEquals(x, y)) return 0;

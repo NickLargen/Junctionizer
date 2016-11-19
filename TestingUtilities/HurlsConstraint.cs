@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
-namespace Utilities.Testing
+namespace TestingUtilities
 {
     public class HurlsConstraint : PrefixConstraint
     {
@@ -70,7 +70,7 @@ namespace Utilities.Testing
             }
 
             Task.Delay(TimeLimit, token).ContinueWith(task => {
-                    if(!task.IsCanceled) throw new InvalidOperationException($"Task did not complete within {TimeLimit}ms.");
+                    if (!task.IsCanceled) throw new InvalidOperationException($"Task did not complete within {TimeLimit}ms.");
                 }).GetAwaiter().GetResult();
 
             return new HurlsConstraintResult(this, caughtException,

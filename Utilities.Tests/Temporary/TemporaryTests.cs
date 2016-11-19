@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 
-using Utilities.Testing;
+using TestingUtilities;
 
 namespace Utilities.Tests.Temporary
 {
@@ -11,29 +11,30 @@ namespace Utilities.Tests.Temporary
 
     public class TemporaryTests : ExtendedAssertionHelper
     {
-        /*[Test]
-        public void Unnamed()
-        {
-            /*var hashSet = new HashSet<string>();
-            hashSet.Add("cat");
-            hashSet.Add("bear");
-            hashSet.Add("lion");
-            hashSet.Add("dog");
-            hashSet.Add("elephant");#1#
 
-            HashSet<int> hashSet;
-            SortedSet<string> sortedSet;
-            SortedList<string, string> sortedList;
-
-
-            ImmutableList<int> immutableList;
-            ImmutableQueue<int> immutableQueue;
-            ImmutableStack<int> immutableStack;
-            ImmutableHashSet<int> immutableHashSet;
-            ImmutableSortedSet<int> immutableSortedSet;
-            ImmutableDictionary<int, string> immutableDictionary;
-            ImmutableSortedDictionary<int, string> immutableSortedDictionary;
-        }*/
+/*[Test]
+                                                public void Unnamed()
+                                                {
+                                                    /*var hashSet = new HashSet<string>();
+                                                    hashSet.Add("cat");
+                                                    hashSet.Add("bear");
+                                                    hashSet.Add("lion");
+                                                    hashSet.Add("dog");
+                                                    hashSet.Add("elephant");#1#
+                                        
+                                                    HashSet<int> hashSet;
+                                                    SortedSet<string> sortedSet;
+                                                    SortedList<string, string> sortedList;
+                                        
+                                        
+                                                    ImmutableList<int> immutableList;
+                                                    ImmutableQueue<int> immutableQueue;
+                                                    ImmutableStack<int> immutableStack;
+                                                    ImmutableHashSet<int> immutableHashSet;
+                                                    ImmutableSortedSet<int> immutableSortedSet;
+                                                    ImmutableDictionary<int, string> immutableDictionary;
+                                                    ImmutableSortedDictionary<int, string> immutableSortedDictionary;
+                                                }*/
 
         [Test]
         public void StructSizes()

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using NUnit.Framework.Internal;
 
-namespace Utilities.Testing
+namespace TestingUtilities
 {
     public class ExtendedAssertionHelper : ConstraintFactory
     {
@@ -80,6 +79,7 @@ namespace Utilities.Testing
 
         #endregion
 
+
         /// <summary>Remove visual noise from the stack trace - we don't need to see testing framework methods.</summary>
         public class AssertionExceptionWithTrimmedStackTrace : AssertionException
         {
@@ -112,14 +112,18 @@ namespace Utilities.Testing
                         .Select(line => line.TrimStart())
                         .Where(line => NamespacesToIgnore.All(
                             ignorableNamespace => !line.StartsWith($"at {ignorableNamespace}", StringComparison.OrdinalIgnoreCase)))
-                            // If an entire section of the stacktrace has been removed, don't start with a divider
+                        // If an entire section of the stacktrace has been removed, don't start with a divider
                         .Where(line => lastLineAdded != null || !line.Equals(END_OF_STACK_TRACE_PREVIOUS_LOCATION)))
                     {
                         stringBuilder.AppendLine(line);
                         lastLineAdded = line;
                     }
 
-                    if (lastLineAdded == END_OF_STACK_TRACE_PREVIOUS_LOCATION) stringBuilder.Remove(stringBuilder.Length - END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length - 2, END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length);
+                    if (lastLineAdded == END_OF_STACK_TRACE_PREVIOUS_LOCATION)
+                    {
+                        stringBuilder.Remove(stringBuilder.Length - END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length - 2,
+                            END_OF_STACK_TRACE_PREVIOUS_LOCATION.Length);
+                    }
 
                     return stringBuilder.ToString();
                 }

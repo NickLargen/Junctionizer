@@ -5,8 +5,9 @@ using System.Linq;
 
 using NUnit.Framework;
 
+using TestingUtilities;
+
 using Utilities.Comparers;
-using Utilities.Testing;
 
 namespace Utilities.Tests
 {
@@ -133,10 +134,10 @@ namespace Utilities.Tests
             Ensure(customSorted, Is.EqualTo(Expected));
         }
 
-        private static Random Random { get; }= new Random();
-        
-            const string ALPHA_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz";
-            const string ALPHANUMERIC_CHARS = ALPHA_CHARS + "0123456789";
+        private static Random Random { get; } = new Random();
+
+        private const string ALPHA_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz";
+        private const string ALPHANUMERIC_CHARS = ALPHA_CHARS + "0123456789";
         private const string AsciiPrintable =
             " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -146,8 +147,8 @@ namespace Utilities.Tests
                                         .Select(s => s[Random.Next(s.Length)])
                                         .ToArray());
         }
-        
-        private Lazy<int> RepeatEvery { get; }= new Lazy<int>(() => 2 + Random.Next(20));
+
+        private Lazy<int> RepeatEvery { get; } = new Lazy<int>(() => 2 + Random.Next(20));
 
         [TestCase(ALPHA_CHARS, TestName = nameof(ALPHA_CHARS)),
          TestCase(ALPHANUMERIC_CHARS, TestName = nameof(ALPHANUMERIC_CHARS)),

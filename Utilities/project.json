@@ -1,14 +1,13 @@
-{
-    "supports": {
-        "net46.app": {}
-    },
-    "dependencies": {
-        "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
-        "NETStandard.Library": "1.6.0",
-        "NUnit": "3.5.0",
-        "OneOf": "2.1.61"
-    },
-    "frameworks": {
-        "netstandard1.3": {}
-    }
+﻿{
+  "supports": {
+    "net46.app": {}
+  },
+  "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "NETStandard.Library": "1.6.0",
+    "OneOf": "2.1.61"
+  },
+  "frameworks": {
+    "netstandard1.3": {}
+  }
 }
