@@ -2,7 +2,7 @@ using GameMover.Model;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Test
+namespace GameMover.Tests
 {
     [TestClass]
     public class FolderMappingTests : TestBase

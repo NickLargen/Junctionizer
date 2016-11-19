@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 [assembly: Timeout(1000)]
 
-namespace Test
+namespace GameMover.Tests
 {
     public class TestBase
     {
@@ -63,8 +63,8 @@ namespace Test
 
                 var frame = new DispatcherFrame();
                 task.ContinueWith(x => {
-                    frame.Continue = false;
-                }, TaskScheduler.Default).Forget();
+                        frame.Continue = false;
+                    }, TaskScheduler.Default).Forget();
                 Dispatcher.PushFrame(frame); // execute all tasks until frame.Continue == false
 
                 await task; // rethrow exception when task has failed 

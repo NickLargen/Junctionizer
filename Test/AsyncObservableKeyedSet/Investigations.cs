@@ -2,11 +2,11 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-using GameMover.ViewModels;
-
 using NUnit.Framework;
 
-namespace Test.AsyncObservableKeyedSet
+using Utilities.Collections;
+
+namespace GameMover.Tests.AsyncObservableKeyedSet
 {
     public class Investigations
     {

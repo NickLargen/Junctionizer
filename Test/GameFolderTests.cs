@@ -4,7 +4,7 @@ using GameMover.Model;
 
 using NUnit.Framework;
 
-namespace Test
+namespace GameMover.Tests
 {
     public class GameFolderTests : TestBase
     {

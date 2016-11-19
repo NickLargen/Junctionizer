@@ -2,7 +2,7 @@
 
 using NUnit.Framework;
 
-namespace Test.Model.FolderCollectionTests
+namespace GameMover.Tests.Model.FolderCollectionTests
 {
     public class FolderCollectionNotInitializedTests : TestBase
     {

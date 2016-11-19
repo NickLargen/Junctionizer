@@ -3,16 +3,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GameMover.ViewModels;
-
 using Nito.AsyncEx;
 
 using NUnit.Framework;
 
-using Utilities.Tasks;
-using Utilities.Testing;
+using TestingUtilities;
 
-namespace Test.AsyncObservableKeyedSet
+using Utilities.Collections;
+using Utilities.Tasks;
+
+namespace GameMover.Tests.AsyncObservableKeyedSet
 {
     /// <summary>The intent is that in normal execution the lack of a synchronization context causes <see cref="AsyncObservableKeyedSet{TKey,TItem}.RunOnSynchronizationContext"/> to be a noop, so <see cref="RunningWithSynchronizationContext"/> will run them all with a context so that both behaviors are tested.</summary>
     public class AsyncObservableKeyedSetUnitTests : ExtendedAssertionHelper
@@ -53,7 +53,7 @@ namespace Test.AsyncObservableKeyedSet
         public void AddDuplicateKeyThrowsException()
         {
             var set = new AsyncObservableKeyedSet<int, int>(param => 0, Context, new[] {1});
-            
+
             EnsureException(() => set.AddAsync(13), Hurls.ArgumentException);
         }
 

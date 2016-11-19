@@ -9,7 +9,7 @@ using Microsoft.VisualBasic.FileIO;
 
 using NUnit.Framework;
 
-namespace Test
+namespace GameMover.Tests
 {
     public class TestData
     {
