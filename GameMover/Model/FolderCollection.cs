@@ -11,7 +11,6 @@ using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.Properties;
-using GameMover.ViewModels;
 
 using JetBrains.Annotations;
 
@@ -55,12 +54,12 @@ namespace GameMover.Model
                     args.Action == NotifyCollectionChangedAction.Replace)
                 {
                     args.OldItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                            JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder);
-                        });
+                        JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder);
+                    });
 
                     args.NewItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                            JunctionTargetsDictionary.Add(folder.JunctionTarget, folder);
-                        });
+                        JunctionTargetsDictionary.Add(folder.JunctionTarget, folder);
+                    });
                 }
             };
         }
@@ -73,9 +72,11 @@ namespace GameMover.Model
         private MultiValueDictionary<string, GameFolder> JunctionTargetsDictionary { get; } =
             new MultiValueDictionary<string, GameFolder>(StringComparer.OrdinalIgnoreCase);
 
-        // It would be able to move the reference to DispatcherSynchronizationContext out of the model
+        // It would be nice to able to move the reference to DispatcherSynchronizationContext out of the model
         public AsyncObservableKeyedSet<string, GameFolder> Folders { get; } =
-            new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name, isDesiredThread: () => SynchronizationContext.Current is DispatcherSynchronizationContext, comparer: StringComparer.OrdinalIgnoreCase);
+            new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name,
+                isDesiredThread: () => SynchronizationContext.Current is DispatcherSynchronizationContext,
+                comparer: StringComparer.OrdinalIgnoreCase);
 
         private ObservableCollection<object> _selectedItems;
         public ObservableCollection<object> SelectedItems
@@ -153,13 +154,12 @@ namespace GameMover.Model
 
             try
             {
-                //todo AddRange
-                foreach (var directoryInfo in new DirectoryInfo(loc)
+                var newFolders = new DirectoryInfo(loc)
                     .EnumerateDirectories()
-                    .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0))
-                {
-                    Folders.AddAsync(new GameFolder(directoryInfo));
-                }
+                    .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0)
+                    .Select(info => new GameFolder(info));
+
+                Folders.AddAllAsync(newFolders);
             }
             catch (IOException e)
             {
@@ -207,8 +207,6 @@ namespace GameMover.Model
 
         public void SelectFoldersNotInOtherPane()
         {
-            GameFolder junctionTargetFolder;
-
             var foldersToSelect = Folders.Where(folder =>
                 // Same name
                     !CorrespondingCollection.Folders.ContainsKey(folder.Name) &&
@@ -218,7 +216,7 @@ namespace GameMover.Model
 
                     // This folder is a junction pointing to a folder in the other pane
                     !(folder.JunctionTarget != null &&
-                      CorrespondingCollection.Folders.TryGetValue(Path.GetFileName(folder.JunctionTarget), out junctionTargetFolder) &&
+                      CorrespondingCollection.Folders.TryGetValue(Path.GetFileName(folder.JunctionTarget), out var junctionTargetFolder) &&
                       string.Equals(junctionTargetFolder.DirectoryInfo.FullName, folder.JunctionTarget, StringComparison.OrdinalIgnoreCase)));
 
             SelectFolders(foldersToSelect);

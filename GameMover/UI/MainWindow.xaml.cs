@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-using GameMover.Code;
+using GameMover.CustomWpfComponents;
 using GameMover.Model;
 using GameMover.ViewModels;
 
 using MaterialDesignThemes.Wpf;
 
 using Prism.Commands;
+
+using Utilities.Collections;
 
 using WpfBindingErrors;
 
@@ -39,8 +41,8 @@ namespace GameMover.UI
             mainWindowViewModel.Initialize();
 
             Loaded += (sender, args) => {
-                SetInitialSort(sourceGrid, mainWindowViewModel.SourceCollection);
-                SetInitialSort(destinationGrid, mainWindowViewModel.DestinationCollection);
+                SetItemsSource(sourceGrid, mainWindowViewModel.SourceCollection);
+                SetItemsSource(destinationGrid, mainWindowViewModel.DestinationCollection);
 
                 EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
             };
@@ -50,16 +52,11 @@ namespace GameMover.UI
 
         public static Task OpenDialog(object obj) => DialogHost.Show(obj);
 
-        private static void SetInitialSort(MultiSelectDataGrid dataGrid, FolderCollection folderCollection)
+        private static void SetItemsSource(MultiSelectDataGrid dataGrid, FolderCollection folderCollection)
         {
-            var collectionViewSource = new CollectionViewSource() {
-                Source = folderCollection.Folders,
-                IsLiveSortingRequested = true
-            };
+            var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>(folderCollection.Folders);
 
-            dataGrid.ItemsSource = collectionViewSource.View;
-            dataGrid.SelectedItemsList = folderCollection.SelectedItems;
-
+            dataGrid.ItemsSource = setCollectionView;
 
             var firstCol = dataGrid.Columns.First();
             // Mark the UI with what direction it is sorted (places the correct column header arrow)
@@ -70,7 +67,7 @@ namespace GameMover.UI
         }
 
         /// Update sort order when properties on items within the collection change
-        private static void EnableLiveSorting(IList observableCollection)
+        private static void EnableLiveSorting(IEnumerable observableCollection)
         {
             ((ListCollectionView) CollectionViewSource.GetDefaultView(observableCollection)).IsLiveSorting = true;
         }

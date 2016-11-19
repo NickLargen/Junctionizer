@@ -7,7 +7,8 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     mc:Ignorable="d"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:model="clr-namespace:GameMover.Model">
+                    xmlns:model="clr-namespace:GameMover.Model"
+                    xmlns:customWpfComponents="clr-namespace:GameMover.CustomWpfComponents">
 
 
     <Style x:Key="CustomCellStyle" TargetType="DataGridCell">
@@ -134,7 +135,7 @@
         <Setter Property="TextBlock.TextAlignment" Value="Right" />
     </Style>
 
-    <Style x:Key="GameFolderDataGridStyle" TargetType="code:MultiSelectDataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
+    <Style x:Key="GameFolderDataGridStyle" TargetType="customWpfComponents:MultiSelectDataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
         <Setter Property="RowStyle" Value="{StaticResource GameFolderDataGridRow}" />
         <Setter Property="AlternatingRowBackground" Value="#FFFAFBFA" />
         <Setter Property="SelectionUnit" Value="FullRow" />

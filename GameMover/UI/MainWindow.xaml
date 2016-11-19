@@ -4,12 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:GameMover.ViewModels"
-        xmlns:code="clr-namespace:GameMover.Code"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:prism="http://prismlibrary.com/"
         xmlns:ui="clr-namespace:GameMover.UI"
         xmlns:columns="clr-namespace:GameMover.UI.Columns"
+        xmlns:customWpfComponents="clr-namespace:GameMover.CustomWpfComponents"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
@@ -124,7 +124,7 @@
                         <Button Command="{Binding DeleteSelectedJunctionsCommand}" Content="Delete Junction" />
                         <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
                     </DockPanel>
-                    <code:MultiSelectDataGrid x:Name="sourceGrid"
+                    <customWpfComponents:MultiSelectDataGrid x:Name="sourceGrid"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               Style="{StaticResource GameFolderDataGridStyle}">
@@ -134,7 +134,7 @@
                             <columns:JunctionTargetColumn />
                             <columns:LastUpdated />
                         </DataGrid.Columns>
-                    </code:MultiSelectDataGrid>
+                    </customWpfComponents:MultiSelectDataGrid>
                 </DockPanel>
 
 
@@ -160,7 +160,7 @@
                         <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
                     </DockPanel>
 
-                    <code:MultiSelectDataGrid x:Name="destinationGrid"
+                    <customWpfComponents:MultiSelectDataGrid x:Name="destinationGrid"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
                                               Style="{StaticResource GameFolderDataGridStyle}">
@@ -169,7 +169,7 @@
                             <columns:SizeColumn />
                             <columns:LastUpdated />
                         </DataGrid.Columns>
-                    </code:MultiSelectDataGrid>
+                    </customWpfComponents:MultiSelectDataGrid>
                 </DockPanel>
             </Grid>
         </DockPanel>

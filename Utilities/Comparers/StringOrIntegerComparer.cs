@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
 namespace Utilities.Comparers
 {
     /// <summary>If both strings represent integers (as determined by int.TryParse) then their integer values are compared. Otherwise normal string comparison is used.</summary>
-    public class StringOrIntegerComparer : System.Collections.Generic.IComparer<string>
+    public class StringOrIntegerComparer : IComparer<string>
     {
         public StringOrIntegerComparer(StringComparison comparisonType)
         {

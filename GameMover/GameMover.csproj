@@ -44,7 +44,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;DisableRemoveAll</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\..\MinimalRules.ruleset</CodeAnalysisRuleSet>
@@ -56,7 +56,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;DisableRemoveAll</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
@@ -174,8 +174,10 @@
     </ApplicationDefinition>
     <Compile Include="Code\DateTimeToStringConverter.cs" />
     <Compile Include="Code\ErrorHandling.cs" />
+    <Compile Include="CustomWpfComponents\LiveShapingItem.cs" />
+    <Compile Include="CustomWpfComponents\LiveShapingSortedValueList.cs" />
     <Compile Include="Model\FolderCollection.cs" />
-    <Compile Include="Code\MultiSelectDataGrid.cs" />
+    <Compile Include="CustomWpfComponents\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />
     <Compile Include="Model\FolderMapping.cs" />
     <Compile Include="Code\TaskQueue.cs" />
@@ -199,7 +201,7 @@
     </Compile>
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Compile Include="ViewModels\AsyncObservableKeyedSet.cs" />
+    <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
     <Page Include="UI\Columns\JunctionTargetColumn.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

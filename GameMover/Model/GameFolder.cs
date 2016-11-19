@@ -12,12 +12,14 @@ using Microsoft.VisualStudio.Threading;
 
 using Prism.Mvvm;
 
+using Utilities.Comparers;
+
 using static GameMover.Code.ErrorHandling;
 
 namespace GameMover.Model
 {
     [DebuggerDisplay(nameof(GameFolder) + " {" + nameof(DirectoryInfo) + "}")]
-    public class GameFolder : BindableBase, IComparable<GameFolder>, IEquatable<GameFolder>
+    public class GameFolder : BindableBase, IComparable, IComparable<GameFolder>
     {
         public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
@@ -131,24 +133,19 @@ namespace GameMover.Model
             IsContinuoslyRecalculating = false;
         }
 
+        /// <inheritdoc/>
+        int IComparable.CompareTo(object obj) => CompareTo((GameFolder) obj);
 
         public int CompareTo(GameFolder other)
         {
-//            Debug.WriteLine($"{DirectoryInfo.FullName} compareTo {other?.DirectoryInfo.FullName}");
-            return string.Compare(DirectoryInfo.FullName, other?.DirectoryInfo.FullName, StringComparison.OrdinalIgnoreCase);
+            return NaturalStringComparer.CompareOrdinal(DirectoryInfo.FullName, other?.DirectoryInfo.FullName, ignoreCase: true);
         }
 
-        public override bool Equals(object obj) => CompareTo(obj as GameFolder) == 0;
-        public bool Equals(GameFolder other) => CompareTo(other) == 0;
-        public static bool operator ==(GameFolder left, GameFolder right) => Equals(left, right);
-        public static bool operator !=(GameFolder left, GameFolder right) => !Equals(left, right);
+        public override string ToString() => $"{nameof(DirectoryInfo)}: {DirectoryInfo.FullName}";
 
-        public override int GetHashCode() => DirectoryInfo.FullName.ToUpperInvariant().GetHashCode();
-        
-        /// <summary>Since this function affects equality and hash code calculations it should not be executed on items within a collection.</summary>
         public void Rename(string newName)
         {
-            DirectoryInfo = new DirectoryInfo(DirectoryInfo.Parent?.FullName + @"\" + newName);
+            DirectoryInfo = new DirectoryInfo(Path.Combine(DirectoryInfo.Parent.FullName, newName));
         }
     }
 }

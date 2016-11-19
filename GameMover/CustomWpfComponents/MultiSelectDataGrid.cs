@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GameMover.Code
+namespace GameMover.CustomWpfComponents
 {
-    internal class MultiSelectDataGrid : DataGrid
+    public class MultiSelectDataGrid : DataGrid
     {
         public MultiSelectDataGrid()
         {

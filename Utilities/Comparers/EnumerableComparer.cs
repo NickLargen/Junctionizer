@@ -18,7 +18,7 @@ namespace Utilities.Comparers
         /// <inheritdoc/>
         public int Compare(IEnumerable<T> x, IEnumerable<T> y) => Compare(x, y, ElementComparisonFunction);
 
-        public static int Compare(IEnumerable<T> x, IEnumerable<T> y, System.Collections.Generic.IComparer<T> elementComparer)
+        public static int Compare(IEnumerable<T> x, IEnumerable<T> y, IComparer<T> elementComparer)
             => Compare(x, y, elementComparer.Compare);
 
         public static int Compare(IEnumerable<T> x, IEnumerable<T> y, Func<T, T, int> elementComparisonFunction)
