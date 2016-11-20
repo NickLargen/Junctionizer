@@ -13,6 +13,7 @@ using JetBrains.Annotations;
 
 using PropertyChanged;
 
+using Utilities.Collections;
 using Utilities.Comparers;
 
 namespace GameMover.CustomWpfComponents
@@ -166,25 +167,13 @@ namespace GameMover.CustomWpfComponents
 
             if (e.Action == NotifyCollectionChangedAction.Reset)
             {
-                Debug.Assert(sortDescriptionsSender.Count == 0);
                 LiveSortingProperties.Clear();
+                sortDescriptionsSender.ForEach(sortDescription => LiveSortingProperties.Add(sortDescription.PropertyName));
             }
-            else
+            else if (e.Action != NotifyCollectionChangedAction.Move)
             {
-                if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Replace)
-                {
-                    foreach (var oldItem in e.OldItems)
-                    {
-                        LiveSortingProperties.Remove(((SortDescription) oldItem).PropertyName);
-                    }
-                }
-                if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Replace)
-                {
-                    foreach (var newItem in e.NewItems)
-                    {
-                        LiveSortingProperties.Add(((SortDescription) newItem).PropertyName);
-                    }
-                }
+                e.OldItems?.Cast<SortDescription>().ForEach(sortDescription => LiveSortingProperties.Remove(sortDescription.PropertyName));
+                e.NewItems?.Cast<SortDescription>().ForEach(sortDescription => LiveSortingProperties.Add(sortDescription.PropertyName));
             }
 
             if (sortDescriptionsSender.Count > 0)
@@ -367,7 +356,7 @@ namespace GameMover.CustomWpfComponents
 
         #region Process Collection Changes
 
-        /// <summary>Handle CollectionChange events</summary>
+        /// <summary>Handles CollectionChange events sent from the underylying collection.</summary>
         protected override void ProcessCollectionChanged(NotifyCollectionChangedEventArgs args)
         {
             switch (args.Action)
