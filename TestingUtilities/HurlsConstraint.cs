@@ -40,22 +40,22 @@ namespace TestingUtilities
                 try
                 {
                     asyncCode().ContinueWith(task => {
-                        waitForAsyncCodeTokenSource.Cancel(true);
                         // Actual exception is wrapped in an AggregateException
                         caughtException = task.Exception?.InnerException;
+                        waitForAsyncCodeTokenSource.Cancel(true);
                     }, token);
                 }
                 catch (Exception e)
                 {
-                    waitForAsyncCodeTokenSource.Cancel(true);
                     caughtException = e;
+                    waitForAsyncCodeTokenSource.Cancel(true);
                 }
             }
             else if (synchronousCode != null)
             {
+                waitForAsyncCodeTokenSource.Cancel(true);
                 try
                 {
-                    waitForAsyncCodeTokenSource.Cancel(true);
                     synchronousCode();
                 }
                 catch (Exception ex)

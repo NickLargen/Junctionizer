@@ -15,6 +15,7 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
         {
             // RunInWPF count = 1_000_000 takes 20500ms (100%) SEND - thread safe
             // RunInWPF count = 1_000_000 takes 13500ms  (66%) POST - All items are available eventually, but there is a delay before values can be read
+            // RunInWPF count = 1_000_000 takes   221ms   (1%) AddAllAsync - thread safe
             // without sync c = 1_000_000 takes   400ms   (2%) NOT THREAD SAFE - ONlY 95-99% OF THE ELEMENTS END UP IN THE DICTIONARY
             // direct concurrentDictionary 200ms thread safe
             // direct dictionary 126ms not thread safe
