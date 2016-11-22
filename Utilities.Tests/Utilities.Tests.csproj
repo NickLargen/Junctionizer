@@ -92,7 +92,7 @@
       <Name>TestingUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{daedbe3f-05b4-4b40-8966-fbbd62a23d8a}</Project>
+      <Project>{60cca455-4f93-48e4-a729-9f29b16c2c0f}</Project>
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
