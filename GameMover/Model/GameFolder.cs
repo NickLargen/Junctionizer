@@ -145,6 +145,7 @@ namespace GameMover.Model
 
         public void Rename(string newName)
         {
+            Debug.Assert(DirectoryInfo.Parent != null);
             DirectoryInfo = new DirectoryInfo(Path.Combine(DirectoryInfo.Parent.FullName, newName));
         }
     }

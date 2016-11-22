@@ -417,7 +417,7 @@ namespace GameMover.CustomWpfComponents
         /// <summary>Strings describing properties that trigger live sorting in the format <see cref="SortDescription.PropertyName"/>. Automatically includes any sort descriptions.</summary>
         public ObservableCollection<string> LiveSortingProperties { get; } = new ObservableCollection<string>();
 
-        /// <summary>Strings describing properties that trigger live reevaluation of <see cref="ActiveFilter"/> in the format <see cref="SortDescription.PropertyName"/>.</summary>
+        /// <summary>Strings describing properties that trigger live reevaluation of <see cref="CollectionView.Filter"/> in the format <see cref="SortDescription.PropertyName"/>.</summary>
         public ObservableCollection<string> LiveFilteringProperties { get; } = new ObservableCollection<string>();
 
         [Obsolete("Live grouping is not currently supported.")]

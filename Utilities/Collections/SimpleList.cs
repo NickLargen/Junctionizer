@@ -122,7 +122,7 @@ namespace Utilities.Collections
         // search.
         // 
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
-            => Array.BinarySearch<T>(Items, index, count, item, comparer);
+            => Array.BinarySearch(Items, index, count, item, comparer);
 
         public int BinarySearch(T item) => BinarySearch(0, Count, item, null);
 
@@ -360,7 +360,7 @@ namespace Utilities.Collections
         {
             if (Count - index < count) throw new ArgumentException();
 
-            Array.Sort<T>(Items, index, count, comparer);
+            Array.Sort(Items, index, count, comparer);
             Version++;
         }
 
@@ -383,7 +383,7 @@ namespace Utilities.Collections
         // 
         public void TrimExcess()
         {
-            int threshold = (int) ((double) Items.Length * 0.9);
+            int threshold = (int) (Items.Length * 0.9);
             if (Count < threshold)
             {
                 Capacity = Count;

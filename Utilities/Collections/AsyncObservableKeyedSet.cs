@@ -8,12 +8,13 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 using JetBrains.Annotations;
 
 namespace Utilities.Collections
 {
-    /// <summary>This class is designed for data binding to a sorted view with algorithmically efficient insertion, retrieval, and deletion of non-null items in an unordered set that have a one-to-one correspondence with a set of non-null keys (eg any item that contains its unique identifier). Thread safety is achieved by brute force dispatching all write operations onto the same thread. The (unverified) expectation is that this does not incur an excessive overhead because collection change events fired outside of the UI thread would be marshalled back onto it anyway. Furthermore, firing collection change events from outside the UI thread (enabled by <see cref="BindingOperations.EnableCollectionSynchronization(IEnumerable,object)"/> causes ListCollectionView to bind to an internal ArrayList that it modifies using <see cref="CollectionChangeEventArgs"/> which runs counter to the goals of using a dictionary.</summary>
+    /// <summary>This class is designed for data binding to a sorted view with algorithmically efficient insertion, retrieval, and deletion of non-null items in an unordered set that have a one-to-one correspondence with a set of non-null keys (eg any item that contains its unique identifier). Thread safety is achieved by brute force dispatching all write operations onto the same thread. The (unverified) expectation is that this does not incur an excessive overhead because collection change events fired outside of the UI thread would be marshalled back onto it anyway. Furthermore, firing collection change events from outside the UI thread (enabled by <see cref="BindingOperations.EnableCollectionSynchronization(IEnumerable,object)"/> causes ListCollectionView to bind to an internal ArrayList that it modifies using <see cref="NotifyCollectionChangedEventArgs"/> which runs counter to the goals of using a dictionary.</summary>
     /// <typeparam name="TKey">A value that can be easily calculated for any item.</typeparam>
     /// <typeparam name="TItem">The type of item in the collection.</typeparam>
     public class AsyncObservableKeyedSet<[NotNull] TKey, [NotNull] TItem>
@@ -122,14 +123,14 @@ namespace Utilities.Collections
             OnCollectionAdded(item);
         }
 
-        public Task AddAllAsync([NotNull, ItemNotNull] IEnumerable<TItem> enumerable)
+        public Task AddAllAsync([NotNull] [ItemNotNull] IEnumerable<TItem> enumerable)
         {
             return RunOnSynchronizationContext(() => {
                 InternalAddAll(enumerable);
             });
         }
 
-        protected virtual void InternalAddAll([NotNull, ItemNotNull] IEnumerable<TItem> enumerable)
+        protected virtual void InternalAddAll([NotNull] [ItemNotNull] IEnumerable<TItem> enumerable)
         {
             var list = enumerable.ToList();
             foreach (var item in list) BackingDictionary.Add(GetKeyForItem(item), item);
@@ -166,7 +167,7 @@ namespace Utilities.Collections
         }
 
 
-        public Task RemoveAllAsync([NotNull, ItemNotNull] IEnumerable<TItem> enumerable)
+        public Task RemoveAllAsync([NotNull] [ItemNotNull] IEnumerable<TItem> enumerable)
         {
             return RunOnSynchronizationContext(() => {
                 InternalRemoveAll(enumerable);
@@ -230,7 +231,8 @@ namespace Utilities.Collections
         {
             return IsDesiredThread() ? Task.FromResult(function()) : TaskFactory.StartNew(function);
         }
-        
+
+
         #region ===== Notification =====
 
         private void OnCollectionReset()
