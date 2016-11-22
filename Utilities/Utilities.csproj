@@ -28,9 +28,6 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Jetbrains.Annotations">
       <Version>10.2.1</Version>
     </PackageReference>
