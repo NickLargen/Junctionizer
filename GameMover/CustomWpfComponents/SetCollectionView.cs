@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
@@ -100,18 +99,9 @@ namespace GameMover.CustomWpfComponents
 
         #region Filtering
 
-        protected Func<T, bool> ActiveFilter { get; set; }
         /// <inheritdoc/>
         public override bool CanFilter => true;
-
-        public sealed override bool PassesFilter(object item)
-        {
-            if (!(item is T)) throw new ArgumentException();
-
-            return PassesFilter((T) item);
-        }
-
-        protected virtual bool PassesFilter(T item) => ActiveFilter == null || ActiveFilter(item);
+        public void NotifyFilterChanged() => InternalSortedList.RecalculateFilter();
 
         #endregion
 
@@ -245,20 +235,30 @@ namespace GameMover.CustomWpfComponents
         #endregion
 
 
-        private void PrepareLocalArray()
+        #region Refreshing
+
+        private void VerifyRefreshNotDeferred()
+        {
+            if (AllowsCrossThreadChanges) VerifyAccess();
+
+            // If the Refresh is being deferred to change filtering or sorting of the
+            // data by this CollectionView, then CollectionView will not reflect the correct
+            // state of the underlying data.
+
+            if (IsRefreshDeferred) throw new InvalidOperationException("No check or change when deferred");
+        }
+
+        protected override void RefreshOverride()
         {
             PrepareComparer();
 
-            if (Filter != null) ActiveFilter = t => Filter(t);
-            else ActiveFilter = null;
-
-            var elementsFiltered = Set.ToLookup(PassesFilter);
             InternalSortedList.Clear();
             InternalSortedList.OrderingComparer = ActiveComparer;
-            InternalSortedList.AddAll(elementsFiltered[true]);
+            InternalSortedList.Filter = Filter;
+            InternalSortedList.AddAll(Set);
 
-            //todo: filtered items
-//                else if (IsLiveFiltering == true) InternalList.AddFilteredItem(item);
+            // tell listeners everything has changed
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         private void PrepareComparer()
@@ -321,34 +321,6 @@ namespace GameMover.CustomWpfComponents
             }
 
             return compoundComparer;
-        }
-
-        private void RebuildLocalArray()
-        {
-            if (IsRefreshDeferred) RefreshOrDefer();
-            else PrepareLocalArray();
-        }
-
-
-        #region Refreshing
-
-        private void VerifyRefreshNotDeferred()
-        {
-            if (AllowsCrossThreadChanges) VerifyAccess();
-
-            // If the Refresh is being deferred to change filtering or sorting of the
-            // data by this CollectionView, then CollectionView will not reflect the correct
-            // state of the underlying data.
-
-            if (IsRefreshDeferred) throw new InvalidOperationException("No check or change when deferred");
-        }
-
-        protected override void RefreshOverride()
-        {
-            PrepareLocalArray();
-
-            // tell listeners everything has changed
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         #endregion

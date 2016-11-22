@@ -2,11 +2,11 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GameMover.Code
+namespace GameMover.ValueConverters
 {
     internal class SizeToStringConverter : IValueConverter
     {
-        public object Convert(object objectValue, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object objectValue, Type targetType = null, object parameter = null, CultureInfo culture = null)
         {
             var value = (long) objectValue;
 
@@ -33,7 +33,7 @@ namespace GameMover.Code
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return new NotSupportedException();
+            throw new NotSupportedException();
         }
     }
 }

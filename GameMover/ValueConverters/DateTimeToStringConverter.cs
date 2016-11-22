@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GameMover.Code
+namespace GameMover.ValueConverters
 {
     /// <summary>Allows a non-nullable DateTime to display the empty string by using DateTime.MinValue</summary>
     public class DateTimeToStringConverter : IValueConverter

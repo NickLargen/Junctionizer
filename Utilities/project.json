@@ -3,7 +3,7 @@
     "net46.app": {}
   },
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.2",
     "NETStandard.Library": "1.6.1",
     "OneOf": "2.1.66"
   },

@@ -10,5 +10,10 @@ namespace Utilities.Strings
             var length = self.IndexOf(value, StringComparison.OrdinalIgnoreCase);
             return length < 0 ? self : self.Substring(0, length);
         }
+
+        public static bool Contains(this string self, string substring, StringComparison comparison)
+        {
+            return self.IndexOf(substring, comparison) >= 0;
+        }
     }
 }

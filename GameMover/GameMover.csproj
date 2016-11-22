@@ -150,8 +150,16 @@
       <HintPath>..\packages\System.Collections.Generic.MultiValueDictionary.0.1.0-e161105-1\lib\netstandard1.1\System.Collections.Generic.MultiValueDictionary.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Collections.Immutable, Version=1.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.3.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rx-Core.2.2.5\lib\net45\System.Reactive.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rx-Interfaces.2.2.5\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Linq, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Rx-Linq.2.2.5\lib\net45\System.Reactive.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -180,8 +188,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Code\LogScaleConverter.cs" />
-    <Compile Include="Code\DateTimeToStringConverter.cs" />
+    <Compile Include="ValueConverters\LogScaleConverter.cs" />
+    <Compile Include="ValueConverters\DateTimeToStringConverter.cs" />
     <Compile Include="Code\ErrorHandling.cs" />
     <Compile Include="CustomWpfComponents\LiveShapingItem.cs" />
     <Compile Include="CustomWpfComponents\LiveShapingSortedValueList.cs" />
@@ -215,6 +223,7 @@
     <Compile Include="UI\Columns\LastUpdatedColumn.xaml.cs">
       <DependentUpon>LastUpdatedColumn.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ValueConverters\LogScaleTooltipConverter.cs" />
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
@@ -244,7 +253,7 @@
     </Compile>
     <Compile Include="Model\GameFolder.cs" />
     <Compile Include="Code\JunctionPoint.cs" />
-    <Compile Include="Code\SizeToStringConverter.cs" />
+    <Compile Include="ValueConverters\SizeToStringConverter.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

@@ -1,7 +1,7 @@
 ﻿<Application x:Class="GameMover.UI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:code="clr-namespace:GameMover.Code"
+             xmlns:valueConverters="clr-namespace:GameMover.ValueConverters"
 
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -23,13 +23,17 @@
                     Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.RangeSlider.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ProgressBar.xaml" />
                 <ResourceDictionary Source="Styles/Colors.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <code:DateTimeToStringConverter x:Key="DateTimeConverter" />
-            <code:SizeToStringConverter x:Key="SizeConverter" />
+            <valueConverters:DateTimeToStringConverter x:Key="DateTimeConverter" />
+            <valueConverters:SizeToStringConverter x:Key="SizeConverter" />
+            <valueConverters:LogScaleConverter x:Key="LogScaleConverter" />
+            <valueConverters:LogScaleTooltipConverter x:Key="LogScaleTooltipConverter" />
 
             <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignBody1TextBlock}">
                 <Setter Property="VerticalAlignment" Value="Center" />

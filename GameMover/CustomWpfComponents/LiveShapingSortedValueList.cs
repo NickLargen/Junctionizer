@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -28,11 +27,13 @@ namespace GameMover.CustomWpfComponents
         {
             LiveShapingView = liveShapingView;
 
-            if(LiveShapingView.CanChangeLiveFiltering || LiveShapingView.CanChangeLiveSorting || LiveShapingView.CanChangeLiveGrouping) throw new NotSupportedException($"{nameof(LiveShapingSortedValueList<T>)} does not support changes in live shaping properties.");
+            if (LiveShapingView.CanChangeLiveFiltering || LiveShapingView.CanChangeLiveSorting || LiveShapingView.CanChangeLiveGrouping)
+                throw new NotSupportedException(
+                    $"{nameof(LiveShapingSortedValueList<T>)} does not support changes in live shaping properties.");
 
-            if(liveShapingView.IsLiveGrouping == true) throw new NotSupportedException("(Live) grouping is not supported.");
+            if (liveShapingView.IsLiveGrouping == true) throw new NotSupportedException("(Live) grouping is not supported.");
 
-            if(LiveShapingView.IsLiveSorting == false && LiveShapingView.IsLiveFiltering == false) throw new NotSupportedException($"Only use {nameof(LiveShapingSortedValueList<T>)} if you are actually live shaping.");
+            if (LiveShapingView.IsLiveSorting == false && LiveShapingView.IsLiveFiltering == false) throw new NotSupportedException($"Only use {nameof(LiveShapingSortedValueList<T>)} if you are actually live shaping.");
 
             LiveShapingView.LiveSortingProperties.CollectionChanged += (sender, args) => {
                 if (args.Action == NotifyCollectionChangedAction.Reset)
@@ -83,12 +84,83 @@ namespace GameMover.CustomWpfComponents
 
         public ICollectionViewLiveShaping LiveShapingView { get; }
 
-        /// <inheritdoc/>
+        protected HashSet<T> FilteredItems { get; } = new HashSet<T>();
+
+        private Predicate<object> _filter;
+        public Predicate<object> Filter
+        {
+            get { return _filter; }
+            set {
+                if (value != _filter)
+                {
+                    _filter = value;
+                    RecalculateFilter();
+                }
+            }
+        }
+
+        public void RecalculateFilter()
+        {
+            if (Filter == null)
+            {
+                FilteredItems.ForEach(item => Add(item));
+                FilteredItems.Clear();
+            }
+            else
+            {
+                // Remove the items that no longer pass the filter
+                var itemsRemovedByNewFilter = new List<T>();
+                for (int i = BackingList.Count - 1; i >= 0; i--)
+                {
+                    if (!PassesFilter(BackingList[i]))
+                    {
+                        itemsRemovedByNewFilter.Add(BackingList[i]);
+                        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, BackingList[i], i));
+                        RemoveAt(i);
+                    }
+                }
+
+                // Add the previously filtered items that that now pass 
+                FilteredItems.RemoveWhere(item => {
+                    if (PassesFilter(item))
+                    {
+                        var insertionIndex = Add(item);
+                        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, insertionIndex));
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                // Don't add move items into the filtered list until it has been iterated over
+                FilteredItems.UnionWith(itemsRemovedByNewFilter);
+            }
+        }
+
+        private bool PassesFilter(T item) => Filter == null || Filter(item);
+
         public override int Add(T item)
         {
-            CreateLiveShapingItem(item);
-            return base.Add(item);
+            if (PassesFilter(item)) return base.Add(item);
+
+            AddFilteredItem(item);
+            return -1;
         }
+
+        protected override void BeforeItemInserted(T item)
+        {
+            CreateLiveShapingItem(item);
+            base.BeforeItemInserted(item);
+        }
+
+        public override IEnumerable<ItemIndexPair> AddAll(IEnumerable<T> enumerable)
+        {
+            var elementsPassingFilter = enumerable.ToLookup(PassesFilter);
+            elementsPassingFilter[false].ForEach(AddFilteredItem);
+            return base.AddAll(elementsPassingFilter[true]);
+        }
+
+        private void AddFilteredItem(T item) => FilteredItems.Add(item);
 
         /// <inheritdoc/>
         protected override IEnumerable<ItemIndexPair> AddMultiItemList(List<T> addList)
@@ -224,8 +296,6 @@ namespace GameMover.CustomWpfComponents
         {
             T item = (T) (LiveShapingItem<T>) dependencyObject;
 
-//            Debug.WriteLine($"Handling property change for {item,80}, {args.Property} changed from {args.OldValue,10} to {args.NewValue,10}");
-
             int originalBinarySearchIndex = InternalBinarySearchWithEqualityCheck(item);
             int actualIndex;
             int targetIndex;
@@ -258,7 +328,6 @@ namespace GameMover.CustomWpfComponents
         private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             LiveShapingItems[(T) sender].IsSortDirty = true;
-//            Debug.WriteLine($"{e.PropertyName} changed for {sender}");
         }
 
         /// <summary>Should always be called before a LiveShapingItem is removed</summary>
@@ -281,7 +350,7 @@ namespace GameMover.CustomWpfComponents
         }
 
 #if !DisableRemoveAll
-        /// <inheritdoc/>
+/// <inheritdoc/>
         protected override IEnumerable<ItemIndexPair> RemoveMultiItemList(List<T> removeList)
         {
             removeList.Sort(CompositeComparer);

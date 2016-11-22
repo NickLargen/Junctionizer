@@ -3,6 +3,8 @@ using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -52,9 +54,19 @@ namespace GameMover.UI
 
         public static Task OpenDialog(object obj) => DialogHost.Show(obj);
 
-        private static void SetItemsSource(MultiSelectDataGrid dataGrid, FolderCollection folderCollection)
+        private void SetItemsSource(MultiSelectDataGrid dataGrid, FolderCollection folderCollection)
         {
             var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>(folderCollection.Folders);
+
+            var mainWindowViewModel = (MainWindowViewModel) DataContext;
+
+            setCollectionView.Filter = obj => mainWindowViewModel.Filter((GameFolder) obj);
+
+            Observable.FromEventPattern<PropertyChangedEventArgs>(mainWindowViewModel, nameof(MainWindowViewModel.PropertyChanged))
+                      .Where(pattern => pattern.EventArgs.PropertyName == nameof(MainWindowViewModel.Filter))
+                      .Sample(TimeSpan.FromMilliseconds(200))
+                      .ObserveOn(SynchronizationContext.Current)
+                      .Subscribe(pattern => setCollectionView.NotifyFilterChanged());
 
             dataGrid.ItemsSource = setCollectionView;
 

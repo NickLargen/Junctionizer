@@ -24,6 +24,8 @@ using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 
+using Utilities.Strings;
+
 using static GameMover.Code.StaticMethods;
 
 namespace GameMover.ViewModels
@@ -59,6 +61,16 @@ namespace GameMover.ViewModels
             DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
         }
 
+        [AutoLazy.Lazy]
+        public Func<GameFolder, bool> Filter => folder =>
+            folder.Name.Contains(FilterNameText, StringComparison.OrdinalIgnoreCase)
+            && FilterLowerSizeLimit <= folder.Size && folder.Size <= FilterUpperSizeLimit;
+
+        public string FilterNameText { get; set; } = string.Empty;
+
+        public double FilterLowerSizeLimit { get; set; } = double.NegativeInfinity;
+        public double FilterUpperSizeLimit { get; set; } = double.PositiveInfinity;
+
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
         public InteractionRequest<INotification> DisplayFindJunctionsDialogRequest { get; } = new InteractionRequest<INotification>();
         public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
@@ -67,7 +79,6 @@ namespace GameMover.ViewModels
         public DelegateCommand<DialogClosingEventArgs> DialogClosedCommand
             => new DelegateCommand<DialogClosingEventArgs>(args => OnDialogClosed?.Invoke());
         private event Action OnDialogClosed;
-
 
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
