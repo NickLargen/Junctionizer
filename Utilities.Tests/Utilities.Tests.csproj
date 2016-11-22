@@ -74,8 +74,6 @@
   <ItemGroup>
     <Compile Include="Collections\SimpleListTests.cs" />
     <Compile Include="NaturalSortingTests.cs" />
-    <Compile Include="Temporary\Performance.cs" />
-    <Compile Include="Temporary\TemporaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
