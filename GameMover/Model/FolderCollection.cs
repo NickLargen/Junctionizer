@@ -22,6 +22,7 @@ using Prism.Commands;
 using Prism.Mvvm;
 
 using Utilities.Collections;
+using Utilities.Tasks;
 
 using static GameMover.Code.StaticMethods;
 using static GameMover.Code.ErrorHandling;
@@ -45,6 +46,7 @@ namespace GameMover.Model
 
         private FolderCollection()
         {
+            // This is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
             SelectedItems = new ObservableCollection<object>();
             InitDirectoryWatcher();
 
@@ -123,7 +125,7 @@ namespace GameMover.Model
                         folder.CancelSubdirectorySearch();
                     }
 
-                    Folders.ClearAsync().GetAwaiter().GetResult();
+                    Folders.ClearAsync().RunTaskSynchronously();
 
                     // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
                     if (Directory.Exists(Location)) SetNewLocationImpl(Location);
@@ -159,7 +161,7 @@ namespace GameMover.Model
                     .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0)
                     .Select(info => new GameFolder(info));
 
-                Folders.AddAllAsync(newFolders);
+                Folders.AddAllAsync(newFolders).RunTaskSynchronously();
             }
             catch (IOException e)
             {

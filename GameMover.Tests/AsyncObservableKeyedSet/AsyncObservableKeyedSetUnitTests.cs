@@ -94,7 +94,7 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
             var set = new AsyncObservableKeyedSet<int, int>(param => param, Context, new[] {1, 436, 768, 79876, 5, 435, 4634, 243, 2});
 
             Ensure(set, Is.Not.Empty);
-            Task.Run(set.ClearAsync).GetAwaiterResult();
+            Task.Run(set.ClearAsync).RunTaskSynchronously();
             Ensure(set, Is.Empty);
             Ensure(set.Count, Is.Zero);
 

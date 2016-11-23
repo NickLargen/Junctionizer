@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
+
+using Microsoft.VisualStudio.Threading;
 
 using NUnit.Framework;
 
@@ -10,7 +14,8 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
 {
     public class Investigations
     {
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public async Task MultithreadingBehavior()
         {
             // RunInWPF count = 1_000_000 takes 20500ms (100%) SEND - thread safe
@@ -22,7 +27,7 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
 
             var stopwatch = Stopwatch.StartNew();
 
-            await TestBase.RunInWpfSyncContext(Function);
+            await RunInWpfSyncContext(Function);
 
             Console.WriteLine(stopwatch.ElapsedMilliseconds + "ms taken to execute.");
 
@@ -30,6 +35,32 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
             // RunInWPF without Task.Run count = 1_000_000 straight add calls 380ms
         }
 
+        public static async Task RunInWpfSyncContext(Func<Task> function)
+        {
+            if (function == null) throw new ArgumentNullException("function");
+
+            var prevCtx = SynchronizationContext.Current;
+            try
+            {
+                var syncCtx = new DispatcherSynchronizationContext();
+                SynchronizationContext.SetSynchronizationContext(syncCtx);
+
+                var task = function();
+                if (task == null) throw new InvalidOperationException();
+
+                var frame = new DispatcherFrame();
+                task.ContinueWith(x => {
+                    frame.Continue = false;
+                }, TaskScheduler.Default).Forget();
+                Dispatcher.PushFrame(frame); // execute all tasks until frame.Continue == false
+
+                await task; // rethrow exception when task has failed 
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(prevCtx);
+            }
+        }
 
         private async Task Function()
         {

@@ -5,9 +5,9 @@ using System.Linq;
 
 using GameMover.Code;
 
-using Microsoft.VisualBasic.FileIO;
-
 using NUnit.Framework;
+
+using Utilities.Collections;
 
 namespace GameMover.Tests
 {
@@ -16,7 +16,8 @@ namespace GameMover.Tests
         private static IReadOnlyList<string> CapitalLetters { get; } =
             Enumerable.Range(start: 'A', count: 3).Select(i => ((char) i).ToString()).ToList();
 
-        [Test, Explicit]
+        [Test]
+        [Explicit]
         public static void SetupManualTestData()
         {
             SetupTestData(
@@ -26,16 +27,21 @@ namespace GameMover.Tests
 
         public static (DirectoryInfo root, DirectoryInfo source, DirectoryInfo destination) SetupTestData(DirectoryInfo rootDirectoryInfo)
         {
-            if (Directory.Exists(rootDirectoryInfo.FullName))
-            {
-                FileSystem.DeleteDirectory(rootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently,
-                    UICancelOption.ThrowException);
-            }
 
             rootDirectoryInfo.Create();
 
+//            if (!Directory.Exists(rootDirectoryInfo.FullName))
+//            {
+////                DeleteDirectoryRecursive(rootDirectoryInfo.FullName);
+////                FileSystem.DeleteDirectory(rootDirectoryInfo.FullName, UIOption.OnlyErrorDialogs, RecycleOption.DeletePermanently,
+////                    UICancelOption.ThrowException);
+//            }
+
             var sourceDirectory = rootDirectoryInfo.CreateSubdirectory("Source");
             var destinationDirectory = rootDirectoryInfo.CreateSubdirectory("Destination");
+            
+            sourceDirectory.GetDirectories().Select(info => info.FullName).ForEach(DeleteDirectoryRecursive);
+            destinationDirectory.GetDirectories().Select(info => info.FullName).ForEach(DeleteDirectoryRecursive);
 
             foreach (var capitalLetter in CapitalLetters)
             {
@@ -45,6 +51,29 @@ namespace GameMover.Tests
             }
 
             return (rootDirectoryInfo, sourceDirectory, destinationDirectory);
+        }
+
+        private static void DeleteDirectoryRecursive(string targetDir)
+        {
+            var directoryInfo = new DirectoryInfo(targetDir);
+            if (directoryInfo.Exists == false) return;
+
+            if (directoryInfo.Attributes.HasFlag(FileAttributes.System) || directoryInfo.Attributes.HasFlag(FileAttributes.System)) throw new InvalidOperationException();
+
+            if (directoryInfo.IsReparsePoint() == false)
+            {
+                foreach (string file in Directory.GetFiles(targetDir))
+                {
+                    File.Delete(file);
+                }
+                foreach (string dir in Directory.GetDirectories(targetDir))
+                {
+                    DeleteDirectoryRecursive(dir);
+                }
+            }
+
+
+            Directory.Delete(targetDir, false);
         }
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace GameMover.Tests
 {
     [TestClass]
-    public class FolderMappingTests : TestBase
+    public class FolderMappingTests 
     {
         [TestMethod]
         public void CaseInsensitiveEquals()

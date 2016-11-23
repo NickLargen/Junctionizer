@@ -1,15 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using GameMover.Model;
 
 using NUnit.Framework;
 
+using TestingUtilities;
+using Utilities.Tasks;
+
 namespace GameMover.Tests.Model.FolderCollectionTests
 {
-    public class InitializedFolderCollections : TestBase
+    public class InitializedFolderCollections : ExtendedAssertionHelper
     {
         private DirectoryInfo RootDirectoryInfo { get; set; }
         private FolderCollection SourceCollection { get; set; }
@@ -34,49 +38,58 @@ namespace GameMover.Tests.Model.FolderCollectionTests
         [Test]
         public void CorrespondingCollectionsEqual()
         {
-            Assert.That(SourceCollection.CorrespondingCollection, Is.EqualTo(DestinationCollection));
-            Assert.That(DestinationCollection.CorrespondingCollection, Is.EqualTo(SourceCollection));
+            Ensure(SourceCollection.CorrespondingCollection, Is.EqualTo(DestinationCollection));
+            Ensure(DestinationCollection.CorrespondingCollection, Is.EqualTo(SourceCollection));
         }
 
         [Test]
         public void SelectAll()
         {
+            Ensure(SourceCollection.Folders, Not.Empty);
             SourceCollection.SelectFolders(SourceCollection.Folders);
-            Assert.That(SourceCollection.SelectedItems, Is.EquivalentTo(SourceCollection.Folders));
-            Assert.That(SourceCollection.SelectedFolders, Is.EquivalentTo(SourceCollection.Folders));
+            Ensure(SourceCollection.SelectedItems, Is.EquivalentTo(SourceCollection.Folders));
+            Ensure(SourceCollection.SelectedFolders, Is.EquivalentTo(SourceCollection.Folders));
         }
 
         [Test]
         public void SelectNotInDestination()
         {
-            Assert.That(SourceCollection.SelectFoldersNotInOtherPaneCommand.CanExecute);
+            Assert.That(SourceCollection.SelectFoldersNotInOtherPaneCommand.CanExecute());
             SourceCollection.SelectFoldersNotInOtherPaneCommand.Execute();
 
             var selectedFolders = SourceCollection.SelectedFolders.ToList();
-            Assert.That(selectedFolders.Count, Is.EqualTo(3));
-            Assert.That(selectedFolders, Has.All.Property(nameof(GameFolder.IsJunction)).EqualTo(false));
+            Ensure(selectedFolders.Count, Is.EqualTo(3));
+            Ensure(selectedFolders, Has.All.Property(nameof(GameFolder.IsJunction)).EqualTo(false));
         }
 
         [Test]
         public void SelectNotInSource()
         {
-            Assert.That(DestinationCollection.SelectFoldersNotInOtherPaneCommand.CanExecute);
+            Ensure(DestinationCollection.SelectFoldersNotInOtherPaneCommand.CanExecute());
             DestinationCollection.SelectFoldersNotInOtherPaneCommand.Execute();
 
             var selectedFolders = DestinationCollection.SelectedFolders.ToList();
-            Assert.That(selectedFolders, Is.Empty);
+            Ensure(selectedFolders, Is.Empty);
         }
 
         [Test]
-        public async Task DeleteAll()
+        public void DeleteAll()
         {
             SourceCollection.SelectFolders(SourceCollection.Folders);
 
-            Assert.That(SourceCollection.Folders, Is.Not.Empty);
+            Ensure(SourceCollection.Folders, Is.Not.Empty);
+            Ensure(SourceCollection.SelectedFolders, Is.Not.Empty);
 
-            await SourceCollection.DeleteSelectedFolders();
+            SourceCollection.DeleteSelectedFolders().RunTaskSynchronously();
 
-            Assert.That(SourceCollection.Folders, Is.Empty);
+            // The deletion needs to propagate through the filesystemwatcher
+            while (SourceCollection.Folders.Count != 0)
+            {
+                Console.WriteLine(SourceCollection.Folders.Count);
+                Thread.Sleep(100);
+            }
+
+            Ensure(SourceCollection.Folders, Is.Empty);
         }
     }
 }

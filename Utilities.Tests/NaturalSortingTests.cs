@@ -150,14 +150,15 @@ namespace Utilities.Tests
 
         private Lazy<int> RepeatEvery { get; } = new Lazy<int>(() => 2 + Random.Next(20));
 
-        [TestCase(ALPHA_CHARS, TestName = nameof(ALPHA_CHARS)),
-         TestCase(ALPHANUMERIC_CHARS, TestName = nameof(ALPHANUMERIC_CHARS)),
-         TestCase(AsciiPrintable, TestName = nameof(AsciiPrintable))]
+        [Explicit]
+        [TestCase(ALPHA_CHARS, TestName = nameof(ALPHA_CHARS))]
+        [TestCase(ALPHANUMERIC_CHARS, TestName = nameof(ALPHANUMERIC_CHARS))]
+        [TestCase(AsciiPrintable, TestName = nameof(AsciiPrintable))]
         public void NaturalSortVsOrdinalSortAlphabetical(string charSet)
         {
             var stopwatch = Stopwatch.StartNew();
             var repeatEvery = RepeatEvery.Value;
-            const int count = 100_000;
+            const int count = 1_000;
             Console.WriteLine($"Character set: {charSet}");
             Console.WriteLine($"Repeating one in every {repeatEvery} strings");
             List<string> randomStrings = new List<string>((int) (count * 1.4));

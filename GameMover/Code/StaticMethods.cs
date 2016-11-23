@@ -89,15 +89,15 @@ namespace GameMover.Code
         public static void ReplaceSelectedItems(this ObservableCollection<object> self, IEnumerable<object> newItems)
         {
             var type = self.GetType();
-
-            type.GetMethod("BeginUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
+            bool isSelectedItemCollection = type.Name == "SelectedItemCollection";
+            if(isSelectedItemCollection) type.GetMethod("BeginUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
             self.Clear();
             foreach (var item in newItems)
             {
                 self.Add(item);
             }
 
-            type.GetMethod("EndUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
+            if (isSelectedItemCollection) type.GetMethod("EndUpdateSelectedItems", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(self, Array.Empty<object>());
         }
     }
 }

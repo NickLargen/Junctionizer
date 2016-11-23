@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace GameMover.Tests.Model.FolderCollectionTests
 {
-    public class FolderCollectionNotInitializedTests : TestBase
+    public class FolderCollectionNotInitializedTests
     {
         [Test]
         public void CanExecuteNoLocation()
