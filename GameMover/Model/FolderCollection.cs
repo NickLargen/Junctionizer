@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -87,13 +88,15 @@ namespace GameMover.Model
             set {
                 _selectedItems = value;
 
-                _selectedItems.CollectionChanged += (sender, args) => {
-                    ArchiveSelectedCommand.RaiseCanExecuteChanged();
-                    CopySelectedCommand.RaiseCanExecuteChanged();
-                    CreateSelectedJunctionCommand.RaiseCanExecuteChanged();
-                    DeleteSelectedFoldersCommand.RaiseCanExecuteChanged();
-                    DeleteSelectedJunctionsCommand.RaiseCanExecuteChanged();
-                };
+                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
+                          .Throttle(TimeSpan.FromMilliseconds(1))
+                          .Subscribe(pattern => {
+                              ArchiveSelectedCommand.RaiseCanExecuteChanged();
+                              CopySelectedCommand.RaiseCanExecuteChanged();
+                              CreateSelectedJunctionCommand.RaiseCanExecuteChanged();
+                              DeleteSelectedFoldersCommand.RaiseCanExecuteChanged();
+                              DeleteSelectedJunctionsCommand.RaiseCanExecuteChanged();
+                          });
             }
         }
 
