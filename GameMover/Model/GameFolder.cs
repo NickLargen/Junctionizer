@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using GameMover.Code;
 
+using JetBrains.Annotations;
+
 using Microsoft.VisualStudio.Threading;
 
 using Prism.Mvvm;
@@ -21,9 +23,9 @@ namespace GameMover.Model
     [DebuggerDisplay(nameof(GameFolder) + " {" + nameof(DirectoryInfo) + "}")]
     public class GameFolder : BindableBase, IComparable, IComparable<GameFolder>
     {
-        public GameFolder(string fullPath) : this(new DirectoryInfo(fullPath)) {}
+        public GameFolder([NotNull] string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
-        public GameFolder(DirectoryInfo directory)
+        public GameFolder([NotNull] DirectoryInfo directory)
         {
             DirectoryInfo = directory;
             IsJunction = JunctionPoint.Exists(directory);
@@ -32,10 +34,14 @@ namespace GameMover.Model
             UpdatePropertiesFromSubdirectories().Forget();
         }
 
+        [NotNull]
         private static ConcurrentDictionary<string, TaskQueue> TaskQueueDictionary { get; } = new ConcurrentDictionary<string, TaskQueue>();
 
+        [NotNull]
         public DirectoryInfo DirectoryInfo { get; set; }
+        [NotNull]
         public string Name => DirectoryInfo.Name;
+        [CanBeNull]
         public string JunctionTarget { get; }
         public DateTime LastWriteTime { get; private set; } = DateTime.MinValue;
         public bool IsJunction { get; }
@@ -47,7 +53,7 @@ namespace GameMover.Model
         private bool IsContinuoslyRecalculating { get; set; }
         private bool IsSizeOutdated { get; set; }
 
-        private CancellationTokenSource _propertyUpdateTokenSource;
+        [CanBeNull] private CancellationTokenSource _propertyUpdateTokenSource;
 
         public void CancelSubdirectorySearch() => SafeCancelTokenSource(_propertyUpdateTokenSource);
 
@@ -143,7 +149,7 @@ namespace GameMover.Model
 
         public override string ToString() => $"{nameof(DirectoryInfo)}: {DirectoryInfo.FullName}";
 
-        public void Rename(string newName)
+        public void Rename([NotNull] string newName)
         {
             Debug.Assert(DirectoryInfo.Parent != null);
             DirectoryInfo = new DirectoryInfo(Path.Combine(DirectoryInfo.Parent.FullName, newName));

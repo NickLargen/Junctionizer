@@ -1,5 +1,7 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 using Newtonsoft.Json;
 
 using Prism.Mvvm;
@@ -9,15 +11,17 @@ namespace GameMover.Model
     /// <summary>Container for two directory location.</summary>
     public sealed class FolderMapping : BindableBase, IEquatable<FolderMapping>
     {
-        public FolderMapping(string source, string destination, bool isSavedMapping = false)
+        public FolderMapping([CanBeNull] string source, [CanBeNull] string destination, bool isSavedMapping = false)
         {
             Source = source;
             Destination = destination;
             IsSavedMapping = isSavedMapping;
         }
 
+        [CanBeNull]
         public string Source { get; }
 
+        [CanBeNull]
         public string Destination { get; }
 
         [JsonIgnore]

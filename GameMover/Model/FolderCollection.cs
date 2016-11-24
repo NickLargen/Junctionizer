@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.Properties;
@@ -35,10 +32,10 @@ namespace GameMover.Model
     {
         public static class Factory
         {
-            public static (FolderCollection source, FolderCollection destination) CreatePair()
+            public static (FolderCollection source, FolderCollection destination) CreatePair(Func<bool> isDesiredThread = null)
             {
-                var source = new FolderCollection();
-                var destination = new FolderCollection();
+                var source = new FolderCollection(isDesiredThread);
+                var destination = new FolderCollection(isDesiredThread);
                 source.CorrespondingCollection = destination;
                 destination.CorrespondingCollection = source;
 
@@ -47,10 +44,13 @@ namespace GameMover.Model
         }
 
         // ReSharper disable once NotNullMemberIsNotInitialized - CorrespondingCollection can't be initialized here because it doesn't exist yet
-        private FolderCollection()
+        private FolderCollection(Func<bool> isDesiredThread)
         {
+            Folders = new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name, isDesiredThread,
+                comparer: StringComparer.OrdinalIgnoreCase);
+
             // This is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
-            SelectedItems = SelectedItems ?? new ObservableCollection<object>();
+            SelectedItems = new ObservableCollection<object>();
             InitDirectoryWatcher();
 
             Folders.CollectionChanged += (sender, args) => {
@@ -72,19 +72,19 @@ namespace GameMover.Model
         [NotNull]
         public FolderCollection CorrespondingCollection { get; private set; }
 
-        public string FolderBrowserDefaultLocation { get; set; }
+        [NotNull]
+        public string FolderBrowserDefaultLocation { get; set; } = string.Empty;
 
         /// <summary>A dictionary where the keys are junction targets within this collection and the values are a list of the folders with that target (simply the opposite of the normal Folder -> junction target relationship).</summary>
+        [NotNull]
         private MultiValueDictionary<string, GameFolder> JunctionTargetsDictionary { get; } =
             new MultiValueDictionary<string, GameFolder>(StringComparer.OrdinalIgnoreCase);
 
-        // It would be nice to able to move the reference to DispatcherSynchronizationContext out of the model
-        public AsyncObservableKeyedSet<string, GameFolder> Folders { get; } =
-            new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name,
-                isDesiredThread: () => SynchronizationContext.Current is DispatcherSynchronizationContext,
-                comparer: StringComparer.OrdinalIgnoreCase);
+        [NotNull]
+        public AsyncObservableKeyedSet<string, GameFolder> Folders { get; }
 
         private ObservableCollection<object> _selectedItems;
+        [NotNull]
         public ObservableCollection<object> SelectedItems
         {
             get { return _selectedItems; }
@@ -103,18 +103,18 @@ namespace GameMover.Model
             }
         }
 
-        public IEnumerable<GameFolder> SelectedFolders =>
-            SelectedItems?.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted) ?? Enumerable.Empty<GameFolder>();
-
-        private bool BothCollectionsInitialized => Location != null && CorrespondingCollection?.Location != null;
-
         [NotNull]
-        private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
+        public IEnumerable<GameFolder> SelectedFolders =>
+            SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted);
 
-        [CanBeNull]
-        private FileStream _directoryLockFileStream;
+        private bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
+
+        [NotNull] private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
+
+        [CanBeNull] private FileStream _directoryLockFileStream;
 
         private string _location;
+        [CanBeNull]
         public string Location
         {
             get { return _location; }
@@ -278,16 +278,19 @@ namespace GameMover.Model
             };
         }
 
-        [NotNull, Pure]
+        [NotNull]
+        [Pure]
         private GameFolder GetFolderByName([NotNull] string name) => Folders[name];
 
-        [NotNull, Pure]
+        [ItemNotNull]
+        [NotNull]
+        [Pure]
         public IEnumerable<GameFolder> GetFoldersByJunctionTarget([NotNull] DirectoryInfo info)
         {
             return JunctionTargetsDictionary.TryGetValue(info.FullName, out var enumerable) ? enumerable : Enumerable.Empty<GameFolder>();
         }
 
-        private async Task Archive(GameFolder folder)
+        private async Task Archive([NotNull] GameFolder folder)
         {
             var createdFolder = await CorrespondingCollection.CopyFolder(folder);
             if (createdFolder != null)
@@ -297,7 +300,7 @@ namespace GameMover.Model
             }
         }
 
-        private void CreateJunctionTo(GameFolder junctionTarget)
+        private void CreateJunctionTo([NotNull] GameFolder junctionTarget)
         {
             try
             {
@@ -316,7 +319,7 @@ namespace GameMover.Model
         }
 
         /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder on if the copy successfully ran to completion, null otherwise.</summary>
-        private Task<GameFolder> CopyFolder(GameFolder folderToCopy)
+        private Task<GameFolder> CopyFolder([NotNull] GameFolder folderToCopy)
         {
             return Task.Run(() => {
                 string targetDirectory = $@"{Location}\{folderToCopy.Name}";
@@ -366,7 +369,7 @@ namespace GameMover.Model
         }
 
         /// <summary>Returns true on successful delete, false if user cancels operation or there is an error</summary>
-        private Task<bool> DeleteFolder(GameFolder folderToDelete)
+        private Task<bool> DeleteFolder([NotNull] GameFolder folderToDelete)
         {
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {
@@ -392,9 +395,9 @@ namespace GameMover.Model
             });
         }
 
-        private void DeleteJunction(GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
+        private void DeleteJunction([NotNull] GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
 
-        private void DeleteJunction(DirectoryInfo junctionDirectory)
+        private void DeleteJunction([NotNull] DirectoryInfo junctionDirectory)
         {
             try
             {
@@ -408,10 +411,10 @@ namespace GameMover.Model
             }
         }
 
-        /// <inheritdoc />
         public void Dispose()
         {
-            _directoryLockFileStream?.Dispose();
+            // ReSharper disable once UseNullPropagation because Microsoft's code analysis doesn't detect it as properly disposing...
+            if (_directoryLockFileStream != null) _directoryLockFileStream.Dispose();
             _directoryWatcher.Dispose();
         }
     }

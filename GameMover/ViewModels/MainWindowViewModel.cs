@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.Model;
@@ -36,7 +38,7 @@ namespace GameMover.ViewModels
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
 
-            (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair();
+            (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair(() => SynchronizationContext.Current is DispatcherSynchronizationContext);
 
             SourceCollection.FolderBrowserDefaultLocation =
                 regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
