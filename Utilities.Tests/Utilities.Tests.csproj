@@ -25,18 +25,18 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -81,16 +81,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GameMover\GameMover.csproj">
-      <Project>{441E1C89-6B17-45E7-9E4D-3BF20423C23E}</Project>
-      <Name>GameMover</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TestingUtilities\TestingUtilities.csproj">
-      <Project>{FD57A314-9B85-4697-AE8C-DABD76A2B890}</Project>
+      <Project>{fd57a314-9b85-4697-ae8c-dabd76a2b890}</Project>
       <Name>TestingUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{60cca455-4f93-48e4-a729-9f29b16c2c0f}</Project>
+      <Project>{60CCA455-4F93-48E4-A729-9F29B16C2C0F}</Project>
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>

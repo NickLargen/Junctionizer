@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GameMover.Code
 {
-    public class TaskQueue
+    public sealed class TaskQueue : IDisposable
     {
         private readonly SemaphoreSlim _semaphore;
 
@@ -25,5 +25,7 @@ namespace GameMover.Code
                 _semaphore.Release();
             }
         }
+
+        public void Dispose() => _semaphore.Dispose();
     }
 }

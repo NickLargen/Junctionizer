@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -45,10 +46,11 @@ namespace GameMover.Model
             }
         }
 
+        // ReSharper disable once NotNullMemberIsNotInitialized - CorrespondingCollection can't be initialized here because it doesn't exist yet
         private FolderCollection()
         {
             // This is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
-            SelectedItems = new ObservableCollection<object>();
+            SelectedItems = SelectedItems ?? new ObservableCollection<object>();
             InitDirectoryWatcher();
 
             Folders.CollectionChanged += (sender, args) => {
@@ -67,6 +69,7 @@ namespace GameMover.Model
             };
         }
 
+        [NotNull]
         public FolderCollection CorrespondingCollection { get; private set; }
 
         public string FolderBrowserDefaultLocation { get; set; }
@@ -103,10 +106,12 @@ namespace GameMover.Model
         public IEnumerable<GameFolder> SelectedFolders =>
             SelectedItems?.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted) ?? Enumerable.Empty<GameFolder>();
 
-        private FileSystemWatcher DirectoryWatcher { get; } = new FileSystemWatcher();
-
         private bool BothCollectionsInitialized => Location != null && CorrespondingCollection?.Location != null;
 
+        [NotNull]
+        private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
+
+        [CanBeNull]
         private FileStream _directoryLockFileStream;
 
         private string _location;
@@ -120,8 +125,8 @@ namespace GameMover.Model
                     // Fody PropertyChanged handless raising a change event for this collections BothCollectionsInitialized
                     CorrespondingCollection?.OnPropertyChanged(nameof(BothCollectionsInitialized));
 
-                    DirectoryWatcher.EnableRaisingEvents = false;
-                    _directoryLockFileStream?.Close();
+                    _directoryWatcher.EnableRaisingEvents = false;
+                    _directoryLockFileStream?.Dispose();
 
                     foreach (var folder in Folders)
                     {
@@ -154,8 +159,8 @@ namespace GameMover.Model
                 }
             }
 
-            DirectoryWatcher.Path = Location;
-            DirectoryWatcher.EnableRaisingEvents = true;
+            _directoryWatcher.Path = Location;
+            _directoryWatcher.EnableRaisingEvents = true;
 
             try
             {
@@ -255,21 +260,19 @@ namespace GameMover.Model
             }
         }
 
-        public void Dispose() => DirectoryWatcher.Dispose();
-
         private void InitDirectoryWatcher()
         {
-            DirectoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
-            DirectoryWatcher.InternalBufferSize = 40960;
-            DirectoryWatcher.Created += (sender, args) => {
+            _directoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
+            _directoryWatcher.InternalBufferSize = 40960;
+            _directoryWatcher.Created += (sender, args) => {
                 var newFolder = new GameFolder(args.FullPath);
                 newFolder.ContinuoslyRecalculateSize().Forget();
                 Folders.AddAsync(newFolder).Forget();
             };
-            DirectoryWatcher.Deleted += (sender, args) => {
+            _directoryWatcher.Deleted += (sender, args) => {
                 Folders.RemoveKeyAsync(args.Name).Forget();
             };
-            DirectoryWatcher.Renamed += (sender, args) => {
+            _directoryWatcher.Renamed += (sender, args) => {
                 var folder = GetFolderByName(args.OldName);
                 Folders.UpdateKeyAsync(folder, () => folder.Rename(args.Name));
             };
@@ -403,6 +406,13 @@ namespace GameMover.Model
             {
                 HandleException(e);
             }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _directoryLockFileStream?.Dispose();
+            _directoryWatcher.Dispose();
         }
     }
 }
