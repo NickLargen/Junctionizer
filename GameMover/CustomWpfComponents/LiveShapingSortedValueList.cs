@@ -316,18 +316,22 @@ namespace GameMover.CustomWpfComponents
             }
 
             LiveShapingItems[item].IsSortDirty = false;
-            if (actualIndex >= 0 && targetIndex != actualIndex)
+            if (actualIndex >= 0)
             {
                 // adjust targetIndex if the item at actualIndex will no longer be there
                 if (actualIndex < targetIndex) targetIndex--;
-                BackingList.Move(actualIndex, targetIndex);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, targetIndex, actualIndex));
+                if (targetIndex != actualIndex)
+                {
+                    BackingList.Move(actualIndex, targetIndex);
+                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, targetIndex,
+                        actualIndex));
+                }
             }
         }
 
         private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            LiveShapingItems[(T) sender].IsSortDirty = true;
+            if (LiveShapingItems.TryGetValue((T) sender, out var liveShapingItem)) liveShapingItem.IsSortDirty = true;
         }
 
         /// <summary>Should always be called before a LiveShapingItem is removed</summary>

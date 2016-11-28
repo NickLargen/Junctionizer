@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.Windows.Data;
 
+using GameMover.Model;
+
 namespace GameMover.ValueConverters
 {
     internal class SizeToStringConverter : IValueConverter
@@ -9,6 +11,10 @@ namespace GameMover.ValueConverters
         public object Convert(object objectValue, Type targetType = null, object parameter = null, CultureInfo culture = null)
         {
             var value = (long) objectValue;
+
+
+            if (value == GameFolder.JUNCTION_POINT_SIZE) return "∅";
+            if (value == GameFolder.UNKNOWN_SIZE) return "?";
 
             if (value < 0) return string.Empty;
 

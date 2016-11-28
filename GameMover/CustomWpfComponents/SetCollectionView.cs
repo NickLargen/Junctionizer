@@ -83,14 +83,19 @@ namespace GameMover.CustomWpfComponents
         protected override event NotifyCollectionChangedEventHandler CollectionChanged;
 
         /// <inheritdoc/>
-        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs args)
+        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            CollectionChanged?.Invoke(this, args);
-
-            if (args.Action != NotifyCollectionChangedAction.Replace &&
-                args.Action != NotifyCollectionChangedAction.Move)
+            // If there is a pending refresh we don't need to emit collection change events because the entire view is going to be rebuilt with the current state
+            // The WPF framework will throw an error if we do anyway
+            if (!IsRefreshDeferred)
             {
-                OnPropertyChanged(nameof(Count));
+                CollectionChanged?.Invoke(this, e);
+
+                if (e.Action != NotifyCollectionChangedAction.Replace &&
+                    e.Action != NotifyCollectionChangedAction.Move)
+                {
+                    OnPropertyChanged(nameof(Count));
+                }
             }
         }
 
@@ -277,6 +282,16 @@ namespace GameMover.CustomWpfComponents
             }
         }
 
+        private static object GetNestedPropertyValue(object obj, string[] splitName)
+        {
+            for (int i = 0; i < splitName.Length - 1; i++)
+            {
+                obj = obj.GetType().GetProperty(splitName[i]).GetValue(obj);
+            }
+
+            return obj?.GetType().GetProperty(splitName[splitName.Length - 1]).GetValue(obj);
+        }
+
         private IComparer<T> CreateComparerFromSortDescriptions()
         {
             IComparer<T> compoundComparer = null;
@@ -293,16 +308,30 @@ namespace GameMover.CustomWpfComponents
                 }
                 else
                 {
-                    var propertyInfo = typeof(T).GetProperty(sortDescription.PropertyName);
-                    if (propertyInfo.PropertyType == typeof(string))
+                    var splitName = sortDescription.PropertyName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+                    if (splitName.Length <= 1)
                     {
-                        Func<T, string> getString = item => (string) propertyInfo.GetValue(item);
-                        var stringComparer = isAscending ? AscendingStringComparer : DescendingStringComparer;
-                        nextComparer = Comparer<T>.Create((x, y) => stringComparer.Compare(getString(x), getString(y)));
+                        var propertyInfo = typeof(T).GetProperty(sortDescription.PropertyName);
+                        if (propertyInfo.PropertyType == typeof(string))
+                        {
+                            Func<T, string> getString = item => (string) propertyInfo.GetValue(item);
+                            var stringComparer = isAscending ? AscendingStringComparer : DescendingStringComparer;
+                            nextComparer = Comparer<T>.Create((x, y) => stringComparer.Compare(getString(x), getString(y)));
+                        }
+                        else
+                        {
+                            Func<T, IComparable> getValue = item => (IComparable) propertyInfo.GetValue(item, null);
+
+                            nextComparer = Comparer<T>.Create(
+                                (first, second) => isAscending
+                                                       ? ComparableComparer.Compare(getValue(first), getValue(second))
+                                                       : ComparableComparer.Compare(getValue(second), getValue(first)));
+                        }
                     }
                     else
                     {
-                        Func<T, IComparable> getValue = item => (IComparable) propertyInfo.GetValue(item, null);
+                        //Performance: PropertyPath should be compared against this reflection heavy solution
+                        Func<T, IComparable> getValue = item => (IComparable) GetNestedPropertyValue(item, splitName);
 
                         nextComparer = Comparer<T>.Create(
                             (first, second) => isAscending
@@ -329,19 +358,19 @@ namespace GameMover.CustomWpfComponents
         #region Process Collection Changes
 
         /// <summary>Handles CollectionChange events sent from the underylying collection.</summary>
-        protected override void ProcessCollectionChanged(NotifyCollectionChangedEventArgs args)
+        protected override void ProcessCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            switch (args.Action)
+            switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    foreach ((T newItem, int addIndex) in InternalSortedList.AddAll(args.NewItems.Cast<T>()))
+                    foreach ((T newItem, int addIndex) in InternalSortedList.AddAll(e.NewItems.Cast<T>()))
                     {
                         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, newItem, addIndex));
                     }
 
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    foreach (T oldItem in args.OldItems.Cast<T>())
+                    foreach (T oldItem in e.OldItems.Cast<T>())
                     {
                         InternalSortedList.Remove(oldItem, actionBeforeRemove: removeIndex =>
                             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, oldItem,

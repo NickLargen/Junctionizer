@@ -14,6 +14,12 @@ namespace Utilities.Collections
     /// <typeparam name="T"></typeparam>
     public class SortedValueList<T> : ICollection<T>, IReadOnlyList<T> where T : IComparable<T>
     {
+        /// <inheritdoc />
+        public SortedValueList()
+        {
+            CompositeComparer = Comparer<T>.Default;
+        }
+
         [CanBeNull] private IComparer<T> _orderingComparer;
         /// <summary>Maintains the sorted collection first by the provided comparer, then by the default ordering of <typeparamref name="T"/>.</summary>
         public IComparer<T> OrderingComparer
@@ -29,6 +35,7 @@ namespace Utilities.Collections
         }
 
         private IComparer<T> _compositeComparer;
+        [NotNull]
         protected IComparer<T> CompositeComparer
         {
             get { return _compositeComparer; }

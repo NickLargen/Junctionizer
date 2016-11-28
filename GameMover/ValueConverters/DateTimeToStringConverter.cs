@@ -4,14 +4,15 @@ using System.Windows.Data;
 
 namespace GameMover.ValueConverters
 {
-    /// <summary>Allows a non-nullable DateTime to display the empty string by using DateTime.MinValue</summary>
     public class DateTimeToStringConverter : IValueConverter
     {
         /// <inheritdoc/>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (value == null) return string.Empty;
+
             var dateTime = (DateTime) value;
-            return dateTime == DateTime.MinValue ? string.Empty : dateTime.ToString(culture);
+            return dateTime == DateTime.MinValue ? "?" : dateTime.ToString(culture);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

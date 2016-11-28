@@ -23,13 +23,20 @@ namespace GameMover.Model
     [DebuggerDisplay(nameof(GameFolder) + " {" + nameof(DirectoryInfo) + "}")]
     public class GameFolder : BindableBase, IComparable, IComparable<GameFolder>
     {
+        public const int UNKNOWN_SIZE = -1;
+        public const int JUNCTION_POINT_SIZE = -2;
+
         public GameFolder([NotNull] string fullPath) : this(new DirectoryInfo(fullPath)) {}
 
         public GameFolder([NotNull] DirectoryInfo directory)
         {
             DirectoryInfo = directory;
             IsJunction = JunctionPoint.Exists(directory);
-            if (IsJunction) JunctionTarget = JunctionPoint.GetTarget(directory);
+            if (IsJunction)
+            {
+                Size = JUNCTION_POINT_SIZE;
+                JunctionTarget = JunctionPoint.GetTarget(directory);
+            }
 
             UpdatePropertiesFromSubdirectories().Forget();
         }
@@ -45,7 +52,7 @@ namespace GameMover.Model
         public string JunctionTarget { get; }
         public DateTime LastWriteTime { get; private set; } = DateTime.MinValue;
         public bool IsJunction { get; }
-        public long Size { get; private set; } = -1;
+        public long Size { get; private set; } = UNKNOWN_SIZE;
 
         public bool IsBeingDeleted { get; set; }
         public bool HasFinalSize => !IsSizeOutdated && !IsContinuoslyRecalculating;
