@@ -9,9 +9,9 @@ using Prism.Mvvm;
 namespace GameMover.Model
 {
     /// <summary>Container for two directory location.</summary>
-    public sealed class FolderMapping : BindableBase, IEquatable<FolderMapping>
+    public sealed class DirectoryMapping : BindableBase, IEquatable<DirectoryMapping>
     {
-        public FolderMapping([CanBeNull] string source, [CanBeNull] string destination, bool isSavedMapping = false)
+        public DirectoryMapping([CanBeNull] string source, [CanBeNull] string destination, bool isSavedMapping = false)
         {
             Source = source;
             Destination = destination;
@@ -31,7 +31,7 @@ namespace GameMover.Model
         public override string ToString() => $"{Source} => {Destination}";
 
         /// <inheritdoc/>
-        public bool Equals(FolderMapping other)
+        public bool Equals(DirectoryMapping other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -39,7 +39,7 @@ namespace GameMover.Model
             return EqualsInternal(other);
         }
 
-        private bool EqualsInternal(FolderMapping other)
+        private bool EqualsInternal(DirectoryMapping other)
         {
             return string.Equals(Destination, other.Destination, StringComparison.OrdinalIgnoreCase) &&
                    string.Equals(Source, other.Source, StringComparison.OrdinalIgnoreCase);
@@ -52,11 +52,11 @@ namespace GameMover.Model
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
 
-            return EqualsInternal((FolderMapping) obj);
+            return EqualsInternal((DirectoryMapping) obj);
         }
 
-        public static bool operator ==(FolderMapping left, FolderMapping right) => Equals(left, right);
-        public static bool operator !=(FolderMapping left, FolderMapping right) => !Equals(left, right);
+        public static bool operator ==(DirectoryMapping left, DirectoryMapping right) => Equals(left, right);
+        public static bool operator !=(DirectoryMapping left, DirectoryMapping right) => !Equals(left, right);
 
         /// <inheritdoc/>
         public override int GetHashCode()

@@ -209,7 +209,7 @@
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="CustomWpfComponents\MultiSelectDataGrid.cs" />
     <Compile Include="Code\StaticMethods.cs" />
-    <Compile Include="Model\FolderMapping.cs" />
+    <Compile Include="Model\DirectoryMapping.cs" />
     <Compile Include="Code\TaskQueue.cs" />
     <Compile Include="UI\Styles\DataGridStyles.xaml.cs">
       <DependentUpon>DataGridStyles.xaml</DependentUpon>

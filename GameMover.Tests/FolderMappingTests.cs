@@ -10,8 +10,8 @@ namespace GameMover.Tests
         [TestMethod]
         public void CaseInsensitiveEquals()
         {
-            var lower = new FolderMapping("a", "b");
-            var upper = new FolderMapping("A", "B");
+            var lower = new DirectoryMapping("a", "b");
+            var upper = new DirectoryMapping("A", "B");
 
             Assert.IsTrue(lower == upper);
             Assert.IsTrue(lower.Equals(upper));

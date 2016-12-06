@@ -68,7 +68,7 @@ namespace GameMover.ViewModels
             SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
 
             var deserializedMappings =
-                JsonConvert.DeserializeObject<List<FolderMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
+                JsonConvert.DeserializeObject<List<DirectoryMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
             deserializedMappings.ForEach(mapping => {
                 mapping.IsSavedMapping = true;
                 DisplayedMappings.Add(mapping);
@@ -105,13 +105,13 @@ namespace GameMover.ViewModels
 
         public MergedItemEnumerable MergedCollection { get; private set; }
 
-        public ObservableCollection<FolderMapping> DisplayedMappings { get; } = new ObservableCollection<FolderMapping>();
+        public ObservableCollection<DirectoryMapping> DisplayedMappings { get; } = new ObservableCollection<DirectoryMapping>();
 
         private string SavedMappingsFilePath { get; set; }
         private bool IsSelectedMappingModificationAllowed { get; set; } = true;
 
-        private FolderMapping _selectedMapping;
-        public FolderMapping SelectedMapping
+        private DirectoryMapping _selectedMapping;
+        public DirectoryMapping SelectedMapping
         {
             get { return _selectedMapping; }
             set {
@@ -120,12 +120,12 @@ namespace GameMover.ViewModels
                 if (!Directory.Exists(_selectedMapping.Source))
                 {
                     DisplayedMappings.Remove(_selectedMapping);
-                    _selectedMapping = new FolderMapping(null, _selectedMapping.Destination);
+                    _selectedMapping = new DirectoryMapping(null, _selectedMapping.Destination);
                 }
                 if (!Directory.Exists(_selectedMapping.Destination))
                 {
                     DisplayedMappings.Remove(_selectedMapping);
-                    _selectedMapping = new FolderMapping(_selectedMapping.Source, null);
+                    _selectedMapping = new DirectoryMapping(_selectedMapping.Source, null);
                 }
 
                 if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
@@ -149,7 +149,7 @@ namespace GameMover.ViewModels
 
         private void SelectedMappingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName.Equals(nameof(FolderMapping.IsSavedMapping)))
+            if (e.PropertyName.Equals(nameof(DirectoryMapping.IsSavedMapping)))
             {
                 WriteSavedMappings();
                 SaveCurrentLocationCommand.RaiseCanExecuteChanged();
@@ -162,7 +162,7 @@ namespace GameMover.ViewModels
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
             if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)
             {
-                SelectedMapping = new FolderMapping(SourceCollection.Location, DestinationCollection.Location);
+                SelectedMapping = new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
             }
         }
 
@@ -194,7 +194,7 @@ namespace GameMover.ViewModels
             foreach (var directoryInfo in junctions)
             {
                 Debug.Assert(directoryInfo.Parent != null, "directoryInfo.Parent != null");
-                var folderMapping = new FolderMapping(directoryInfo.Parent.FullName,
+                var folderMapping = new DirectoryMapping(directoryInfo.Parent.FullName,
                     Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName, isSavedMapping: true);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
