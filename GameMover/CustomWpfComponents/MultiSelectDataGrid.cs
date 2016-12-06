@@ -8,7 +8,10 @@ namespace GameMover.CustomWpfComponents
 {
     public class MultiSelectDataGrid : DataGrid
     {
-        private bool IsFirstLoad {get; set;} = true;
+        private bool IsFirstLoad { get; set; } = true;
+
+        /// <summary>Should be set in xaml so that the correct value is available during the first load</summary>
+        public bool SortOnFirstLoad { get; set; }
 
         public MultiSelectDataGrid()
         {
@@ -18,12 +21,15 @@ namespace GameMover.CustomWpfComponents
                     IsFirstLoad = false;
                     SelectedItemsList = SelectedItems;
 
-                    var firstCol = Columns.First();
-                    // Mark the UI with what direction it is sorted (places the correct column header arrow)
-                    firstCol.SortDirection = ListSortDirection.Ascending;
+                    if (SortOnFirstLoad)
+                    {
+                        var firstCol = Columns.First();
+                        // Mark the UI with what direction it is sorted (places the correct column header arrow)
+                        firstCol.SortDirection = ListSortDirection.Ascending;
 
-                    // Actually sort the items
-                    Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
+                        // Actually sort the items
+                        Items.SortDescriptions.Add(new SortDescription(firstCol.SortMemberPath, firstCol.SortDirection.Value));
+                    }
                 }
             };
         }

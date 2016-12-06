@@ -36,6 +36,7 @@
                 <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
             </DockPanel>
             <customWpfComponents:MultiSelectDataGrid x:Name="sourceGrid"
+                                              SortOnFirstLoad="True"
                                               ItemsSource="{Binding Folders}"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
@@ -67,6 +68,7 @@
             </DockPanel>
 
             <customWpfComponents:MultiSelectDataGrid x:Name="destinationGrid"
+                                                           SortOnFirstLoad="True"
                                               ItemsSource="{Binding Folders}"
                                               SelectedItemsList="{Binding SelectedItems}"
                                               CellStyle="{StaticResource CustomCellStyle}"
