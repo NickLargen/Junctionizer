@@ -14,8 +14,6 @@ namespace GameMover.Tests.AsyncObservableKeyedSet
 {
     public class Investigations
     {
-        [Test]
-        [Explicit]
         public async Task MultithreadingBehavior()
         {
             // RunInWPF count = 1_000_000 takes 20500ms (100%) SEND - thread safe

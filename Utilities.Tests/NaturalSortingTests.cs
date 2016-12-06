@@ -150,7 +150,7 @@ namespace Utilities.Tests
 
         private Lazy<int> RepeatEvery { get; } = new Lazy<int>(() => 2 + Random.Next(20));
 
-        [Explicit]
+        [Ignore("Explicit attribute doesn't work correctly with VSTS - not run is considered failed, while Ignore causes it to be skipped.")]
         [TestCase(ALPHA_CHARS, TestName = nameof(ALPHA_CHARS))]
         [TestCase(ALPHANUMERIC_CHARS, TestName = nameof(ALPHANUMERIC_CHARS))]
         [TestCase(AsciiPrintable, TestName = nameof(AsciiPrintable))]
