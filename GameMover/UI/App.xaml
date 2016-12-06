@@ -41,6 +41,10 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
 
+            <Style TargetType="MenuItem">
+                <Setter Property="Height" Value="36"/>
+            </Style>
+            
             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                 <Setter Property="Padding" Value="11,0,11,0" />
                 <Setter Property="Margin" Value="3,0,3,0" />

@@ -48,16 +48,18 @@
         </i:Interaction.Triggers>
         <DockPanel>
             <Menu DockPanel.Dock="Top" Height="36">
-                <MenuItem Header="_File" Height="36">
-                    <MenuItem Header="_Search Existing Junctions"
-                              Command="{Binding FindExistingJunctionsCommand}" />
-                    <Separator />
-                    <MenuItem Header="_Refresh" Command="{Binding RefreshFoldersCommand}" />
-                    <MenuItem Header="Hide Destination"
-                              IsCheckable="True"
-                              Checked="HideDestination"
-                              Unchecked="ShowDestination" />
-                </MenuItem>
+                <MenuItem Header="_Search Existing Junctions"
+                          Command="{Binding FindExistingJunctionsCommand}" />
+                <MenuItem Header="_Refresh" Command="{Binding RefreshFoldersCommand}" />
+                <MenuItem Header="Single Pane"
+                          IsChecked="False"
+                          IsCheckable="True"
+                          Unchecked="SinglePaneUnchecked"
+                          Checked="SinglePaneChecked" />
+                <MenuItem Header="Select Source"
+                          Command="{Binding SourceCollection.SelectLocationCommand}"/>
+                <MenuItem Header="Select Destination"
+                          Command="{Binding DestinationCollection.SelectLocationCommand}"/>
             </Menu>
             <DockPanel Dock="Top">
                 <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
@@ -108,7 +110,7 @@
                         <TextBlock>Name filter</TextBlock>
                     </placeholderText:WatermarkService.Watermark>
                 </TextBox>
-                <DockPanel Grid.Column="1"  Margin="15 0">
+                <DockPanel Grid.Column="1" Margin="15 0">
                     <TextBlock Margin="0 0 5 0">Size Filter</TextBlock>
                     <controls:RangeSlider
                         ToolTipService.Placement="MousePoint"
@@ -127,83 +129,8 @@
                         UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}" />
                 </DockPanel>
             </Grid>
-            <DockPanel DockPanel.Dock="Top">
-            </DockPanel>
-            <Grid Margin="10 5 10 10" DockPanel.Dock="Top">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.5*" />
-                    <ColumnDefinition x:Name="destinationColumnDefinition" Width="0.5*" />
-                </Grid.ColumnDefinitions>
-
-                <DockPanel Grid.Column="0" DataContext="{Binding SourceCollection}">
-                    <DockPanel HorizontalAlignment="Center"
-                               DockPanel.Dock="Top"
-                               LastChildFill="False">
-                        <Button Command="{Binding SelectLocationCommand}" Content="Select Source Folder" />
-                    </DockPanel>
-
-                    <DockPanel Margin="0,5,0,0"
-                               HorizontalAlignment="Center"
-                               DockPanel.Dock="Bottom">
-                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Destination" />
-                    </DockPanel>
-
-                    <DockPanel HorizontalAlignment="Center"
-                               DockPanel.Dock="Bottom"
-                               LastChildFill="False">
-                        <TextBlock Text="{Binding SelectedItems.Count}" />
-                        <Button Command="{Binding CopySelectedCommand}" Content="Copy -&gt;" />
-                        <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
-                        <Button Command="{Binding DeleteSelectedJunctionsCommand}" Content="Delete Junction" />
-                        <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
-                    </DockPanel>
-                    <customWpfComponents:MultiSelectDataGrid x:Name="sourceGrid"
-                                              SelectedItemsList="{Binding SelectedItems}"
-                                              CellStyle="{StaticResource CustomCellStyle}"
-                                              Style="{StaticResource GameFolderDataGridStyle}">
-                        <DataGrid.Columns>
-                            <columns:NameColumn />
-                            <columns:SizeColumn />
-                            <columns:JunctionTargetColumn />
-                            <columns:LastUpdated />
-                        </DataGrid.Columns>
-                    </customWpfComponents:MultiSelectDataGrid>
-                </DockPanel>
-
-
-                <DockPanel Grid.Column="1" DataContext="{Binding DestinationCollection}">
-                    <DockPanel HorizontalAlignment="Center"
-                               DockPanel.Dock="Top">
-                        <Button Command="{Binding SelectLocationCommand}" Content="Select Destination Folder" />
-                    </DockPanel>
-
-                    <DockPanel Margin="0,5,0,0"
-                               HorizontalAlignment="Center"
-                               DockPanel.Dock="Bottom">
-                        <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Source" />
-                    </DockPanel>
-
-                    <DockPanel HorizontalAlignment="Center"
-                               DockPanel.Dock="Bottom"
-                               LastChildFill="False">
-                        <TextBlock Text="{Binding SelectedItems.Count}" />
-                        <Button Command="{Binding CopySelectedCommand}" Content="&lt;- Copy" />
-                        <Button Command="{Binding CreateSelectedJunctionCommand}" Content="&lt;- Create Junction" />
-                        <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
-                    </DockPanel>
-
-                    <customWpfComponents:MultiSelectDataGrid x:Name="destinationGrid"
-                                              SelectedItemsList="{Binding SelectedItems}"
-                                              CellStyle="{StaticResource CustomCellStyle}"
-                                              Style="{StaticResource GameFolderDataGridStyle}">
-                        <DataGrid.Columns>
-                            <columns:NameColumn />
-                            <columns:SizeColumn />
-                            <columns:LastUpdated />
-                        </DataGrid.Columns>
-                    </customWpfComponents:MultiSelectDataGrid>
-                </DockPanel>
-            </Grid>
+            <Frame x:Name="frame" NavigationUIVisibility="Hidden">
+            </Frame>
         </DockPanel>
     </materialDesign:DialogHost>
 </Window>

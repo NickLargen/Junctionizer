@@ -8,6 +8,8 @@ namespace GameMover.ValueConverters
 {
     internal class SizeToStringConverter : IValueConverter
     {
+        public static SizeToStringConverter Instance { get; } = new SizeToStringConverter();
+
         public object Convert(object objectValue, Type targetType = null, object parameter = null, CultureInfo culture = null)
         {
             var value = (long) objectValue;

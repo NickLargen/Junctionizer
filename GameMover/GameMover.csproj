@@ -193,6 +193,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="UI\DualPane.xaml.cs">
+      <DependentUpon>DualPane.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MergedSinglePane.xaml.cs">
+      <DependentUpon>MergedSinglePane.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ValueConverters\LogScaleConverter.cs" />
     <Compile Include="ValueConverters\DateTimeToStringConverter.cs" />
     <Compile Include="Code\ErrorHandling.cs" />
@@ -205,9 +211,6 @@
     <Compile Include="Code\StaticMethods.cs" />
     <Compile Include="Model\FolderMapping.cs" />
     <Compile Include="Code\TaskQueue.cs" />
-    <Compile Include="UI\Columns\JunctionTargetColumn.xaml.cs">
-      <DependentUpon>JunctionTargetColumn.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\Styles\DataGridStyles.xaml.cs">
       <DependentUpon>DataGridStyles.xaml</DependentUpon>
     </Compile>
@@ -217,17 +220,20 @@
     <Compile Include="UI\Columns\NameColumn.xaml.cs">
       <DependentUpon>NameColumn.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\Columns\SizeColumn.xaml.cs">
-      <DependentUpon>SizeColumn.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Columns\LastUpdatedColumn.xaml.cs">
-      <DependentUpon>LastUpdatedColumn.xaml</DependentUpon>
+    <Compile Include="UI\Columns\DependentOnFinalSizeColumn.xaml.cs">
+      <DependentUpon>DependentOnFinalSizeColumn.xaml</DependentUpon>
     </Compile>
     <Compile Include="ValueConverters\LogScaleTooltipConverter.cs" />
+    <Compile Include="ViewModels\MergedItemEnumerable.cs" />
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
-    <Page Include="UI\Columns\JunctionTargetColumn.xaml">
+    <Compile Include="ViewModels\MergedItem.cs" />
+    <Page Include="UI\DualPane.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\MergedSinglePane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -262,11 +268,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\Columns\SizeColumn.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Columns\LastUpdatedColumn.xaml">
+    <Page Include="UI\Columns\DependentOnFinalSizeColumn.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

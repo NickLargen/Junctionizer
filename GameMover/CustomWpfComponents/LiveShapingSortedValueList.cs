@@ -311,10 +311,8 @@ namespace GameMover.CustomWpfComponents
             {
                 actualIndex = LinearSearch(item);
                 targetIndex = ~originalBinarySearchIndex;
-
-                Debug.Assert(actualIndex != targetIndex);
             }
-
+            
             LiveShapingItems[item].IsSortDirty = false;
             if (actualIndex >= 0)
             {
@@ -327,11 +325,24 @@ namespace GameMover.CustomWpfComponents
                         actualIndex));
                 }
             }
+
+           /* Debug.WriteLine(args.Property + "  " + string.Join(", ",
+                                BackingList.OfType<MergedItem>()
+                                           .Select(
+                                               mergedItem => {
+                                                   if (mergedItem.DestinationEntry == null) return "-99";
+
+                                                   return SizeToStringConverter.Instance.Convert(mergedItem.DestinationEntry?.Size)
+                                                          + (LiveShapingItems[mergedItem as T].IsSortDirty ? "" : "✓");
+                                               })
+                            ));*/
+
         }
 
         private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (LiveShapingItems.TryGetValue((T) sender, out var liveShapingItem)) liveShapingItem.IsSortDirty = true;
+            else Debug.WriteLine($"{sender} not found");
         }
 
         /// <summary>Should always be called before a LiveShapingItem is removed</summary>

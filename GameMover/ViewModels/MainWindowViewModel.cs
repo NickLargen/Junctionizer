@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +15,8 @@ using System.Windows.Threading;
 
 using GameMover.Code;
 using GameMover.Model;
+
+using JetBrains.Annotations;
 
 using MaterialDesignThemes.Wpf;
 
@@ -34,6 +38,14 @@ namespace GameMover.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        public MainWindowViewModel()
+        {
+            PassesFilterChangedObservable = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(PropertyChanged))
+                                                      .Where(pattern => pattern.EventArgs.PropertyName == nameof(PassesFilter))
+                                                      .Sample(TimeSpan.FromMilliseconds(200))
+                                                      .ObserveOn(SynchronizationContext.Current);
+        }
+
         public void Initialize()
         {
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
@@ -43,6 +55,8 @@ namespace GameMover.ViewModels
             SourceCollection.FolderBrowserDefaultLocation =
                 regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
             DestinationCollection.FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common";
+
+            MergedCollection = new MergedItemEnumerable(SourceCollection, DestinationCollection);
 
             BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
 
@@ -63,10 +77,14 @@ namespace GameMover.ViewModels
             DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
         }
 
+        /// <summary>Fody PropertyChanged handles creating change notification whenever something this function depends on changes.</summary>
+        [NotNull]
         [AutoLazy.Lazy]
-        public Func<GameFolder, bool> Filter => folder =>
+        public Func<GameFolder, bool> PassesFilter => folder =>
             folder.Name.Contains(FilterNameText, StringComparison.OrdinalIgnoreCase)
             && FilterLowerSizeLimit <= folder.Size && folder.Size <= FilterUpperSizeLimit;
+
+        public IObservable<EventPattern<PropertyChangedEventArgs>> PassesFilterChangedObservable { get; }
 
         public string FilterNameText { get; set; } = string.Empty;
 
@@ -84,6 +102,8 @@ namespace GameMover.ViewModels
 
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
+
+        public MergedItemEnumerable MergedCollection { get; private set; }
 
         public ObservableCollection<FolderMapping> DisplayedMappings { get; } = new ObservableCollection<FolderMapping>();
 
