@@ -92,6 +92,7 @@ namespace GameMover.ViewModels
         public double FilterUpperSizeLimit { get; set; } = double.PositiveInfinity;
 
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
+        public InteractionRequest<INotification> ShowErrorDialogRequest { get; } = new InteractionRequest<INotification>();
         public InteractionRequest<INotification> DisplayFindJunctionsDialogRequest { get; } = new InteractionRequest<INotification>();
         public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
 
@@ -181,15 +182,13 @@ namespace GameMover.ViewModels
 
         private async Task FindExistingJunctions()
         {
-            var folderDialog = NewFolderDialog("Select Root Directory");
-            if (folderDialog.ShowDialog() != CommonFileDialogResult.Ok) return;
-
-            var selectedPath = folderDialog.FileName;
+            var selectedDirectory = PromptForDirectory("Select Root Directory");
+            if(selectedDirectory == null) return;
 
             DisplayFindJunctionsDialogRequest.Raise(null);
             OnDialogClosed = () => FindJunctionsViewModel.Cancel();
 
-            var junctions = await FindJunctionsViewModel.GetJunctions(selectedPath);
+            var junctions = await FindJunctionsViewModel.GetJunctions(selectedDirectory);
 
             foreach (var directoryInfo in junctions)
             {
@@ -198,6 +197,32 @@ namespace GameMover.ViewModels
                     Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName, isSavedMapping: true);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
+        }
+
+        /// <summary>Shows an error message and then reprompts if the user selects an invalid entry. Returns null iff the dialog is cancelled.</summary>
+        private DirectoryInfo PromptForDirectory(string dialogTitle)
+        {
+            var folderDialog = NewFolderDialog(dialogTitle);
+
+            while (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                try
+                {
+                    return new DirectoryInfo(folderDialog.FileName);
+                }
+                catch (Exception)
+                {
+                    ShowErrorDialogRequest.Raise(
+                        new Prism.Interactivity.InteractionRequest.Notification {
+                            Title = "Invalid Selection",
+                            Content =
+                                $"Unable to search the selected location - did you select a valid directory path?" +
+                                $"\nTry choosing a more specific location."
+                        });
+                }
+            }
+
+            return null;
         }
 
         [AutoLazy.Lazy]

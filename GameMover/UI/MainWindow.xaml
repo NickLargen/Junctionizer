@@ -45,6 +45,10 @@
             <i:EventTrigger EventName="DialogClosing">
                 <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}" />
             </i:EventTrigger>
+
+            <prism:InteractionRequestTrigger SourceObject="{Binding ShowErrorDialogRequest}">
+                <prism:PopupWindowAction CenterOverAssociatedObject="True" IsModal="True"/>
+            </prism:InteractionRequestTrigger>
         </i:Interaction.Triggers>
         <DockPanel>
             <Menu DockPanel.Dock="Top" Height="36">

@@ -21,7 +21,7 @@ namespace GameMover.ViewModels
 
         public void Cancel() => ErrorHandling.SafeCancelTokenSource(TokenSource);
 
-        public async Task<List<DirectoryInfo>> GetJunctions(string selectedPath)
+        public async Task<List<DirectoryInfo>> GetJunctions(DirectoryInfo selectedDirectory)
         {
             var junctions = new List<DirectoryInfo>();
             IsSearching = true;
@@ -36,7 +36,7 @@ namespace GameMover.ViewModels
                 try
                 {
                     await Task.Run(() => {
-                        foreach (var info in new DirectoryInfo(selectedPath).EnumerateAllAccessibleDirectories())
+                        foreach (var info in selectedDirectory.EnumerateAllAccessibleDirectories())
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
