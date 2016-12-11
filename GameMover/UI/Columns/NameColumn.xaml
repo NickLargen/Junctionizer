@@ -3,6 +3,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 
                     Binding="{Binding Name}"
+                    MinWidth="50"
                     Width="*"
                     Header="Name">
 </DataGridTextColumn>

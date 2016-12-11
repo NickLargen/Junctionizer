@@ -14,7 +14,7 @@
 
     <DockPanel DataContext="{Binding MergedCollection}">
         <customWpfComponents:MultiSelectDataGrid x:Name="mergedItemDataGrid"
-                                                       SortOnFirstLoad="True"
+                                                 SortOnFirstLoad="True"
                                                  CellStyle="{StaticResource CustomCellStyle}"
                                                  Style="{StaticResource GameFolderDataGridStyle}">
             <!--                                              SelectedItemsList="{Binding SelectedItems}"-->
