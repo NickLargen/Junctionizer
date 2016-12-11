@@ -80,6 +80,7 @@ namespace GameMover.Tests.Model.FolderCollectionTests
             Ensure(SourceCollection.Folders, Is.Not.Empty);
             Ensure(SourceCollection.SelectedFolders, Is.Not.Empty);
 
+            SourceCollection.DeleteSelectedJunctions();
             SourceCollection.DeleteSelectedFolders().RunTaskSynchronously();
 
             // The deletion needs to propagate through the filesystemwatcher
