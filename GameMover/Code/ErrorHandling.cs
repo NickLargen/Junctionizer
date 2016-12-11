@@ -90,10 +90,10 @@ namespace GameMover.Code
             }
         }
 
-        /// <exception cref="DirectoryNotFoundException"></exception>
-        public static void CheckLocationExists(string loc)
+        /// <exception cref="DirectoryNotFoundException"/>
+        public static void ThrowIfDirectoryNotFound(string path)
         {
-            if (!Directory.Exists(loc)) throw new DirectoryNotFoundException($"Could not find directory '{loc}'.");
+            if (!Directory.Exists(path)) throw new DirectoryNotFoundException($"Could not find directory '{path}'.");
         }
     }
 }

@@ -189,13 +189,7 @@ namespace Utilities.Collections
             });
         }
 
-        public TItem this[[NotNull] TKey key]
-        {
-            get { return BackingDictionary[key]; }
-            /* set {
- //                BackingDictionary[key] = value
-             }*/
-        }
+        public TItem this[[NotNull] TKey key] => BackingDictionary[key];
 
         /// <summary>
         ///     <see cref="Dictionary{TKey,TValue}.TryGetValue"/>

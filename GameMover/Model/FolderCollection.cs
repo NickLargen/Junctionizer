@@ -180,36 +180,35 @@ namespace GameMover.Model
 
         #region Commands
 
-        //TODO test
         [AutoLazy.Lazy]
         public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveSelected(),
-            () => BothCollectionsInitialized && SelectedFolders.Any());
+            () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
 
-        public Task ArchiveSelected() => Task.WhenAll(SelectedFolders.Select(Archive));
+        public Task ArchiveSelected() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(Archive));
 
         [AutoLazy.Lazy]
         public DelegateCommand CopySelectedCommand => new DelegateCommand(() => CopySelectedFolders(),
             () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
 
-        public Task CopySelectedFolders() => Task.WhenAll(SelectedFolders.Select(CorrespondingCollection.CopyFolder));
+        public Task CopySelectedFolders() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(CorrespondingCollection.CopyFolder));
 
         [AutoLazy.Lazy]
         public DelegateCommand CreateSelectedJunctionCommand => new DelegateCommand(CreateSelectedJunctions,
             () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
 
-        public void CreateSelectedJunctions() => SelectedFolders.ForEach(CorrespondingCollection.CreateJunctionTo);
+        public void CreateSelectedJunctions() => SelectedFolders.Where(folder => !folder.IsJunction).ForEach(CorrespondingCollection.CreateJunctionTo);
 
         [AutoLazy.Lazy]
         public DelegateCommand DeleteSelectedFoldersCommand => new DelegateCommand(() => DeleteSelectedFolders(),
             () => SelectedFolders.Any(folder => !folder.IsJunction));
 
-        public Task DeleteSelectedFolders() => Task.WhenAll(SelectedFolders.Select(DeleteFolder));
+        public Task DeleteSelectedFolders() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(DeleteFolder));
 
         [AutoLazy.Lazy]
         public DelegateCommand DeleteSelectedJunctionsCommand => new DelegateCommand(DeleteSelectedJunctions,
             () => SelectedFolders.Any(folder => folder.IsJunction));
 
-        public void DeleteSelectedJunctions() => SelectedFolders.ForEach(DeleteJunction);
+        public void DeleteSelectedJunctions() => SelectedFolders.Where(folder => folder.IsJunction).ForEach(DeleteJunction);
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectFoldersNotInOtherPane)
@@ -304,7 +303,7 @@ namespace GameMover.Model
         {
             try
             {
-                CheckLocationExists(Location);
+                ThrowIfDirectoryNotFound(Location);
 
                 var junctionDirectory = new DirectoryInfo(Location + @"\" + junctionTarget.Name);
                 if (junctionDirectory.Exists == false)
@@ -318,7 +317,7 @@ namespace GameMover.Model
             }
         }
 
-        /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder on if the copy successfully ran to completion, null otherwise.</summary>
+        /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder only if the copy successfully ran to completion, null otherwise.</summary>
         private Task<GameFolder> CopyFolder([NotNull] GameFolder folderToCopy)
         {
             return Task.Run(() => {
@@ -329,7 +328,7 @@ namespace GameMover.Model
 
                 try
                 {
-                    CheckLocationExists(Location);
+                    ThrowIfDirectoryNotFound(Location);
 
                     if (isOverwrite)
                     {
@@ -348,7 +347,7 @@ namespace GameMover.Model
 
                     FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
                     var createdFolder = GetFolderByName(targetDirectoryInfo.Name);
-                    // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the fprompt for replacing vs skipping duplicate files.
+                    // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the prompt for replacing vs skipping duplicate files.
                     createdFolder.RecalculateSize();
                     return createdFolder;
                 }
@@ -375,7 +374,7 @@ namespace GameMover.Model
             return Task.Run(() => {
                 try
                 {
-                    CheckLocationExists(Location);
+                    ThrowIfDirectoryNotFound(Location);
 
                     FileSystem.DeleteDirectory(folderToDelete.DirectoryInfo.FullName, UIOption.OnlyErrorDialogs,
                         RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
@@ -383,9 +382,10 @@ namespace GameMover.Model
                 catch (Exception e) when (e is OperationCanceledException || e is IOException)
                 {
                     folderToDelete.IsBeingDeleted = false;
-                    if (e is IOException) HandleException(e);
                     //Do nothing if they cancel
-                    return false;
+                    if (e is OperationCanceledException) return false;
+
+                    HandleException(e);
                 }
 
                 //Delete junctions pointing to the deleted folder
@@ -401,7 +401,7 @@ namespace GameMover.Model
         {
             try
             {
-                CheckLocationExists(Location);
+                ThrowIfDirectoryNotFound(Location);
 
                 JunctionPoint.Delete(junctionDirectory);
             }

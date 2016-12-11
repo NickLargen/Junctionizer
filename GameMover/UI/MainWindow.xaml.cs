@@ -21,7 +21,6 @@ namespace GameMover.UI
     {
         public DualPane DualPane { get; }
         public MergedSinglePane SinglePane { get; }
-        //TODO: Delete on a junction gives recycle bin prompt but it's just for the junction
 
         public MainWindow()
         {

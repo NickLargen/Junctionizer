@@ -19,7 +19,7 @@ namespace GameMover.UI.Styles
             var path = folder?.DirectoryInfo.FullName;
             if (path != null)
             {
-                ErrorHandling.CheckLocationExists(path);
+                ErrorHandling.ThrowIfDirectoryNotFound(path);
                 Process.Start(path);
             }
         }
