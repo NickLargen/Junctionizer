@@ -22,8 +22,8 @@ namespace GameMover.UI
         
         private void SetItemsSource(MultiSelectDataGrid dataGrid, FolderCollection folderCollection, MainWindowViewModel mainWindowViewModel)
         {
-            var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>((AsyncObservableKeyedSet<string, GameFolder>) folderCollection.Folders);
-            
+            var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>(folderCollection.Folders, mainWindowViewModel.LiveFilteringProperties);
+
             setCollectionView.Filter = obj => mainWindowViewModel.PassesFilter((GameFolder) obj);
             
             mainWindowViewModel.PassesFilterChangedObservable.Subscribe(pattern => setCollectionView.NotifyFilterChanged());

@@ -23,8 +23,10 @@ namespace GameMover.CustomWpfComponents
         where T : IComparable<T>, INotifyPropertyChanged
         where TCollectionType : IEnumerable<T>, INotifyCollectionChanged
     {
-        public SetCollectionView([NotNull] TCollectionType set) : base(set)
+        public SetCollectionView([NotNull] TCollectionType set, ObservableCollection<string> liveFilteringProperties = null) : base(set)
         {
+            if (liveFilteringProperties != null) LiveFilteringProperties = liveFilteringProperties;
+
             Set = set;
             InternalSortedList = new LiveShapingSortedValueList<T>(this);
             InternalSortedList.AddAll(set);

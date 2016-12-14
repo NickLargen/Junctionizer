@@ -19,6 +19,25 @@ namespace GameMover.CustomWpfComponents
     public class LiveShapingSortedValueList<T> : SortedValueList<T>, INotifyCollectionChanged
         where T : IComparable<T>, INotifyPropertyChanged
     {
+        private enum LiveShapingCategory
+        {
+            Filtering,
+            Sorting
+        }
+
+        private struct LiveShapingProperty
+        {
+            public LiveShapingCategory Category { get; }
+            public string PropertyName { get; }
+
+            public LiveShapingProperty(string propertyName, LiveShapingCategory category)
+            {
+                PropertyName = propertyName;
+                Category = category;
+            }
+        }
+
+
         private static readonly ConcurrentDictionary<string, DependencyProperty> DependencyPropertiesCache =
             new ConcurrentDictionary<string, DependencyProperty>();
 
@@ -35,48 +54,77 @@ namespace GameMover.CustomWpfComponents
 
             if (LiveShapingView.IsLiveSorting == false && LiveShapingView.IsLiveFiltering == false) throw new NotSupportedException($"Only use {nameof(LiveShapingSortedValueList<T>)} if you are actually live shaping.");
 
-            LiveShapingView.LiveSortingProperties.CollectionChanged += (sender, args) => {
+            LiveShapingView.LiveSortingProperties.CollectionChanged += CreateCollectionChangedEventHandlerFor(LiveShapingCategory.Sorting);
+            LiveShapingView.LiveFilteringProperties.CollectionChanged += CreateCollectionChangedEventHandlerFor(LiveShapingCategory.Filtering);
+        }
+
+        [NotNull]
+        private NotifyCollectionChangedEventHandler CreateCollectionChangedEventHandlerFor(LiveShapingCategory category)
+        {
+            return (sender, args) => {
                 if (args.Action == NotifyCollectionChangedAction.Reset)
                 {
-                    ClearAllLiveSortingProperties();
-                    ((IEnumerable<string>) sender).ForEach(AddLiveSortingProperty);
+                    ClearAllLiveShapingPropertiesOf(category);
+                    ((IEnumerable<string>) sender).ForEach(
+                        newPropertyName => AddLiveShapingProperty(newPropertyName, category));
                 }
                 else if (args.Action != NotifyCollectionChangedAction.Move)
                 {
-                    args.OldItems?.Cast<string>().ForEach(RemoveLiveSortingProperty);
-                    args.NewItems?.Cast<string>().ForEach(AddLiveSortingProperty);
+                    args.OldItems?.Cast<string>()
+                        .ForEach(oldPropertyName => RemoveLiveShapingProperty(oldPropertyName, category));
+                    args.NewItems?.Cast<string>()
+                        .ForEach(newPropertyName => AddLiveShapingProperty(newPropertyName, category));
                 }
             };
         }
 
-        private void AddLiveSortingProperty(string newSortPropertyName)
+        private void AddLiveShapingProperty(string newPropertyName, LiveShapingCategory category)
         {
-            var newDp = DependencyPropertiesCache.GetOrAdd(GetDependencyPropertyNameFor(newSortPropertyName),
-                name => DependencyProperty.RegisterAttached(name, typeof(object), typeof(LiveShapingSortedValueList<>)));
+            var newDp = DependencyPropertiesCache.GetOrAdd(GetDependencyPropertyNameFor(newPropertyName, category),
+                name => DependencyProperty.Register(name, typeof(object), typeof(LiveShapingSortedValueList<>)));
 
-            ActiveDependencyProperties.Add(newSortPropertyName, newDp);
-            LiveShapingItems.Values.ForEach(lsi => RegisterBinding(lsi, newSortPropertyName, newDp));
+            var lsp = new LiveShapingProperty(newPropertyName, category);
+            ActiveDependencyProperties.Add(lsp, newDp);
+            LiveShapingItems.Values.ForEach(lsi => RegisterBinding(lsi, lsp, newDp));
         }
 
-        private void ClearAllLiveSortingProperties()
+        private void ClearAllLiveShapingPropertiesOf(LiveShapingCategory category)
         {
-            LiveShapingItems.Values.ForEach(lsi => lsi.ClearAllBindings());
-            ActiveDependencyProperties.Clear();
+            List<LiveShapingProperty> lspsToRemove = new List<LiveShapingProperty>();
+            foreach (var adpPair in ActiveDependencyProperties.Where(pair => pair.Key.Category == category))
+            {
+                var dependencyProperty = adpPair.Value;
+                LiveShapingItems.Values.ForEach(lsi => lsi.RemoveBinding(dependencyProperty));
+
+                lspsToRemove.Add(adpPair.Key);
+            }
+
+            lspsToRemove.ForEach(lsp => ActiveDependencyProperties.Remove(lsp));
         }
 
-        private void RemoveLiveSortingProperty(string oldSortPropertyName)
+        private void RemoveLiveShapingProperty(string oldSortPropertyName, LiveShapingCategory category)
         {
-            var oldDp = ActiveDependencyProperties[oldSortPropertyName];
+            var liveShapingProperty = new LiveShapingProperty(oldSortPropertyName, category);
+            var oldDp = ActiveDependencyProperties[liveShapingProperty];
 
             LiveShapingItems.Values.ForEach(lsi => lsi.RemoveBinding(oldDp));
-            ActiveDependencyProperties.Remove(oldSortPropertyName);
+            ActiveDependencyProperties.Remove(liveShapingProperty);
+        }
+
+
+        private static LiveShapingCategory GetCategoryOfDependencyProperty(DependencyProperty dp)
+        {
+            return Enum.GetValues(typeof(LiveShapingCategory))
+                       .Cast<LiveShapingCategory>()
+                       .Single(category => dp.Name.StartsWith(category.ToString(), StringComparison.Ordinal));
         }
 
         [NotNull]
-        private static string GetDependencyPropertyNameFor(string sortPropertyName) => $"LiveSort {typeof(T).Name} {sortPropertyName}";
+        private static string GetDependencyPropertyNameFor(string propertyName, LiveShapingCategory category)
+            => $"{category} {typeof(T).Name} {propertyName} (Live)";
 
         /// <summary>SortPropertyName -> DependencyProperty</summary>
-        public Dictionary<string, DependencyProperty> ActiveDependencyProperties { get; } = new Dictionary<string, DependencyProperty>();
+        private Dictionary<LiveShapingProperty, DependencyProperty> ActiveDependencyProperties { get; } = new Dictionary<LiveShapingProperty, DependencyProperty>();
 
         private IEqualityComparer<T> EqualityComparer { get; } = EqualityComparer<T>.Default;
 
@@ -103,7 +151,7 @@ namespace GameMover.CustomWpfComponents
         {
             if (Filter == null)
             {
-                FilteredItems.ForEach(item => Add(item));
+                FilteredItems.ForEach(item => InternalAdd(item));
                 FilteredItems.Clear();
             }
             else
@@ -116,15 +164,15 @@ namespace GameMover.CustomWpfComponents
                     {
                         itemsRemovedByNewFilter.Add(BackingList[i]);
                         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, BackingList[i], i));
-                        RemoveAt(i);
+                        base.RemoveAt(i);
                     }
                 }
 
                 // Add the previously filtered items that that now pass 
                 FilteredItems.RemoveWhere(item => {
-                    if (PassesFilter(item))
+                    var insertionIndex = InternalAdd(item);
+                    if (insertionIndex >= 0)
                     {
-                        var insertionIndex = Add(item);
                         OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, insertionIndex));
                         return true;
                     }
@@ -132,7 +180,7 @@ namespace GameMover.CustomWpfComponents
                     return false;
                 });
 
-                // Don't add move items into the filtered list until it has been iterated over
+                // Don't move items into the filtered list until it has been iterated over
                 FilteredItems.UnionWith(itemsRemovedByNewFilter);
             }
         }
@@ -141,21 +189,25 @@ namespace GameMover.CustomWpfComponents
 
         public override int Add(T item)
         {
-            if (PassesFilter(item)) return base.Add(item);
+            CreateLiveShapingItem(item);
+            return base.Add(item);
+        }
+
+        protected override int InternalAdd(T item)
+        {
+            if (PassesFilter(item)) return base.InternalAdd(item);
 
             AddFilteredItem(item);
             return -1;
         }
 
-        protected override void BeforeItemInserted(T item)
-        {
-            CreateLiveShapingItem(item);
-            base.BeforeItemInserted(item);
-        }
-
         public override IEnumerable<ItemIndexPair> AddAll(IEnumerable<T> enumerable)
         {
             var elementsPassingFilter = enumerable.ToLookup(PassesFilter);
+
+            // Avoid evalutating the provided enumerable multiple times
+            elementsPassingFilter[true].Concat(elementsPassingFilter[false]).ForEach(CreateLiveShapingItem);
+
             elementsPassingFilter[false].ForEach(AddFilteredItem);
             return base.AddAll(elementsPassingFilter[true]);
         }
@@ -167,7 +219,7 @@ namespace GameMover.CustomWpfComponents
         {
             // We can't use the base implementation because property changes may invalidate the current sort order at any time
             addList.Sort(CompositeComparer);
-            return addList.Select(item => new ItemIndexPair(item, Add(item)));
+            return addList.Select(item => new ItemIndexPair(item, InternalAdd(item)));
         }
 
         /// <inheritdoc/>
@@ -183,16 +235,19 @@ namespace GameMover.CustomWpfComponents
             var liveShapingItem = new LiveShapingItem<T>(item);
             liveShapingItem.PropertyChanged += OnDependencyPropertyChanged;
             LiveShapingItems.Add(item, liveShapingItem);
-            foreach (KeyValuePair<string, DependencyProperty> pair in ActiveDependencyProperties)
+            foreach (KeyValuePair<LiveShapingProperty, DependencyProperty> pair in ActiveDependencyProperties)
             {
                 RegisterBinding(liveShapingItem, pair.Key, pair.Value);
             }
         }
 
-        private void RegisterBinding(LiveShapingItem<T> liveShapingItem, string sortPropertyName, DependencyProperty dp)
+        private void RegisterBinding(LiveShapingItem<T> liveShapingItem, LiveShapingProperty lsp, DependencyProperty dp)
         {
-            liveShapingItem.AddBinding(sortPropertyName, dp);
-            PropertyChangedEventManager.AddHandler(liveShapingItem.Item, OnItemPropertyChanged, sortPropertyName);
+            liveShapingItem.AddBinding(lsp.PropertyName, dp);
+            if ( lsp.Category == LiveShapingCategory.Sorting)
+            {
+                PropertyChangedEventManager.AddHandler(liveShapingItem.Item, OnItemSortPropertyChanged, lsp.PropertyName);
+            }
         }
 
         /// <summary>Returns a correct position in the list for the provided item, even if the item is in the collection in the wrong place (as long as IsSortDirty is accurate)</summary>
@@ -296,50 +351,83 @@ namespace GameMover.CustomWpfComponents
         {
             T item = (T) (LiveShapingItem<T>) dependencyObject;
 
-            int originalBinarySearchIndex = InternalBinarySearchWithEqualityCheck(item);
-            int actualIndex;
-            int targetIndex;
-
-            if (originalBinarySearchIndex >= 0)
+            switch (GetCategoryOfDependencyProperty(args.Property))
             {
-                Debug.Assert(BackingList[originalBinarySearchIndex].Equals(item));
+                case LiveShapingCategory.Sorting:
+                    int originalBinarySearchIndex = InternalBinarySearchWithEqualityCheck(item);
+                    int actualIndex;
+                    int targetIndex;
 
-                actualIndex = originalBinarySearchIndex;
-                targetIndex = FindCorrectLocation(item);
+                    if (originalBinarySearchIndex >= 0)
+                    {
+                        Debug.Assert(BackingList[originalBinarySearchIndex].Equals(item));
+
+                        actualIndex = originalBinarySearchIndex;
+                        targetIndex = FindCorrectLocation(item);
+                    }
+                    else
+                    {
+                        actualIndex = LinearSearch(item);
+                        targetIndex = ~originalBinarySearchIndex;
+                    }
+
+                    LiveShapingItems[item].IsSortDirty = false;
+                    if (actualIndex >= 0)
+                    {
+                        // adjust targetIndex if the item at actualIndex will no longer be there
+                        if (actualIndex < targetIndex) targetIndex--;
+                        if (targetIndex != actualIndex)
+                        {
+                            BackingList.Move(actualIndex, targetIndex);
+                            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, targetIndex,
+                                actualIndex));
+                        }
+                    }
+                    break;
+                case LiveShapingCategory.Filtering:
+                    var passesFilter = PassesFilter(item);
+
+                    if (passesFilter)
+                    {
+                        if (FilteredItems.Remove(item))
+                        {
+                            var insertionIndex = base.Add(item);
+                            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, insertionIndex));
+                        }
+                    }
+                    else
+                    {
+                        if (!FilteredItems.Contains(item))
+                        {
+                            var removalIndex = IndexOf(item);
+
+                            // It is possible that the liveshapingitem has been registered but the item has not yet been added to this collection (causing index = -1), in which case this is a noop
+                            if (removalIndex >= 0)
+                            {
+                                base.RemoveAt(removalIndex);
+                                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, removalIndex));
+                                FilteredItems.Add(item);
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                actualIndex = LinearSearch(item);
-                targetIndex = ~originalBinarySearchIndex;
-            }
-            
-            LiveShapingItems[item].IsSortDirty = false;
-            if (actualIndex >= 0)
-            {
-                // adjust targetIndex if the item at actualIndex will no longer be there
-                if (actualIndex < targetIndex) targetIndex--;
-                if (targetIndex != actualIndex)
-                {
-                    BackingList.Move(actualIndex, targetIndex);
-                    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, targetIndex,
-                        actualIndex));
-                }
-            }
 
-           /* Debug.WriteLine(args.Property + "  " + string.Join(", ",
-                                BackingList.OfType<MergedItem>()
-                                           .Select(
-                                               mergedItem => {
-                                                   if (mergedItem.DestinationEntry == null) return "-99";
-
-                                                   return SizeToStringConverter.Instance.Convert(mergedItem.DestinationEntry?.Size)
-                                                          + (LiveShapingItems[mergedItem as T].IsSortDirty ? "" : "✓");
-                                               })
-                            ));*/
-
+            /* Debug.WriteLine(args.Property + "  " + string.Join(", ",
+                                 BackingList.OfType<MergedItem>()
+                                            .Select(
+                                                mergedItem => {
+                                                    if (mergedItem.DestinationEntry == null) return "-99";
+ 
+                                                    return SizeToStringConverter.Instance.Convert(mergedItem.DestinationEntry?.Size)
+                                                           + (LiveShapingItems[mergedItem as T].IsSortDirty ? "" : "✓");
+                                                })
+                             ));*/
         }
 
-        private void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void OnItemSortPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (LiveShapingItems.TryGetValue((T) sender, out var liveShapingItem)) liveShapingItem.IsSortDirty = true;
             else Debug.WriteLine($"{sender} not found");
@@ -351,8 +439,8 @@ namespace GameMover.CustomWpfComponents
         {
             liveShapingItem.PropertyChanged -= OnDependencyPropertyChanged;
 
-            ActiveDependencyProperties.Keys.ForEach(sortPropertyName => {
-                PropertyChangedEventManager.RemoveHandler((T) liveShapingItem, OnItemPropertyChanged, sortPropertyName);
+            ActiveDependencyProperties.Keys.ForEach(lsp => {
+                PropertyChangedEventManager.RemoveHandler((T) liveShapingItem, OnItemSortPropertyChanged, lsp.PropertyName);
             });
         }
 

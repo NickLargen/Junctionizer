@@ -67,20 +67,17 @@ namespace Utilities.Collections
         void ICollection<T>.Add(T item) => Add(item);
 
         /// <summary>Returns the zero based index the item was inserted at.</summary>
-        public virtual int Add(T item)
+        [PublicAPI]
+        public virtual int Add(T item) => InternalAdd(item);
+
+        protected virtual int InternalAdd(T item)
         {
             var insertionIndex = FindCorrectLocation(item);
-            BeforeItemInserted(item);
             BackingList.Insert(insertionIndex, item);
             return insertionIndex;
         }
 
         public virtual IEnumerable<ItemIndexPair> AddAll([NotNull] IEnumerable<T> enumerable) => AddList(enumerable.ToList());
-
-        /// <summary>
-        /// Will be called at some point before any item is inserted into the list.
-        /// </summary>
-        protected virtual void BeforeItemInserted(T item) {}
 
         public struct ItemIndexPair
         {
@@ -104,7 +101,6 @@ namespace Utilities.Collections
         {
             if (Count == 0)
             {
-                addList.ForEach(BeforeItemInserted);
                 BackingList.AddRange(addList);
                 BackingList.Sort(CompositeComparer);
 
@@ -113,7 +109,7 @@ namespace Utilities.Collections
 
             if (addList.Count == 1)
             {
-                var addedIndex = Add(addList[0]);
+                var addedIndex = InternalAdd(addList[0]);
                 return new[] {new ItemIndexPair(addList[0], addedIndex)};
             }
 
@@ -140,7 +136,6 @@ namespace Utilities.Collections
                 if (originalListIndex < 0 || CompositeComparer.Compare(this[originalListIndex], addListItem) <= 0)
                 {
                     addedItems.Add(new ItemIndexPair(addListItem, newListIndex));
-                    BeforeItemInserted(addListItem);
                     BackingList[newListIndex] = addListItem;
                     addListIndex--;
                 }

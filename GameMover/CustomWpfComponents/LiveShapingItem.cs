@@ -30,11 +30,6 @@ namespace GameMover.CustomWpfComponents
             BindingOperations.ClearBinding(this, dp);
         }
 
-        public void ClearAllBindings()
-        {
-            BindingOperations.ClearAllBindings(this);
-        }
-
         /// <inheritdoc/>
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {

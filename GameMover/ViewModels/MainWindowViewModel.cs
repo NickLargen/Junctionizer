@@ -60,8 +60,8 @@ namespace GameMover.ViewModels
 
             BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
 
-            SourceCollection.PropertyChanged += OnFolderCollectionPropertyChange;
-            DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChange;
+            SourceCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
+            DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
 
             var appDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 nameof(GameMover));
@@ -86,10 +86,32 @@ namespace GameMover.ViewModels
 
         public IObservable<EventPattern<PropertyChangedEventArgs>> PassesFilterChangedObservable { get; }
 
+        public ObservableCollection<string> LiveFilteringProperties { get; } = new ObservableCollection<string>();
+
         public string FilterNameText { get; set; } = string.Empty;
+        [UsedImplicitly]
+        private void OnFilterNameTextChanged()
+        {
+            const string propertyName = nameof(GameFolder.Name);
+            if (string.IsNullOrEmpty(FilterNameText)) LiveFilteringProperties.Remove(propertyName);
+            else if(!LiveFilteringProperties.Contains(propertyName)) LiveFilteringProperties.Add(propertyName);
+        }
 
         public double FilterLowerSizeLimit { get; set; } = double.NegativeInfinity;
+        [UsedImplicitly]
+        private void OnFilterLowerSizeLimitChanged() => OnSizeFilterChanged();
+
         public double FilterUpperSizeLimit { get; set; } = double.PositiveInfinity;
+        [UsedImplicitly]
+        private void OnFilterUpperSizeLimitChanged() => OnSizeFilterChanged();
+
+        private void OnSizeFilterChanged()
+        {
+            const string propertyName = nameof(GameFolder.Size);
+            var isNotFilteringBySize = double.IsNegativeInfinity(FilterLowerSizeLimit) && double.IsPositiveInfinity(FilterUpperSizeLimit);
+            if (isNotFilteringBySize) LiveFilteringProperties.Remove(propertyName);
+            else if (!LiveFilteringProperties.Contains(propertyName)) LiveFilteringProperties.Add(propertyName);
+        }
 
         public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
         public InteractionRequest<INotification> ShowErrorDialogRequest { get; } = new InteractionRequest<INotification>();
@@ -158,7 +180,7 @@ namespace GameMover.ViewModels
             }
         }
 
-        private void OnFolderCollectionPropertyChange(object sender, PropertyChangedEventArgs args)
+        private void OnFolderCollectionPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
             if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)

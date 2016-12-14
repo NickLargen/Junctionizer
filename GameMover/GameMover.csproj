@@ -220,7 +220,7 @@
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
-    <Compile Include="ViewModels\MergedItem.cs" />
+    <Compile Include="Model\MergedItem.cs" />
     <Page Include="UI\DualPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

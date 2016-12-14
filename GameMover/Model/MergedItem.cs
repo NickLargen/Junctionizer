@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 
-using GameMover.Model;
-
 using JetBrains.Annotations;
 
 using Prism.Mvvm;
 
-namespace GameMover.ViewModels
+namespace GameMover.Model
 {
     public class MergedItem : BindableBase, IEquatable<MergedItem>, IComparable<MergedItem>
     {
