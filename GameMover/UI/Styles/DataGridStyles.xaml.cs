@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using GameMover.Code;
 using GameMover.Model;
 
 namespace GameMover.UI.Styles

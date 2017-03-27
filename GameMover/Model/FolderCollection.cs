@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-using GameMover.Code;
 using GameMover.Properties;
 
 using JetBrains.Annotations;
@@ -20,11 +19,11 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using Prism.Commands;
 using Prism.Mvvm;
 
+using Utilities;
 using Utilities.Collections;
-using Utilities.Tasks;
 
-using static GameMover.Code.StaticMethods;
-using static GameMover.Code.ErrorHandling;
+using static GameMover.StaticMethods;
+using static GameMover.ErrorHandling;
 
 namespace GameMover.Model
 {
@@ -49,8 +48,6 @@ namespace GameMover.Model
             Folders = new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name, isDesiredThread,
                 comparer: StringComparer.OrdinalIgnoreCase);
 
-            // This is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
-            SelectedItems = new ObservableCollection<object>();
             InitDirectoryWatcher();
 
             Folders.CollectionChanged += (sender, args) => {
@@ -82,8 +79,9 @@ namespace GameMover.Model
 
         [NotNull]
         public AsyncObservableKeyedSet<string, GameFolder> Folders { get; }
-
-        private ObservableCollection<object> _selectedItems;
+        
+        // The initial value is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
+        private ObservableCollection<object> _selectedItems = new ObservableCollection<object>();
         [NotNull]
         public ObservableCollection<object> SelectedItems
         {
@@ -102,10 +100,14 @@ namespace GameMover.Model
                           });
             }
         }
-
+        
         [NotNull]
-        public IEnumerable<GameFolder> SelectedFolders =>
+        public IEnumerable<GameFolder> AllSelectedGameFolders =>
             SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted);
+        [NotNull]
+        public IEnumerable<GameFolder> SelectedFolders => AllSelectedGameFolders.Where(folder => !folder.IsJunction);
+        [NotNull]
+        public IEnumerable<GameFolder> SelectedJunctions => AllSelectedGameFolders.Where(folder => folder.IsJunction);
 
         private bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
 
@@ -122,7 +124,7 @@ namespace GameMover.Model
                 _location = Directory.Exists(value) ? value : null;
 
                 DisplayBusyDuring(() => {
-                    // Fody PropertyChanged handless raising a change event for this collections BothCollectionsInitialized
+                    // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized
                     CorrespondingCollection?.OnPropertyChanged(nameof(BothCollectionsInitialized));
 
                     _directoryWatcher.EnableRaisingEvents = false;
@@ -181,34 +183,37 @@ namespace GameMover.Model
         #region Commands
 
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveSelected(),
-            () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
+        public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveFolders(SelectedFolders),
+            () => BothCollectionsInitialized && SelectedFolders.Any());
 
-        public Task ArchiveSelected() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(Archive));
-
-        [AutoLazy.Lazy]
-        public DelegateCommand CopySelectedCommand => new DelegateCommand(() => CopySelectedFolders(),
-            () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
-
-        public Task CopySelectedFolders() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(CorrespondingCollection.CopyFolder));
+        public Task ArchiveFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(Archive));
 
         [AutoLazy.Lazy]
-        public DelegateCommand CreateSelectedJunctionCommand => new DelegateCommand(CreateSelectedJunctions,
-            () => BothCollectionsInitialized && SelectedFolders.Any(folder => !folder.IsJunction));
+        public DelegateCommand CopySelectedCommand => new DelegateCommand(() => CopyFolders(SelectedFolders),
+            () => BothCollectionsInitialized && SelectedFolders.Any());
 
-        public void CreateSelectedJunctions() => SelectedFolders.Where(folder => !folder.IsJunction).ForEach(CorrespondingCollection.CreateJunctionTo);
-
-        [AutoLazy.Lazy]
-        public DelegateCommand DeleteSelectedFoldersCommand => new DelegateCommand(() => DeleteSelectedFolders(),
-            () => SelectedFolders.Any(folder => !folder.IsJunction));
-
-        public Task DeleteSelectedFolders() => Task.WhenAll(SelectedFolders.Where(folder => !folder.IsJunction).Select(DeleteFolder));
+        public Task CopyFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(CorrespondingCollection.CopyFolder));
 
         [AutoLazy.Lazy]
-        public DelegateCommand DeleteSelectedJunctionsCommand => new DelegateCommand(DeleteSelectedJunctions,
-            () => SelectedFolders.Any(folder => folder.IsJunction));
+        public DelegateCommand CreateSelectedJunctionCommand => new DelegateCommand(() => CreateJunctionsTo(SelectedFolders),
+            () => BothCollectionsInitialized && SelectedFolders.Any());
 
-        public void DeleteSelectedJunctions() => SelectedFolders.Where(folder => folder.IsJunction).ForEach(DeleteJunction);
+        public void CreateJunctionsTo(IEnumerable<GameFolder> destinationFolders)
+        {
+            destinationFolders.Where(folder => !folder.IsJunction).ForEach(CorrespondingCollection.CreateJunctionTo);
+        }
+
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteSelectedFoldersCommand => new DelegateCommand(() => DeleteFolders(SelectedFolders),
+            () => SelectedFolders.Any());
+
+        public Task DeleteFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(DeleteFolder));
+
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteSelectedJunctionsCommand => new DelegateCommand(() => DeleteJunctions(SelectedJunctions),
+            () => SelectedJunctions.Any());
+
+        public void DeleteJunctions(IEnumerable<GameFolder> junctions) => junctions.Where(folder => folder.IsJunction).ForEach(DeleteJunction);
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectFoldersNotInOtherPane)
@@ -289,7 +294,7 @@ namespace GameMover.Model
             return JunctionTargetsDictionary.TryGetValue(info.FullName, out var enumerable) ? enumerable : Enumerable.Empty<GameFolder>();
         }
 
-        private async Task Archive([NotNull] GameFolder folder)
+        public async Task Archive([NotNull] GameFolder folder)
         {
             var createdFolder = await CorrespondingCollection.CopyFolder(folder);
             if (createdFolder != null)
@@ -299,7 +304,7 @@ namespace GameMover.Model
             }
         }
 
-        private void CreateJunctionTo([NotNull] GameFolder junctionTarget)
+        public void CreateJunctionTo([NotNull] GameFolder junctionTarget)
         {
             try
             {
@@ -318,7 +323,7 @@ namespace GameMover.Model
         }
 
         /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder only if the copy successfully ran to completion, null otherwise.</summary>
-        private Task<GameFolder> CopyFolder([NotNull] GameFolder folderToCopy)
+        public Task<GameFolder> CopyFolder([NotNull] GameFolder folderToCopy)
         {
             return Task.Run(() => {
                 string targetDirectory = $@"{Location}\{folderToCopy.Name}";
@@ -368,7 +373,7 @@ namespace GameMover.Model
         }
 
         /// <summary>Returns true on successful delete, false if user cancels operation or there is an error</summary>
-        private Task<bool> DeleteFolder([NotNull] GameFolder folderToDelete)
+        public Task<bool> DeleteFolder([NotNull] GameFolder folderToDelete)
         {
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {
@@ -395,7 +400,7 @@ namespace GameMover.Model
             });
         }
 
-        private void DeleteJunction([NotNull] GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
+        public void DeleteJunction([NotNull] GameFolder folder) => DeleteJunction(folder.DirectoryInfo);
 
         private void DeleteJunction([NotNull] DirectoryInfo junctionDirectory)
         {

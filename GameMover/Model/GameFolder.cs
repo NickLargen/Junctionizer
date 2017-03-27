@@ -6,17 +6,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GameMover.Code;
-
 using JetBrains.Annotations;
 
 using Microsoft.VisualStudio.Threading;
 
 using Prism.Mvvm;
 
+using Utilities;
 using Utilities.Comparers;
 
-using static GameMover.Code.ErrorHandling;
+using static GameMover.ErrorHandling;
 
 namespace GameMover.Model
 {

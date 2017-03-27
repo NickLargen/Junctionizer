@@ -9,7 +9,8 @@ using GameMover.Model;
 using NUnit.Framework;
 
 using TestingUtilities;
-using Utilities.Tasks;
+
+using Utilities;
 
 namespace GameMover.Tests.Model.FolderCollectionTests
 {
@@ -48,7 +49,7 @@ namespace GameMover.Tests.Model.FolderCollectionTests
             Ensure(SourceCollection.Folders, Not.Empty);
             SourceCollection.SelectFolders(SourceCollection.Folders);
             Ensure(SourceCollection.SelectedItems, Is.EquivalentTo(SourceCollection.Folders));
-            Ensure(SourceCollection.SelectedFolders, Is.EquivalentTo(SourceCollection.Folders));
+            Ensure(SourceCollection.AllSelectedGameFolders, Is.EquivalentTo(SourceCollection.Folders));
         }
 
         [Test]
@@ -57,7 +58,7 @@ namespace GameMover.Tests.Model.FolderCollectionTests
             Assert.That(SourceCollection.SelectFoldersNotInOtherPaneCommand.CanExecute());
             SourceCollection.SelectFoldersNotInOtherPaneCommand.Execute();
 
-            var selectedFolders = SourceCollection.SelectedFolders.ToList();
+            var selectedFolders = SourceCollection.AllSelectedGameFolders.ToList();
             Ensure(selectedFolders.Count, Is.EqualTo(3));
             Ensure(selectedFolders, Has.All.Property(nameof(GameFolder.IsJunction)).EqualTo(false));
         }
@@ -68,7 +69,7 @@ namespace GameMover.Tests.Model.FolderCollectionTests
             Ensure(DestinationCollection.SelectFoldersNotInOtherPaneCommand.CanExecute());
             DestinationCollection.SelectFoldersNotInOtherPaneCommand.Execute();
 
-            var selectedFolders = DestinationCollection.SelectedFolders.ToList();
+            var selectedFolders = DestinationCollection.AllSelectedGameFolders.ToList();
             Ensure(selectedFolders, Is.Empty);
         }
 
@@ -78,10 +79,10 @@ namespace GameMover.Tests.Model.FolderCollectionTests
             SourceCollection.SelectFolders(SourceCollection.Folders);
 
             Ensure(SourceCollection.Folders, Is.Not.Empty);
-            Ensure(SourceCollection.SelectedFolders, Is.Not.Empty);
+            Ensure(SourceCollection.AllSelectedGameFolders, Is.Not.Empty);
 
-            SourceCollection.DeleteSelectedJunctions();
-            SourceCollection.DeleteSelectedFolders().RunTaskSynchronously();
+            SourceCollection.DeleteJunctions(SourceCollection.SelectedJunctions);
+            SourceCollection.DeleteFolders(SourceCollection.SelectedFolders).RunTaskSynchronously();
 
             // The deletion needs to propagate through the filesystemwatcher
             while (SourceCollection.Folders.Count != 0)

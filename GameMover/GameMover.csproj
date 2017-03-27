@@ -191,18 +191,17 @@
     <Compile Include="UI\MergedSinglePane.xaml.cs">
       <DependentUpon>MergedSinglePane.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ValueConverters\LogScaleConverter.cs" />
-    <Compile Include="ValueConverters\DateTimeToStringConverter.cs" />
-    <Compile Include="Code\ErrorHandling.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\LogScaleConverter.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\DateTimeToStringConverter.cs" />
+    <Compile Include="ErrorHandling.cs" />
     <Compile Include="CustomWpfComponents\LiveShapingItem.cs" />
     <Compile Include="CustomWpfComponents\LiveShapingSortedValueList.cs" />
     <Compile Include="CustomWpfComponents\PlaceholderText\WatermarkService.cs" />
     <Compile Include="CustomWpfComponents\PlaceholderText\WatermarkAdorner.cs" />
     <Compile Include="Model\FolderCollection.cs" />
     <Compile Include="CustomWpfComponents\MultiSelectDataGrid.cs" />
-    <Compile Include="Code\StaticMethods.cs" />
+    <Compile Include="StaticMethods.cs" />
     <Compile Include="Model\DirectoryMapping.cs" />
-    <Compile Include="Code\TaskQueue.cs" />
     <Compile Include="UI\Styles\DataGridStyles.xaml.cs">
       <DependentUpon>DataGridStyles.xaml</DependentUpon>
     </Compile>
@@ -215,8 +214,8 @@
     <Compile Include="UI\Columns\DependentOnFinalSizeColumn.xaml.cs">
       <DependentUpon>DependentOnFinalSizeColumn.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ValueConverters\LogScaleTooltipConverter.cs" />
-    <Compile Include="ViewModels\MergedItemEnumerable.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\LogScaleTooltipConverter.cs" />
+    <Compile Include="Model\MergedItemEnumerable.cs" />
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
@@ -250,8 +249,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Model\GameFolder.cs" />
-    <Compile Include="Code\JunctionPoint.cs" />
-    <Compile Include="ValueConverters\SizeToStringConverter.cs" />
+    <Compile Include="JunctionPoint.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\SizeToStringConverter.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

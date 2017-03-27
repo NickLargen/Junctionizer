@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 
-using Utilities.Strings;
+using Utilities;
 
-namespace GameMover.Code
+namespace GameMover
 {
     public static class ErrorHandling
     {
@@ -54,8 +54,7 @@ namespace GameMover.Code
 
         public static void HandleException(Exception exception)
         {
-            var ioException = exception as IOException;
-            if (ioException != null)
+            if (exception is IOException ioException)
             {
                 // Provide a useful message if the error was from a drive failure
                 var maybeFullPath = ioException.GetType()

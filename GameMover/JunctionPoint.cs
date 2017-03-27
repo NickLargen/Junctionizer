@@ -6,8 +6,7 @@ using System.Threading;
 
 using Microsoft.Win32.SafeHandles;
 
-
-namespace GameMover.Code
+namespace GameMover
 {
 /**Original source: http://www.codeproject.com/Articles/15633/Manipulating-NTFS-Junction-Points-in-NET
                                     By Jeff Brown

@@ -11,7 +11,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
 
-namespace GameMover.Code
+namespace GameMover
 {
     public static class StaticMethods
     {
@@ -66,7 +66,6 @@ namespace GameMover.Code
                 if (isAccessible) yield return info;
             }
         }
-
 
         /// <summary>Wrapper for standard default values for opening a folder picker.</summary>
         public static CommonOpenFileDialog NewFolderDialog(string title)

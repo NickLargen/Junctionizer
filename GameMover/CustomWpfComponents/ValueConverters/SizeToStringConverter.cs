@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 using GameMover.Model;
 
-namespace GameMover.ValueConverters
+namespace GameMover.CustomWpfComponents.ValueConverters
 {
     internal class SizeToStringConverter : IValueConverter
     {

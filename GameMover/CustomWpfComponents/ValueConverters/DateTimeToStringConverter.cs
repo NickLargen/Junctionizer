@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GameMover.ValueConverters
+namespace GameMover.CustomWpfComponents.ValueConverters
 {
     public class DateTimeToStringConverter : IValueConverter
     {

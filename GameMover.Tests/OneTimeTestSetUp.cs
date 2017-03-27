@@ -3,8 +3,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-using GameMover.Code;
-
 using NUnit.Framework;
 
 [assembly: Timeout(10000)]

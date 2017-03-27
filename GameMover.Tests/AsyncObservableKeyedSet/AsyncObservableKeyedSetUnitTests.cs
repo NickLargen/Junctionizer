@@ -9,8 +9,8 @@ using NUnit.Framework;
 
 using TestingUtilities;
 
+using Utilities;
 using Utilities.Collections;
-using Utilities.Tasks;
 
 namespace GameMover.Tests.AsyncObservableKeyedSet
 {

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using static GameMover.Code.ErrorHandling;
+using static GameMover.ErrorHandling;
 
 namespace GameMover.UI
 {

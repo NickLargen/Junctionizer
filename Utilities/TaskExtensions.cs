@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Utilities.Tasks
+namespace Utilities
 {
     public static class TaskExtensions
     {

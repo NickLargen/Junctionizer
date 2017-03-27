@@ -4,8 +4,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GameMover.Code;
-
 using Prism.Mvvm;
 
 namespace GameMover.ViewModels

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GameMover.Code
+namespace Utilities
 {
     public sealed class TaskQueue : IDisposable
     {

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace GameMover.ValueConverters
+namespace GameMover.CustomWpfComponents.ValueConverters
 {
     /// <summary>Converts a double to its logarithm to facilitate a non-linear slider.</summary>
     public class LogScaleConverter : IValueConverter

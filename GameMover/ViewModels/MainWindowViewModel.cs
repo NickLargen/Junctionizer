@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Threading;
 
-using GameMover.Code;
 using GameMover.Model;
 
 using JetBrains.Annotations;
@@ -30,9 +29,9 @@ using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
 using Prism.Mvvm;
 
-using Utilities.Strings;
+using Utilities;
 
-using static GameMover.Code.StaticMethods;
+using static GameMover.StaticMethods;
 
 namespace GameMover.ViewModels
 {
@@ -136,7 +135,7 @@ namespace GameMover.ViewModels
         private DirectoryMapping _selectedMapping;
         public DirectoryMapping SelectedMapping
         {
-            get { return _selectedMapping; }
+            get => _selectedMapping;
             set {
                 var previousValue = _selectedMapping;
                 _selectedMapping = value;
