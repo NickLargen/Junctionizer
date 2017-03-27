@@ -16,7 +16,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <ResourceDictionary
-                    Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Purple.Primary.xaml" />
+                    Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Indigo.Primary.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Amber.Accent.xaml" />
                 <ResourceDictionary
