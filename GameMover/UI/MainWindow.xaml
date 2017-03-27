@@ -52,7 +52,7 @@
             <Menu DockPanel.Dock="Top" Height="36">
                 <MenuItem Header="_Search Existing Junctions"
                           Command="{Binding FindExistingJunctionsCommand}" />
-                <MenuItem Header="_Refresh" Command="{Binding RefreshFoldersCommand}" />
+                <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />
                 <MenuItem Header="Single Pane"
                           IsChecked="False"
                           IsCheckable="True"

@@ -254,7 +254,7 @@ namespace GameMover.Model
 
         public void SelectFolders(IEnumerable<GameFolder> folders) => SelectedItems.ReplaceSelectedItems(folders);
 
-        public void Refresh()
+        public void RefreshSizes()
         {
             if (!Directory.Exists(Location)) Location = null;
 
