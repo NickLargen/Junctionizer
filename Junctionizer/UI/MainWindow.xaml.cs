@@ -38,21 +38,31 @@ namespace Junctionizer.UI
             DualPane = new DualPane(mainWindowViewModel);
             SinglePane = new MergedSinglePane(mainWindowViewModel);
 
-            frame.Navigate(DualPane);
+            SwitchInterfaces();
         }
 
         public static DelegateCommand<object> OpenDialogCommand { get; } = new DelegateCommand<object>(o => OpenDialog(o));
 
         public static Task OpenDialog(object obj) => DialogHost.Show(obj);
-        
+
         /// Update sort order when properties on items within the collection change
         private static void EnableLiveSorting(IEnumerable observableCollection)
         {
             ((ListCollectionView) CollectionViewSource.GetDefaultView(observableCollection)).IsLiveSorting = true;
         }
 
-        private void SinglePaneUnchecked(Object sender, RoutedEventArgs e) => frame.Navigate(DualPane);
+        private void SwitchInterfaces(object sender, RoutedEventArgs e)
+        {
+            // Can't navigate before the panes have been created
+            if (DualPane == null) return;
 
-        private void SinglePaneChecked(Object sender, RoutedEventArgs e) => frame.Navigate(SinglePane);
+            SwitchInterfaces();
+        }
+
+        private void SwitchInterfaces()
+        {
+            if (simpleInterfaceMenuItem.IsChecked) frame.Navigate(SinglePane);
+            else frame.Navigate(DualPane);
+        }
     }
 }

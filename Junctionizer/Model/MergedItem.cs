@@ -34,7 +34,7 @@ namespace Junctionizer.Model
                         PropertyChangedEventManager.AddHandler(_sourceEntry, OnSourcePropertyChanged, string.Empty);
                     }
 
-                    OnPropertyChanged(SOURCE_ENTRY_SIZE_PROPERTY_NAME);
+                    RaisePropertyChanged(SOURCE_ENTRY_SIZE_PROPERTY_NAME);
 
                     Debug.Assert(SourceEntry == null || DestinationEntry == null || SourceEntry.Name == DestinationEntry.Name);
                 }
@@ -42,7 +42,7 @@ namespace Junctionizer.Model
         }
 
         private void OnSourcePropertyChanged(object sender, PropertyChangedEventArgs e)
-            => OnPropertyChanged(nameof(SourceEntry) + "." + e.PropertyName);
+            => RaisePropertyChanged(nameof(SourceEntry) + "." + e.PropertyName);
 
         private GameFolder _destinationEntry;
         [CanBeNull]
@@ -64,7 +64,7 @@ namespace Junctionizer.Model
                         PropertyChangedEventManager.AddHandler(_destinationEntry, OnDestinationPropertyChanged, string.Empty);
                     }
                     
-                    OnPropertyChanged(DESTINATION_ENTRY_SIZE_PROPERTY_NAME);
+                    RaisePropertyChanged(DESTINATION_ENTRY_SIZE_PROPERTY_NAME);
 
                     Debug.Assert(SourceEntry == null || DestinationEntry == null || SourceEntry.Name == DestinationEntry.Name);
                 }
@@ -72,7 +72,7 @@ namespace Junctionizer.Model
         }
 
         private void OnDestinationPropertyChanged(object sender, PropertyChangedEventArgs e)
-            => OnPropertyChanged(nameof(DestinationEntry) + "." + e.PropertyName);
+            => RaisePropertyChanged(nameof(DestinationEntry) + "." + e.PropertyName);
 
         /// <inheritdoc/>
         public MergedItem([CanBeNull] GameFolder sourceEntry = null, [CanBeNull] GameFolder destinationEntry = null)

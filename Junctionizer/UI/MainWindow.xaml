@@ -16,7 +16,7 @@
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        Title="Game Mover"
+        Title="Junctionizer"
         Width="750"
         Height="450"
         MinWidth="600"
@@ -50,18 +50,19 @@
         </i:Interaction.Triggers>
         <DockPanel>
             <Menu DockPanel.Dock="Top" Height="36">
-                <MenuItem Header="_Search Existing Junctions"
+                <MenuItem Header="Select S_ource"
+                          Command="{Binding SourceCollection.SelectLocationCommand}"/>
+                <MenuItem Header="Select D_estination"
+                          Command="{Binding DestinationCollection.SelectLocationCommand}"/>
+                <MenuItem Header="_Find Existing Junctions"
                           Command="{Binding FindExistingJunctionsCommand}" />
                 <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />
-                <MenuItem Header="Single Pane"
-                          IsChecked="False"
+                <MenuItem Header="_Simple Interface"
+                          x:Name="simpleInterfaceMenuItem"
+                          IsChecked="True"
                           IsCheckable="True"
-                          Unchecked="SinglePaneUnchecked"
-                          Checked="SinglePaneChecked" />
-                <MenuItem Header="Select Source"
-                          Command="{Binding SourceCollection.SelectLocationCommand}"/>
-                <MenuItem Header="Select Destination"
-                          Command="{Binding DestinationCollection.SelectLocationCommand}"/>
+                          Unchecked="SwitchInterfaces"
+                          Checked="SwitchInterfaces" />
             </Menu>
             <DockPanel Dock="Top">
                 <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>

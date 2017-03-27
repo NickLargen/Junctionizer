@@ -119,13 +119,13 @@ namespace Junctionizer.Model
         [CanBeNull]
         public string Location
         {
-            get { return _location; }
+            get => _location;
             set {
                 _location = Directory.Exists(value) ? value : null;
 
                 DisplayBusyDuring(() => {
                     // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized
-                    CorrespondingCollection?.OnPropertyChanged(nameof(BothCollectionsInitialized));
+                    CorrespondingCollection?.RaisePropertyChanged(nameof(BothCollectionsInitialized));
 
                     _directoryWatcher.EnableRaisingEvents = false;
                     _directoryLockFileStream?.Dispose();
@@ -217,7 +217,7 @@ namespace Junctionizer.Model
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectFoldersNotInOtherPane)
-            .ObservesCanExecute(_ => BothCollectionsInitialized);
+            .ObservesCanExecute(() => BothCollectionsInitialized);
 
         public void SelectFoldersNotInOtherPane()
         {

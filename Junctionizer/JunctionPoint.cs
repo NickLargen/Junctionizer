@@ -201,9 +201,8 @@ namespace Junctionizer
                 {
                     Marshal.StructureToPtr(reparseDataBuffer, inBuffer, fDeleteOld: false);
 
-                    int bytesReturned;
                     bool result = DeviceIoControl(handle.DangerousGetHandle(), FSCTL_SET_REPARSE_POINT,
-                        inBuffer, targetDirBytes.Length + 20, IntPtr.Zero, nOutBufferSize: 0, pBytesReturned: out bytesReturned,
+                        inBuffer, targetDirBytes.Length + 20, IntPtr.Zero, nOutBufferSize: 0, pBytesReturned: out int bytesReturned,
                         lpOverlapped: IntPtr.Zero);
 
                     if (!result) ThrowLastWin32Error("Unable to create junction point.");
@@ -247,9 +246,8 @@ namespace Junctionizer
                 {
                     Marshal.StructureToPtr(reparseDataBuffer, inBuffer, fDeleteOld: false);
 
-                    int bytesReturned;
                     bool result = DeviceIoControl(handle.DangerousGetHandle(), FSCTL_DELETE_REPARSE_POINT,
-                        inBuffer, 8, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero);
+                        inBuffer, 8, IntPtr.Zero, 0, out int bytesReturned, IntPtr.Zero);
 
                     if (!result) ThrowLastWin32Error("Unable to delete junction point.");
                 }
@@ -330,9 +328,8 @@ namespace Junctionizer
 
             try
             {
-                int bytesReturned;
                 bool result = DeviceIoControl(handle.DangerousGetHandle(), FSCTL_GET_REPARSE_POINT,
-                    IntPtr.Zero, 0, outBuffer, outBufferSize, out bytesReturned, IntPtr.Zero);
+                    IntPtr.Zero, 0, outBuffer, outBufferSize, out int bytesReturned, IntPtr.Zero);
 
                 if (!result)
                 {
