@@ -1,24 +1,60 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-
-using GameMover.Model;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
+using Microsoft.VisualStudio.Threading;
+
+using Prism.Commands;
+
+using PropertyChanged;
+
 using Utilities.Collections;
 
-namespace GameMover.ViewModels
+namespace GameMover.Model
 {
+    [ImplementPropertyChanged]
     public class MergedItemEnumerable : IEnumerable<MergedItem>, INotifyCollectionChanged
     {
         [NotNull]
         public FolderCollection SourceCollection { get; }
         [NotNull]
         public FolderCollection DestinationCollection { get; }
+
+        private ObservableCollection<object> _selectedItems = new ObservableCollection<object>();
+        [NotNull]
+        public ObservableCollection<object> SelectedItems
+        {
+            get => _selectedItems;
+            set {
+                _selectedItems = value;
+
+                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
+                          .Throttle(TimeSpan.FromMilliseconds(1))
+                          .Subscribe(pattern => CheckCanExecute());
+            }
+        }
+
+        private void CheckCanExecute()
+        {
+            DeleteCommand.RaiseCanExecuteChanged();
+            ArchiveCommand.RaiseCanExecuteChanged();
+            RestoreCommand.RaiseCanExecuteChanged();
+            MirrorCommand.RaiseCanExecuteChanged();
+        }
+
+        [NotNull]
+        public IEnumerable<MergedItem> SelectedMergedItems =>
+            SelectedItems.Reverse()
+                         .Cast<MergedItem>()
+                         .Where(mi => mi.SourceEntry?.IsBeingDeleted != true && mi.DestinationEntry?.IsBeingDeleted != true);
 
         [NotNull]
         private Func<GameFolder, string> KeySelector { get; }
@@ -42,7 +78,8 @@ namespace GameMover.ViewModels
         private NotifyCollectionChangedEventHandler BackingCollectionChangedHandler(bool isFromSourceCollection)
         {
             return (sender, e) => {
-                switch (e.Action) {
+                switch (e.Action)
+                {
                     case NotifyCollectionChangedAction.Reset:
                         Items.Clear();
                         GetExistingValues().ForEach(item => Items.Add(item.Name, item));
@@ -61,6 +98,8 @@ namespace GameMover.ViewModels
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                CheckCanExecute();
             };
         }
 
@@ -95,7 +134,7 @@ namespace GameMover.ViewModels
                 var mergedItem = Items[folder.Name];
                 if ((isFromSourceCollection ? mergedItem.DestinationEntry : mergedItem.SourceEntry) != null)
                 {
-                    if(isFromSourceCollection) mergedItem.SourceEntry = null;
+                    if (isFromSourceCollection) mergedItem.SourceEntry = null;
                     else mergedItem.DestinationEntry = null;
                 }
                 else
@@ -108,14 +147,11 @@ namespace GameMover.ViewModels
             if (removedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, changedItems: removedItems));
         }
 
-        public IEnumerator<MergedItem> GetEnumerator() => Items.Values.GetEnumerator();
-
         /// <inheritdoc/>
         public IEnumerable<MergedItem> GetExistingValues()
         {
-
             var sourceFoldersDictionary = SourceCollection.Folders.ToDictionary(KeySelector);
-            
+
             foreach (var destinationFolder in DestinationCollection.Folders)
             {
                 /*
@@ -130,22 +166,24 @@ namespace GameMover.ViewModels
                     item.SourceEntry = junctionFolder;
                 }*/
 
-                
+
                 var key = KeySelector(destinationFolder);
                 if (sourceFoldersDictionary.TryGetValue(key, out var sourceFolder))
                 {
                     sourceFoldersDictionary.Remove(key);
                 }
 
-                MergedItem item = new MergedItem (sourceEntry: sourceFolder, destinationEntry: destinationFolder);
+                MergedItem item = new MergedItem(sourceEntry: sourceFolder, destinationEntry: destinationFolder);
                 yield return item;
             }
 
             foreach (var sourceFolder in sourceFoldersDictionary.Values)
             {
-                yield return new MergedItem (sourceEntry: sourceFolder);
+                yield return new MergedItem(sourceEntry: sourceFolder);
             }
         }
+
+        public IEnumerator<MergedItem> GetEnumerator() => Items.Values.GetEnumerator();
 
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -154,5 +192,72 @@ namespace GameMover.ViewModels
 
         /// <inheritdoc/>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
+
+
+        /// <summary>Results in the folder in neither location.</summary>
+        [AutoLazy.Lazy]
+        public DelegateCommand DeleteCommand => new DelegateCommand(() => {
+            DeleteSelected().Forget();
+        }, () => SelectedMergedItems.Any());
+
+        private async Task DeleteSelected()
+        {
+            var sourceFolders = SelectedMergedItems.Select(mi => mi.SourceEntry).Where(folder => folder != null).ToList();
+            SourceCollection.DeleteJunctions(sourceFolders);
+            await SourceCollection.DeleteFolders(sourceFolders);
+            await DestinationCollection.DeleteFolders(SelectedMergedItems
+                .Select(mi => mi.DestinationEntry)
+                .Where(folder => folder != null));
+        }
+
+
+        /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
+        [AutoLazy.Lazy]
+        public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
+            SourceCollection.ArchiveFolders(ArchivableItems().Select(mi => mi.SourceEntry)).Forget();
+        }, () => ArchivableItems().Any());
+
+        private IEnumerable<MergedItem> ArchivableItems() => SelectedMergedItems.Where(mi => mi.SourceEntry?.IsJunction == false);
+
+
+        /// <summary>Results in folder in source location, not in destination.</summary>
+        [AutoLazy.Lazy]
+        public DelegateCommand RestoreCommand => new DelegateCommand(() => {
+            Task.WhenAll(RestorableItems().Select(Restore)).Forget();
+        }, () => RestorableItems().Any());
+
+        private IEnumerable<MergedItem> RestorableItems() => SelectedMergedItems.Where(mi => mi.DestinationEntry?.IsJunction == false);
+
+        private async Task Restore(MergedItem mergedItem)
+        {
+            Debug.Assert(mergedItem.DestinationEntry?.IsJunction == false);
+
+            var createdFolder = await SourceCollection.CopyFolder(mergedItem.DestinationEntry);
+            if (createdFolder != null) await DestinationCollection.DeleteFolder(mergedItem.DestinationEntry);
+        }
+
+
+        /// <summary>Results in the folder existing in both locations</summary>
+        [AutoLazy.Lazy]
+        public DelegateCommand MirrorCommand => new DelegateCommand(() => {
+            Task.WhenAll(MirrorableItems().Select(Mirror)).Forget();
+        }, () => MirrorableItems().Any());
+
+        private IEnumerable<MergedItem> MirrorableItems() => SelectedMergedItems.Where(mi => !(mi.SourceEntry?.IsJunction == false && mi.DestinationEntry?.IsJunction == false));
+
+        private async Task Mirror(MergedItem mergedItem)
+        {
+            Debug.Assert(!(mergedItem.SourceEntry?.IsJunction == false && mergedItem.DestinationEntry?.IsJunction == false));
+
+            if (mergedItem.DestinationEntry?.IsJunction == false)
+            {
+                await SourceCollection.CopyFolder(mergedItem.DestinationEntry);
+            }
+            else
+            {
+                Debug.Assert(mergedItem.SourceEntry != null);
+                await DestinationCollection.CopyFolder(mergedItem.SourceEntry);
+            }
+        }
     }
 }
