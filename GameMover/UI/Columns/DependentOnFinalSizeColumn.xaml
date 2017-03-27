@@ -1,7 +1,0 @@
-﻿<DataGridTextColumn x:Class="GameMover.UI.Columns.DependentOnFinalSizeColumn"
-                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    
-                    Width="Auto"
-                    Header="Size">
-</DataGridTextColumn>
