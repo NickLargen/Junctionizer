@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
 
@@ -73,6 +74,10 @@ namespace Junctionizer.ViewModels
                     mapping.IsSavedMapping = true;
                     DisplayedMappings.Add(mapping);
                 });
+            }
+            else
+            {
+                MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
             }
 
             DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
