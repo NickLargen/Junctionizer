@@ -147,7 +147,6 @@ namespace Junctionizer.Model
             if (removedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, changedItems: removedItems));
         }
 
-        /// <inheritdoc/>
         public IEnumerable<MergedItem> GetExistingValues()
         {
             var sourceFoldersDictionary = SourceCollection.Folders.ToDictionary(KeySelector);

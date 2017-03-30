@@ -25,7 +25,7 @@
     <Window.DataContext>
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
-
+    
     <materialDesign:DialogHost OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
             <prism:InteractionRequestTrigger SourceObject="{Binding DisplayFindJunctionsDialogRequest}">
@@ -49,16 +49,16 @@
             </prism:InteractionRequestTrigger>
         </i:Interaction.Triggers>
         <DockPanel>
-            <Menu DockPanel.Dock="Top" Height="36">
-                <MenuItem Header="Select S_ource"
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Select _Source"
                           Command="{Binding SourceCollection.SelectLocationCommand}"/>
-                <MenuItem Header="Select D_estination"
+                <MenuItem Header="Select _Destination"
                           Command="{Binding DestinationCollection.SelectLocationCommand}"/>
                 <MenuItem Header="_Find Existing Junctions"
                           Command="{Binding FindExistingJunctionsCommand}" />
                 <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />
-                <MenuItem Header="_Simple Interface"
-                          x:Name="simpleInterfaceMenuItem"
+                <MenuItem Header="_Compact Interface"
+                          x:Name="compactInterfaceMenuItem"
                           IsChecked="True"
                           IsCheckable="True"
                           Unchecked="SwitchInterfaces"

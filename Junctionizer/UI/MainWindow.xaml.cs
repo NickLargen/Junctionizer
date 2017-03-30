@@ -61,7 +61,7 @@ namespace Junctionizer.UI
 
         private void SwitchInterfaces()
         {
-            if (simpleInterfaceMenuItem.IsChecked) frame.Navigate(SinglePane);
+            if (compactInterfaceMenuItem.IsChecked) frame.Navigate(SinglePane);
             else frame.Navigate(DualPane);
         }
     }

@@ -15,8 +15,8 @@ The UI is still a work in progress.
 - Filter by directory name or size
 - Store mappings between directories so that you can back up to different locations
 - Search your computer for any preexisting junction points
-
+- Double click an item to open it in file explorer
 
 ##### Development Notes
 
-PropertyChanged is handled implicitly by Fody [PropertyChanged](https://github.com/Fody/PropertyChanged).
+Utilizes C# 7 features so Visual Studio 2017 is recommended. PropertyChanged is handled implicitly by Fody [PropertyChanged](https://github.com/Fody/PropertyChanged).

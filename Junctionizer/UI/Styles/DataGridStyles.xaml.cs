@@ -13,14 +13,23 @@ namespace Junctionizer.UI.Styles
             if (e.ChangedButton != MouseButton.Left) return;
 
             var dataGridRow = sender as DataGridRow;
-            var folder = dataGridRow?.Item as GameFolder;
 
-            var path = folder?.DirectoryInfo.FullName;
-            if (path != null)
+            if (dataGridRow?.Item is GameFolder folder)
             {
-                ErrorHandling.ThrowIfDirectoryNotFound(path);
-                Process.Start(path);
+                OpenInFileExplorer(folder);
             }
+            else if (dataGridRow?.Item is MergedItem mergedItem)
+            {
+                if (mergedItem.SourceEntry?.IsJunction == false) OpenInFileExplorer(mergedItem.SourceEntry);
+                if (mergedItem.DestinationEntry?.IsJunction == false) OpenInFileExplorer(mergedItem.DestinationEntry);
+            }
+        }
+
+        private static void OpenInFileExplorer(GameFolder folder)
+        {
+            var path = folder.DirectoryInfo.FullName;
+            ErrorHandling.ThrowIfDirectoryNotFound(path);
+            Process.Start(path);
         }
     }
 }
