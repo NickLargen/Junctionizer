@@ -19,8 +19,8 @@ namespace Junctionizer.UI
 {
     public partial class MainWindow
     {
-        public DualPane DualPane { get; }
-        public MergedSinglePane SinglePane { get; }
+        public ExtendedContentPage ExtendedContentPage { get; }
+        public CompactContentPage SinglePane { get; }
 
         public MainWindow()
         {
@@ -35,8 +35,8 @@ namespace Junctionizer.UI
             EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
 
             // This maintains state (eg selecteditems) and allows fast navigation but creates extra work keeping them both in sync
-            DualPane = new DualPane(mainWindowViewModel);
-            SinglePane = new MergedSinglePane(mainWindowViewModel);
+            ExtendedContentPage = new ExtendedContentPage(mainWindowViewModel);
+            SinglePane = new CompactContentPage(mainWindowViewModel);
 
             SwitchInterfaces();
         }
@@ -54,7 +54,7 @@ namespace Junctionizer.UI
         private void SwitchInterfaces(object sender, RoutedEventArgs e)
         {
             // Can't navigate before the panes have been created
-            if (DualPane == null) return;
+            if (ExtendedContentPage == null) return;
 
             SwitchInterfaces();
         }
@@ -62,7 +62,7 @@ namespace Junctionizer.UI
         private void SwitchInterfaces()
         {
             if (compactInterfaceMenuItem.IsChecked) frame.Navigate(SinglePane);
-            else frame.Navigate(DualPane);
+            else frame.Navigate(ExtendedContentPage);
         }
     }
 }

@@ -15,8 +15,8 @@ namespace Junctionizer.CustomWpfComponents
 
         public bool IsSortDirty
         {
-            get { return _isSortDirty; }
-            set { _isSortDirty = value; }
+            get => _isSortDirty;
+            set => _isSortDirty = value;
         }
         public T Item { get; }
 

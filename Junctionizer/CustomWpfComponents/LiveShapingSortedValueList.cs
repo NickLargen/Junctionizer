@@ -416,13 +416,13 @@ namespace Junctionizer.CustomWpfComponents
             }
 
             /* Debug.WriteLine(args.Property + "  " + string.Join(", ",
-                                 BackingList.OfType<MergedItem>()
+                                 BackingList.OfType<GameFolderPair>()
                                             .Select(
-                                                mergedItem => {
-                                                    if (mergedItem.DestinationEntry == null) return "-99";
+                                                folderPair => {
+                                                    if (folderPair.DestinationEntry == null) return "-99";
  
-                                                    return SizeToStringConverter.Instance.Convert(mergedItem.DestinationEntry?.Size)
-                                                           + (LiveShapingItems[mergedItem as T].IsSortDirty ? "" : "✓");
+                                                    return SizeToStringConverter.Instance.Convert(folderPair.DestinationEntry?.Size)
+                                                           + (LiveShapingItems[folderPair as T].IsSortDirty ? "" : "✓");
                                                 })
                              ));*/
         }

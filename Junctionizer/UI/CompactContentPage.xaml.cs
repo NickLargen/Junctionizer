@@ -7,26 +7,26 @@ using Junctionizer.ViewModels;
 
 namespace Junctionizer.UI
 {
-    public partial class MergedSinglePane
+    public partial class CompactContentPage
     {
-        public MergedSinglePane(MainWindowViewModel mainWindowViewModel)
+        public CompactContentPage(MainWindowViewModel mainWindowViewModel)
         {
             InitializeComponent();
-
+            
             DataContext = mainWindowViewModel;
 
-            var setCollectionView = new SetCollectionView<MergedItem, MergedItemEnumerable>(mainWindowViewModel.MergedCollection);
+            var setCollectionView = new SetCollectionView<GameFolderPair, GameFolderPairEnumerable>(mainWindowViewModel.FolderPairCollection);
 
             mainWindowViewModel.LiveFilteringProperties.CollectionChanged += (sender, args) => {
                 switch (args.Action)
                 {
                     case NotifyCollectionChangedAction.Add:
-                        setCollectionView.LiveFilteringProperties.Add(nameof(MergedItem.SourceEntry) + "." + args.NewItems[0]);
-                        setCollectionView.LiveFilteringProperties.Add(nameof(MergedItem.DestinationEntry) + "." + args.NewItems[0]);
+                        setCollectionView.LiveFilteringProperties.Add(nameof(GameFolderPair.SourceEntry) + "." + args.NewItems[0]);
+                        setCollectionView.LiveFilteringProperties.Add(nameof(GameFolderPair.DestinationEntry) + "." + args.NewItems[0]);
                         break;
                     case NotifyCollectionChangedAction.Remove:
-                        setCollectionView.LiveFilteringProperties.Remove(nameof(MergedItem.SourceEntry) + "." + args.OldItems[0]);
-                        setCollectionView.LiveFilteringProperties.Remove(nameof(MergedItem.DestinationEntry) + "." + args.OldItems[0]);
+                        setCollectionView.LiveFilteringProperties.Remove(nameof(GameFolderPair.SourceEntry) + "." + args.OldItems[0]);
+                        setCollectionView.LiveFilteringProperties.Remove(nameof(GameFolderPair.DestinationEntry) + "." + args.OldItems[0]);
                         break;
                     case NotifyCollectionChangedAction.Replace:
                         throw new NotSupportedException();
@@ -40,17 +40,17 @@ namespace Junctionizer.UI
             };
 
             setCollectionView.Filter = obj => {
-                var mergedItem = (MergedItem) obj;
+                var folderPair = (GameFolderPair) obj;
 
-                return mergedItem.SourceEntry != null && mainWindowViewModel.PassesFilter(mergedItem.SourceEntry)
-                       || mergedItem.DestinationEntry != null && mainWindowViewModel.PassesFilter(mergedItem.DestinationEntry);
+                return folderPair.SourceEntry != null && mainWindowViewModel.PassesFilter(folderPair.SourceEntry)
+                       || folderPair.DestinationEntry != null && mainWindowViewModel.PassesFilter(folderPair.DestinationEntry);
             };
 
             mainWindowViewModel.PassesFilterChangedObservable.Subscribe(pattern => {
                 setCollectionView.NotifyFilterChanged();
             });
 
-            mergedItemDataGrid.ItemsSource = setCollectionView;
+            compactDataGrid.ItemsSource = setCollectionView;
         }
     }
 

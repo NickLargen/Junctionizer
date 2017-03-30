@@ -18,10 +18,10 @@ namespace Junctionizer.UI.Styles
             {
                 OpenInFileExplorer(folder);
             }
-            else if (dataGridRow?.Item is MergedItem mergedItem)
+            else if (dataGridRow?.Item is GameFolderPair pair)
             {
-                if (mergedItem.SourceEntry?.IsJunction == false) OpenInFileExplorer(mergedItem.SourceEntry);
-                if (mergedItem.DestinationEntry?.IsJunction == false) OpenInFileExplorer(mergedItem.DestinationEntry);
+                if (pair.SourceEntry?.IsJunction == false) OpenInFileExplorer(pair.SourceEntry);
+                if (pair.DestinationEntry?.IsJunction == false) OpenInFileExplorer(pair.DestinationEntry);
             }
         }
 

@@ -185,11 +185,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\DualPane.xaml.cs">
-      <DependentUpon>DualPane.xaml</DependentUpon>
+    <Compile Include="UI\ExtendedContentPage.xaml.cs">
+      <DependentUpon>ExtendedContentPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\MergedSinglePane.xaml.cs">
-      <DependentUpon>MergedSinglePane.xaml</DependentUpon>
+    <Compile Include="UI\CompactContentPage.xaml.cs">
+      <DependentUpon>CompactContentPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="CustomWpfComponents\ValueConverters\LogScaleConverter.cs" />
     <Compile Include="CustomWpfComponents\ValueConverters\DateTimeToStringConverter.cs" />
@@ -215,16 +215,16 @@
       <DependentUpon>DependentOnFinalSizeColumn.xaml</DependentUpon>
     </Compile>
     <Compile Include="CustomWpfComponents\ValueConverters\LogScaleTooltipConverter.cs" />
-    <Compile Include="Model\MergedItemEnumerable.cs" />
+    <Compile Include="Model\GameFolderPairEnumerable.cs" />
     <Compile Include="ViewModels\FindJunctionsViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="CustomWpfComponents\SetCollectionView.cs" />
-    <Compile Include="Model\MergedItem.cs" />
-    <Page Include="UI\DualPane.xaml">
+    <Compile Include="Model\GameFolderPair.cs" />
+    <Page Include="UI\ExtendedContentPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\MergedSinglePane.xaml">
+    <Page Include="UI\CompactContentPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -53,8 +53,8 @@ namespace Utilities.Collections
         /// <inheritdoc cref="List{T}.Capacity"/>
         public int Capacity
         {
-            get { return BackingList.Capacity; }
-            set { BackingList.Capacity = value; }
+            get => BackingList.Capacity;
+            set => BackingList.Capacity = value;
         }
 
         /// <summary>Gets the number of elements contained in the <see cref="SortedValueList{T}"/></summary>

@@ -56,7 +56,7 @@ namespace Junctionizer.ViewModels
                 regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
             DestinationCollection.FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common";
 
-            MergedCollection = new MergedItemEnumerable(SourceCollection, DestinationCollection);
+            FolderPairCollection = new GameFolderPairEnumerable(SourceCollection, DestinationCollection);
 
             BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
 
@@ -132,7 +132,7 @@ namespace Junctionizer.ViewModels
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
 
-        public MergedItemEnumerable MergedCollection { get; private set; }
+        public GameFolderPairEnumerable FolderPairCollection { get; private set; }
 
         public ObservableCollection<DirectoryMapping> DisplayedMappings { get; } = new ObservableCollection<DirectoryMapping>();
 

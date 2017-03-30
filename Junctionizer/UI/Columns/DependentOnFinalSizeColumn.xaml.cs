@@ -4,19 +4,16 @@ using System.Windows.Data;
 
 namespace Junctionizer.UI.Columns
 {
-    public partial class DependentOnFinalSizeColumn 
+    public partial class DependentOnFinalSizeColumn
     {
         public DependentOnFinalSizeColumn()
         {
             InitializeComponent();
-
         }
+
         public override BindingBase Binding
         {
-            get
-            {
-                return base.Binding;
-            }
+            get => base.Binding;
 
             set {
                 base.Binding = value;

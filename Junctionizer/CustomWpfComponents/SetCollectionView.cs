@@ -60,8 +60,8 @@ namespace Junctionizer.CustomWpfComponents
 
         event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
         {
-            add { PropertyChanged += value; }
-            remove { PropertyChanged -= value; }
+            add => PropertyChanged += value;
+            remove => PropertyChanged -= value;
         }
         protected override event PropertyChangedEventHandler PropertyChanged;
 
@@ -78,8 +78,8 @@ namespace Junctionizer.CustomWpfComponents
 
         event NotifyCollectionChangedEventHandler INotifyCollectionChanged.CollectionChanged
         {
-            add { CollectionChanged += value; }
-            remove { CollectionChanged -= value; }
+            add => CollectionChanged += value;
+            remove => CollectionChanged -= value;
         }
 
         protected override event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -144,7 +144,7 @@ namespace Junctionizer.CustomWpfComponents
         /// <summary>Apply a custom sort, clearing any existing <see cref="CollectionView.SortDescriptions"/> and <see cref="LiveSortingProperties"/>.</summary>
         public IComparer<T> CustomSort
         {
-            get { return _customSort; }
+            get => _customSort;
             set {
                 if (AllowsCrossThreadChanges) VerifyAccess();
                 _customSort = value;
@@ -428,21 +428,21 @@ namespace Junctionizer.CustomWpfComponents
         /// <summary>Whethether live sorting is active.</summary>
         public bool? IsLiveSorting
         {
-            get { return true; }
-            set { throw new NotSupportedException(); }
+            get => true;
+            set => throw new NotSupportedException();
         }
 
         /// <summary>Whethether live filtering is active.</summary>
         public bool? IsLiveFiltering
         {
-            get { return true; }
-            set { throw new NotSupportedException(); }
+            get => true;
+            set => throw new NotSupportedException();
         }
 
         public bool? IsLiveGrouping
         {
-            get { return false; }
-            set { throw new NotSupportedException(); }
+            get => false;
+            set => throw new NotSupportedException();
         }
 
         /// <summary>Strings describing properties that trigger live sorting in the format <see cref="SortDescription.PropertyName"/>. Automatically includes any sort descriptions.</summary>

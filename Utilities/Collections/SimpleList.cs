@@ -29,7 +29,7 @@ namespace Utilities.Collections
         /// <summary>Gets and sets the capacity of this list.  The capacity is the size of the internal array used to hold items.  When set, the internal array of the list is reallocated to the given capacity.</summary>
         public int Capacity
         {
-            get { return Items.Length; }
+            get => Items.Length;
             set {
                 if (value < Count)
                 {

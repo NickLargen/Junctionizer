@@ -36,8 +36,8 @@ namespace Junctionizer.CustomWpfComponents
 
         public IList SelectedItemsList
         {
-            get { return (IList) GetValue(SelectedItemsListProperty); }
-            set { SetValue(SelectedItemsListProperty, value); }
+            get => (IList) GetValue(SelectedItemsListProperty);
+            set => SetValue(SelectedItemsListProperty, value);
         }
 
         public static readonly DependencyProperty SelectedItemsListProperty =

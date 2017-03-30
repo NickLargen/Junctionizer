@@ -21,7 +21,7 @@ using Utilities.Collections;
 namespace Junctionizer.Model
 {
     [ImplementPropertyChanged]
-    public class MergedItemEnumerable : IEnumerable<MergedItem>, INotifyCollectionChanged
+    public class GameFolderPairEnumerable : IEnumerable<GameFolderPair>, INotifyCollectionChanged
     {
         [NotNull]
         public FolderCollection SourceCollection { get; }
@@ -51,17 +51,17 @@ namespace Junctionizer.Model
         }
 
         [NotNull]
-        public IEnumerable<MergedItem> SelectedMergedItems =>
+        public IEnumerable<GameFolderPair> SelectedFolderPairs =>
             SelectedItems.Reverse()
-                         .Cast<MergedItem>()
-                         .Where(mi => mi.SourceEntry?.IsBeingDeleted != true && mi.DestinationEntry?.IsBeingDeleted != true);
+                         .Cast<GameFolderPair>()
+                         .Where(pair => pair.SourceEntry?.IsBeingDeleted != true && pair.DestinationEntry?.IsBeingDeleted != true);
 
         [NotNull]
         private Func<GameFolder, string> KeySelector { get; }
 
-        public Dictionary<string, MergedItem> Items { get; } = new Dictionary<string, MergedItem>();
+        public Dictionary<string, GameFolderPair> Items { get; } = new Dictionary<string, GameFolderPair>();
 
-        public MergedItemEnumerable(FolderCollection sourceCollection, FolderCollection destinationCollection)
+        public GameFolderPairEnumerable(FolderCollection sourceCollection, FolderCollection destinationCollection)
         {
             SourceCollection = sourceCollection;
             DestinationCollection = destinationCollection;
@@ -105,7 +105,7 @@ namespace Junctionizer.Model
 
         private void AddItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
         {
-            var addedItems = new List<MergedItem>();
+            var addedItems = new List<GameFolderPair>();
             foreach (var folder in folders)
             {
                 if (Items.TryGetValue(folder.Name, out var existingItem))
@@ -117,7 +117,7 @@ namespace Junctionizer.Model
                 }
                 else
                 {
-                    var newItem = isFromSourceCollection ? new MergedItem(sourceEntry: folder) : new MergedItem(destinationEntry: folder);
+                    var newItem = isFromSourceCollection ? new GameFolderPair(sourceEntry: folder) : new GameFolderPair(destinationEntry: folder);
                     Items.Add(folder.Name, newItem);
                     addedItems.Add(newItem);
                 }
@@ -128,18 +128,18 @@ namespace Junctionizer.Model
 
         private void RemoveItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
         {
-            var removedItems = new List<MergedItem>();
+            var removedItems = new List<GameFolderPair>();
             foreach (var folder in folders)
             {
-                var mergedItem = Items[folder.Name];
-                if ((isFromSourceCollection ? mergedItem.DestinationEntry : mergedItem.SourceEntry) != null)
+                var folderPair = Items[folder.Name];
+                if ((isFromSourceCollection ? folderPair.DestinationEntry : folderPair.SourceEntry) != null)
                 {
-                    if (isFromSourceCollection) mergedItem.SourceEntry = null;
-                    else mergedItem.DestinationEntry = null;
+                    if (isFromSourceCollection) folderPair.SourceEntry = null;
+                    else folderPair.DestinationEntry = null;
                 }
                 else
                 {
-                    removedItems.Add(mergedItem);
+                    removedItems.Add(folderPair);
                     Items.Remove(folder.Name);
                 }
             }
@@ -147,7 +147,7 @@ namespace Junctionizer.Model
             if (removedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, changedItems: removedItems));
         }
 
-        public IEnumerable<MergedItem> GetExistingValues()
+        public IEnumerable<GameFolderPair> GetExistingValues()
         {
             var sourceFoldersDictionary = SourceCollection.Folders.ToDictionary(KeySelector);
 
@@ -172,17 +172,17 @@ namespace Junctionizer.Model
                     sourceFoldersDictionary.Remove(key);
                 }
 
-                MergedItem item = new MergedItem(sourceEntry: sourceFolder, destinationEntry: destinationFolder);
+                GameFolderPair item = new GameFolderPair(sourceEntry: sourceFolder, destinationEntry: destinationFolder);
                 yield return item;
             }
 
             foreach (var sourceFolder in sourceFoldersDictionary.Values)
             {
-                yield return new MergedItem(sourceEntry: sourceFolder);
+                yield return new GameFolderPair(sourceEntry: sourceFolder);
             }
         }
 
-        public IEnumerator<MergedItem> GetEnumerator() => Items.Values.GetEnumerator();
+        public IEnumerator<GameFolderPair> GetEnumerator() => Items.Values.GetEnumerator();
 
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -197,15 +197,15 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public DelegateCommand DeleteCommand => new DelegateCommand(() => {
             DeleteSelected().Forget();
-        }, () => SelectedMergedItems.Any());
+        }, () => SelectedFolderPairs.Any());
 
         private async Task DeleteSelected()
         {
-            var sourceFolders = SelectedMergedItems.Select(mi => mi.SourceEntry).Where(folder => folder != null).ToList();
+            var sourceFolders = SelectedFolderPairs.Select(pair => pair.SourceEntry).Where(folder => folder != null).ToList();
             SourceCollection.DeleteJunctions(sourceFolders);
             await SourceCollection.DeleteFolders(sourceFolders);
-            await DestinationCollection.DeleteFolders(SelectedMergedItems
-                .Select(mi => mi.DestinationEntry)
+            await DestinationCollection.DeleteFolders(SelectedFolderPairs
+                .Select(pair => pair.DestinationEntry)
                 .Where(folder => folder != null));
         }
 
@@ -213,10 +213,10 @@ namespace Junctionizer.Model
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
         public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
-            SourceCollection.ArchiveFolders(ArchivableItems().Select(mi => mi.SourceEntry)).Forget();
+            SourceCollection.ArchiveFolders(ArchivableItems().Select(pair => pair.SourceEntry)).Forget();
         }, () => ArchivableItems().Any());
 
-        private IEnumerable<MergedItem> ArchivableItems() => SelectedMergedItems.Where(mi => mi.SourceEntry?.IsJunction == false);
+        private IEnumerable<GameFolderPair> ArchivableItems() => SelectedFolderPairs.Where(pair => pair.SourceEntry?.IsJunction == false);
 
 
         /// <summary>Results in folder in source location, not in destination.</summary>
@@ -225,14 +225,14 @@ namespace Junctionizer.Model
             Task.WhenAll(RestorableItems().Select(Restore)).Forget();
         }, () => RestorableItems().Any());
 
-        private IEnumerable<MergedItem> RestorableItems() => SelectedMergedItems.Where(mi => mi.DestinationEntry?.IsJunction == false);
+        private IEnumerable<GameFolderPair> RestorableItems() => SelectedFolderPairs.Where(pair => pair.DestinationEntry?.IsJunction == false);
 
-        private async Task Restore(MergedItem mergedItem)
+        private async Task Restore(GameFolderPair gameFolderPair)
         {
-            Debug.Assert(mergedItem.DestinationEntry?.IsJunction == false);
+            Debug.Assert(gameFolderPair.DestinationEntry?.IsJunction == false);
 
-            var createdFolder = await SourceCollection.CopyFolder(mergedItem.DestinationEntry);
-            if (createdFolder != null) await DestinationCollection.DeleteFolder(mergedItem.DestinationEntry);
+            var createdFolder = await SourceCollection.CopyFolder(gameFolderPair.DestinationEntry);
+            if (createdFolder != null) await DestinationCollection.DeleteFolder(gameFolderPair.DestinationEntry);
         }
 
 
@@ -242,20 +242,20 @@ namespace Junctionizer.Model
             Task.WhenAll(MirrorableItems().Select(Mirror)).Forget();
         }, () => MirrorableItems().Any());
 
-        private IEnumerable<MergedItem> MirrorableItems() => SelectedMergedItems.Where(mi => !(mi.SourceEntry?.IsJunction == false && mi.DestinationEntry?.IsJunction == false));
+        private IEnumerable<GameFolderPair> MirrorableItems() => SelectedFolderPairs.Where(pair => !(pair.SourceEntry?.IsJunction == false && pair.DestinationEntry?.IsJunction == false));
 
-        private async Task Mirror(MergedItem mergedItem)
+        private async Task Mirror(GameFolderPair gameFolderPair)
         {
-            Debug.Assert(!(mergedItem.SourceEntry?.IsJunction == false && mergedItem.DestinationEntry?.IsJunction == false));
+            Debug.Assert(!(gameFolderPair.SourceEntry?.IsJunction == false && gameFolderPair.DestinationEntry?.IsJunction == false));
 
-            if (mergedItem.DestinationEntry?.IsJunction == false)
+            if (gameFolderPair.DestinationEntry?.IsJunction == false)
             {
-                await SourceCollection.CopyFolder(mergedItem.DestinationEntry);
+                await SourceCollection.CopyFolder(gameFolderPair.DestinationEntry);
             }
             else
             {
-                Debug.Assert(mergedItem.SourceEntry != null);
-                await DestinationCollection.CopyFolder(mergedItem.SourceEntry);
+                Debug.Assert(gameFolderPair.SourceEntry != null);
+                await DestinationCollection.CopyFolder(gameFolderPair.SourceEntry);
             }
         }
     }

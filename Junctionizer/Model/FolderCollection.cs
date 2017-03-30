@@ -85,7 +85,7 @@ namespace Junctionizer.Model
         [NotNull]
         public ObservableCollection<object> SelectedItems
         {
-            get { return _selectedItems; }
+            get => _selectedItems;
             set {
                 _selectedItems = value;
 
@@ -216,10 +216,11 @@ namespace Junctionizer.Model
         public void DeleteJunctions(IEnumerable<GameFolder> junctions) => junctions.Where(folder => folder.IsJunction).ForEach(DeleteJunction);
 
         [AutoLazy.Lazy]
-        public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectFoldersNotInOtherPane)
+        public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectUniqueFolders)
             .ObservesCanExecute(() => BothCollectionsInitialized);
 
-        public void SelectFoldersNotInOtherPane()
+        /// <summary>Selects all folders that do not exist in the corresponding collection.</summary>
+        public void SelectUniqueFolders()
         {
             var foldersToSelect = Folders.Where(folder =>
                 // Same name

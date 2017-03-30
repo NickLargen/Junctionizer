@@ -8,9 +8,9 @@ using Utilities.Collections;
 
 namespace Junctionizer.UI
 {
-    public partial class DualPane 
+    public partial class ExtendedContentPage 
     {
-        public DualPane(MainWindowViewModel mainWindowViewModel)
+        public ExtendedContentPage(MainWindowViewModel mainWindowViewModel)
         {
             InitializeComponent();
 

@@ -9,7 +9,7 @@ using Prism.Mvvm;
 
 namespace Junctionizer.Model
 {
-    public class MergedItem : BindableBase, IEquatable<MergedItem>, IComparable<MergedItem>
+    public class GameFolderPair : BindableBase, IEquatable<GameFolderPair>, IComparable<GameFolderPair>
     {
         private const string SOURCE_ENTRY_SIZE_PROPERTY_NAME = nameof(SourceEntry) + "." + nameof(GameFolder.Size);
         private const string DESTINATION_ENTRY_SIZE_PROPERTY_NAME = nameof(DestinationEntry) + "." + nameof(GameFolder.Size);
@@ -75,7 +75,7 @@ namespace Junctionizer.Model
             => RaisePropertyChanged(nameof(DestinationEntry) + "." + e.PropertyName);
 
         /// <inheritdoc/>
-        public MergedItem([CanBeNull] GameFolder sourceEntry = null, [CanBeNull] GameFolder destinationEntry = null)
+        public GameFolderPair([CanBeNull] GameFolder sourceEntry = null, [CanBeNull] GameFolder destinationEntry = null)
         {
             Debug.Assert(sourceEntry != null || destinationEntry != null);
 
@@ -86,7 +86,7 @@ namespace Junctionizer.Model
             HashCode = Name.GetHashCode();
         }
 
-
+        [UsedImplicitly]
         public bool IsBeingDeleted => SourceEntry?.IsBeingDeleted == true || DestinationEntry?.IsBeingDeleted == true;
 
         private int HashCode { get; }
@@ -95,7 +95,7 @@ namespace Junctionizer.Model
         public string Name { get; }
 
         /// <inheritdoc/>
-        public bool Equals(MergedItem other)
+        public bool Equals(GameFolderPair other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -109,14 +109,14 @@ namespace Junctionizer.Model
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
 
-            return obj is MergedItem mergedItem && Equals(mergedItem);
+            return obj is GameFolderPair pair && Equals(pair);
         }
 
         /// <inheritdoc/>
         public override int GetHashCode() => HashCode;
 
         /// <inheritdoc/>
-        public int CompareTo(MergedItem other)
+        public int CompareTo(GameFolderPair other)
         {
             if (ReferenceEquals(this, other)) return 0;
             if (ReferenceEquals(null, other)) return 1;
