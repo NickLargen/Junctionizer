@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Junctionizer</id>
+    <!-- version will be replaced by MSBuild -->
+    <version>0.0.0</version>
+    <title>Junctionizer</title>
+    <authors>Nick Largen</authors>
+    <description>Liberate your C: drive using junction points.</description>
+    <iconUrl>https://raw.githubusercontent.com/NickLargen/Junctionizer/master/Junctionizer/spiral_icon.ico</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies />
+  </metadata>
+  <files>
+    <file src="*.*" target="lib\net45\" exclude="*.pdb;*.nupkg;*.vshost.*"/>
+  </files>
+</package>

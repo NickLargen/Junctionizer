@@ -122,6 +122,10 @@ DocProject/Help/html
 # Click-Once directory
 publish/
 
+
+# Squirrel Deployments Directory
+Releases/
+
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
@@ -191,6 +195,4 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/Test/ObservableDictionaryTests.cs
 /.vs
-/Junctionizer/deploy
