@@ -64,7 +64,7 @@ namespace Junctionizer.ViewModels
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
 
             var appDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                nameof(Junctionizer));
+                nameof(Junctionizer) + "Config");
             SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
 
             if (File.Exists(SavedMappingsFilePath))
