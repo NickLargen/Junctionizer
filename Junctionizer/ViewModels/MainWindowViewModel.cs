@@ -77,7 +77,7 @@ namespace Junctionizer.ViewModels
             }
             else
             {
-                MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
+                Task.Run(() => MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive."));
             }
 
             DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
