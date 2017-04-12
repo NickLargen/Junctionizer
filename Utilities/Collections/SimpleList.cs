@@ -5,6 +5,9 @@ using System.Diagnostics;
 
 namespace Utilities.Collections
 {
+    /// <summary>
+    /// Simple functionality copied from List&lt;T> with a public Move method that is faster for list reorganization than removing an item and then placing it back into the desired location.
+    /// </summary>
     [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
     public class SimpleList<T> : IList<T>, IReadOnlyList<T>
     {
