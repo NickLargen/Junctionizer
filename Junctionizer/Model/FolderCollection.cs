@@ -13,7 +13,6 @@ using JetBrains.Annotations;
 using Junctionizer.Properties;
 
 using Microsoft.VisualBasic.FileIO;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;

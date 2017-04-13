@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-using Microsoft.VisualStudio.Threading;
 
 using NUnit.Framework;
 
+using Utilities;
 using Utilities.Collections;
 
 namespace Junctionizer.Tests.AsyncObservableKeyedSet

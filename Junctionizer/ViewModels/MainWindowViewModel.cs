@@ -20,7 +20,6 @@ using Junctionizer.Model;
 
 using MaterialDesignThemes.Wpf;
 
-using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 

@@ -10,12 +10,11 @@ using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
-using Microsoft.VisualStudio.Threading;
-
 using Prism.Commands;
 
 using PropertyChanged;
 
+using Utilities;
 using Utilities.Collections;
 
 namespace Junctionizer.Model

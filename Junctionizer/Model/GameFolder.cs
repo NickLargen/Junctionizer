@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
-using Microsoft.VisualStudio.Threading;
-
 using Prism.Mvvm;
 
 using Utilities;
