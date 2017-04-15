@@ -136,36 +136,50 @@ namespace Junctionizer.ViewModels
         public ObservableCollection<DirectoryMapping> DisplayedMappings { get; } = new ObservableCollection<DirectoryMapping>();
 
         private string SavedMappingsFilePath { get; set; }
-        private bool IsSelectedMappingModificationAllowed { get; set; } = true;
 
+        /// <summary>Changes to folder locations and DisplayedMappings can result in the SelectedMapping setter being called. This tracks whether the origination of those changes is the SelectedMapping setter itself in order to prevent (indirect) recursive calls.</summary>
+        private bool IsSettingSelectedMapping { get; set; }
         private DirectoryMapping _selectedMapping;
         public DirectoryMapping SelectedMapping
         {
             get => _selectedMapping;
             set {
+                if (IsSettingSelectedMapping) return;
+
+                IsSettingSelectedMapping = true;
                 var previousValue = _selectedMapping;
                 _selectedMapping = value;
-                if (!Directory.Exists(_selectedMapping.Source))
+
+                if (_selectedMapping != null)
                 {
-                    DisplayedMappings.Remove(_selectedMapping);
-                    _selectedMapping = new DirectoryMapping(null, _selectedMapping.Destination);
-                }
-                if (!Directory.Exists(_selectedMapping.Destination))
-                {
-                    DisplayedMappings.Remove(_selectedMapping);
-                    _selectedMapping = new DirectoryMapping(_selectedMapping.Source, null);
+                    if (!Directory.Exists(_selectedMapping.Source))
+                    {
+                        DisplayedMappings.Remove(_selectedMapping);
+                        _selectedMapping = new DirectoryMapping(null, _selectedMapping.Destination);
+                    }
+                    if (!Directory.Exists(_selectedMapping.Destination))
+                    {
+                        DisplayedMappings.Remove(_selectedMapping);
+                        _selectedMapping = new DirectoryMapping(_selectedMapping.Source, null);
+                    }
+
+                    if (_selectedMapping.Source == null && _selectedMapping.Destination == null)
+                    {
+                        _selectedMapping = null;
+                    }
+                    else
+                    {
+                        if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
+                        _selectedMapping.PropertyChanged += SelectedMappingPropertyChanged;
+                    }
                 }
 
-                if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
                 if (previousValue?.IsSavedMapping == false) DisplayedMappings.Remove(previousValue);
-
                 if (previousValue != null) previousValue.PropertyChanged -= SelectedMappingPropertyChanged;
-                _selectedMapping.PropertyChanged += SelectedMappingPropertyChanged;
 
-                IsSelectedMappingModificationAllowed = false;
-                SourceCollection.Location = _selectedMapping.Source;
-                DestinationCollection.Location = _selectedMapping.Destination;
-                IsSelectedMappingModificationAllowed = true;
+                SourceCollection.Location = _selectedMapping?.Source;
+                DestinationCollection.Location = _selectedMapping?.Destination;
+                IsSettingSelectedMapping = false;
             }
         }
 
@@ -188,7 +202,7 @@ namespace Junctionizer.ViewModels
         private void OnFolderCollectionPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
-            if (args.PropertyName.Equals(nameof(FolderCollection.Location)) && IsSelectedMappingModificationAllowed)
+            if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
             {
                 SelectedMapping = new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
             }
