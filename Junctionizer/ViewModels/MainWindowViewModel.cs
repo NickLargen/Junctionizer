@@ -61,25 +61,32 @@ namespace Junctionizer.ViewModels
 
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
-
+            
             var appDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 nameof(Junctionizer) + "Config");
             SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
 
-            if (File.Exists(SavedMappingsFilePath))
-            {
-                var deserializedMappings = JsonConvert.DeserializeObject<List<DirectoryMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
-                deserializedMappings.ForEach(mapping => {
-                    mapping.IsSavedMapping = true;
-                    DisplayedMappings.Add(mapping);
-                });
-            }
-            else
-            {
-                Task.Run(() => MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive."));
-            }
+            Task.Run(() => {
+                // Run inside of a task so that the UI isn't blocked from appearing. Checking the existence of saved mappings can take a few seconds if a hard drive needs to turn on.
+                if (File.Exists(SavedMappingsFilePath))
+                {
+                    var deserializedMappings = JsonConvert.DeserializeObject<List<DirectoryMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
+                    deserializedMappings.ForEach(mapping => {
+                        if ((mapping.Source == null || Directory.Exists(mapping.Source)) &&
+                            (mapping.Destination == null || Directory.Exists(mapping.Destination)))
+                        {
+                            mapping.IsSavedMapping = true;
+                            DisplayedMappings.Add(mapping);
+                        }
+                    });
+                }
+                else
+                {
+                    MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
+                }
 
-            DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
+                DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
+            });
         }
 
         /// <summary>Fody PropertyChanged handles creating change notification whenever something this function depends on changes.</summary>
