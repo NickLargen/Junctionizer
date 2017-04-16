@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -15,7 +16,6 @@ using Prism.Commands;
 using PropertyChanged;
 
 using Utilities;
-using Utilities.Collections;
 
 namespace Junctionizer.Model
 {
@@ -67,8 +67,7 @@ namespace Junctionizer.Model
 
             KeySelector = SourceCollection.Folders.GetKeyForItem;
 
-
-            GetExistingValues().ForEach(item => Items.Add(item.Name, item));
+            AddExistingValues();
 
             SourceCollection.Folders.CollectionChanged += BackingCollectionChangedHandler(true);
             DestinationCollection.Folders.CollectionChanged += BackingCollectionChangedHandler(false);
@@ -77,18 +76,20 @@ namespace Junctionizer.Model
         private NotifyCollectionChangedEventHandler BackingCollectionChangedHandler(bool isFromSourceCollection)
         {
             return (sender, e) => {
-                switch (e.Action)
+                switch (e.Action)   
                 {
                     case NotifyCollectionChangedAction.Reset:
                         Items.Clear();
-                        GetExistingValues().ForEach(item => Items.Add(item.Name, item));
+                        AddExistingValues();
                         OnCollectionChanged(e);
                         break;
                     case NotifyCollectionChangedAction.Add:
-                        AddItems(e.NewItems.Cast<GameFolder>(), isFromSourceCollection);
+                        var addedItems = AddItems(e.NewItems.Cast<GameFolder>(), isFromSourceCollection);
+                        if (addedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, changedItems: addedItems));
                         break;
                     case NotifyCollectionChangedAction.Remove:
-                        RemoveItems(e.OldItems.Cast<GameFolder>(), isFromSourceCollection);
+                        var removedItems = RemoveItems(e.OldItems.Cast<GameFolder>(), isFromSourceCollection);
+                        if (removedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, changedItems: removedItems));
                         break;
                     case NotifyCollectionChangedAction.Replace:
                         throw new NotSupportedException();
@@ -102,15 +103,20 @@ namespace Junctionizer.Model
             };
         }
 
-        private void AddItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
+        private void AddExistingValues()
+        {
+            AddItems(SourceCollection.Folders, isFromSourceCollection: true);
+            AddItems(DestinationCollection.Folders, isFromSourceCollection: false);
+        }
+
+        private List<GameFolderPair> AddItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
         {
             var addedItems = new List<GameFolderPair>();
-            foreach (var folder in folders)
+            foreach (var folder in folders.Where(folder => !folder.IsJunction
+                                                           || string.Equals(Path.GetFileNameWithoutExtension(folder.JunctionTarget), folder.Name, StringComparison.Ordinal)))
             {
                 if (Items.TryGetValue(folder.Name, out var existingItem))
                 {
-                    Debug.Assert(isFromSourceCollection ? existingItem.SourceEntry == null : existingItem.DestinationEntry == null);
-
                     if (isFromSourceCollection) existingItem.SourceEntry = folder;
                     else existingItem.DestinationEntry = folder;
                 }
@@ -122,64 +128,32 @@ namespace Junctionizer.Model
                 }
             }
 
-            if (addedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, changedItems: addedItems));
+            return addedItems;
         }
 
-        private void RemoveItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
+        private List<GameFolderPair> RemoveItems(IEnumerable<GameFolder> folders, bool isFromSourceCollection)
         {
             var removedItems = new List<GameFolderPair>();
             foreach (var folder in folders)
             {
-                var folderPair = Items[folder.Name];
-                if ((isFromSourceCollection ? folderPair.DestinationEntry : folderPair.SourceEntry) != null)
+                if (Items.TryGetValue(folder.Name, out var folderPair))
                 {
-                    if (isFromSourceCollection) folderPair.SourceEntry = null;
-                    else folderPair.DestinationEntry = null;
-                }
-                else
-                {
-                    removedItems.Add(folderPair);
-                    Items.Remove(folder.Name);
+                    if ((isFromSourceCollection ? folderPair.DestinationEntry : folderPair.SourceEntry) != null)
+                    {
+                        if (isFromSourceCollection) folderPair.SourceEntry = null;
+                        else folderPair.DestinationEntry = null;
+                    }
+                    else
+                    {
+                        removedItems.Add(folderPair);
+                        Items.Remove(folder.Name);
+                    }
                 }
             }
 
-            if (removedItems.Any()) OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, changedItems: removedItems));
+            return removedItems;
         }
 
-        public IEnumerable<GameFolderPair> GetExistingValues()
-        {
-            var sourceFoldersDictionary = SourceCollection.Folders.ToDictionary(KeySelector);
-
-            foreach (var destinationFolder in DestinationCollection.Folders)
-            {
-                /*
-                var junctionFolders = SourceCollection.GetFoldersByJunctionTarget(destinationFolder.DirectoryInfo).ToList();
-
-                if (junctionFolders.Any())
-                {
-                    if (junctionFolders.Count > 1) throw new NotSupportedException("Why would you have two junction points with the same target in one folder?");
-
-                    var junctionFolder = junctionFolders[0];
-                    sourceFoldersDictionary.Remove(GetKeyForItem(junctionFolder));
-                    item.SourceEntry = junctionFolder;
-                }*/
-
-
-                var key = KeySelector(destinationFolder);
-                if (sourceFoldersDictionary.TryGetValue(key, out var sourceFolder))
-                {
-                    sourceFoldersDictionary.Remove(key);
-                }
-
-                GameFolderPair item = new GameFolderPair(sourceEntry: sourceFolder, destinationEntry: destinationFolder);
-                yield return item;
-            }
-
-            foreach (var sourceFolder in sourceFoldersDictionary.Values)
-            {
-                yield return new GameFolderPair(sourceEntry: sourceFolder);
-            }
-        }
 
         public IEnumerator<GameFolderPair> GetEnumerator() => Items.Values.GetEnumerator();
 
@@ -212,10 +186,14 @@ namespace Junctionizer.Model
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
         public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
-            SourceCollection.ArchiveFolders(ArchivableItems().Select(pair => pair.SourceEntry)).Forget();
+            var itemsWithSource = ArchivableItems().ToLookup(pair => pair.SourceEntry != null);
+            SourceCollection.ArchiveFolders(itemsWithSource[true].Select(pair => pair.SourceEntry)).Forget();
+            DestinationCollection.CreateJunctionsTo(itemsWithSource[false].Select(pair => pair.DestinationEntry));
         }, () => ArchivableItems().Any());
 
-        private IEnumerable<GameFolderPair> ArchivableItems() => SelectedFolderPairs.Where(pair => pair.SourceEntry?.IsJunction == false);
+        private IEnumerable<GameFolderPair> ArchivableItems()
+            => SelectedFolderPairs.Where(pair => pair.SourceEntry?.IsJunction == false
+                                                 || pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false);
 
 
         /// <summary>Results in folder in source location, not in destination.</summary>

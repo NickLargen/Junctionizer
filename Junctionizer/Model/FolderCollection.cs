@@ -394,7 +394,7 @@ namespace Junctionizer.Model
                 }
 
                 //Delete junctions pointing to the deleted folder
-                CorrespondingCollection.GetFoldersByJunctionTarget(folderToDelete.DirectoryInfo).ForEach(DeleteJunction);
+                CorrespondingCollection.GetFoldersByJunctionTarget(folderToDelete.DirectoryInfo).ToList().ForEach(DeleteJunction);
 
                 return true;
             });

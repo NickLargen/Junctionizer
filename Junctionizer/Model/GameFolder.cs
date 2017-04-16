@@ -153,6 +153,7 @@ namespace Junctionizer.Model
 
         public override string ToString() => $"{nameof(DirectoryInfo)}: {DirectoryInfo.FullName}";
 
+        /// <summary>Sets the name of the GameFolder but does not affect the file system.</summary>
         public void Rename([NotNull] string newName)
         {
             Debug.Assert(DirectoryInfo.Parent != null);
