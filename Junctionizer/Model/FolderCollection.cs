@@ -120,7 +120,7 @@ namespace Junctionizer.Model
         {
             get => _location;
             set {
-                _location = Directory.Exists(value) ? value : null;
+                _location = Directory.Exists(value) && !string.Equals(CorrespondingCollection.Location, value, StringComparison.OrdinalIgnoreCase) ? value : null;
 
                 DisplayBusyDuring(() => {
                     // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized

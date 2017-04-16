@@ -159,12 +159,12 @@ namespace Junctionizer.ViewModels
 
                 if (_selectedMapping != null)
                 {
-                    if (!Directory.Exists(_selectedMapping.Source))
+                    if (_selectedMapping.Source != null && !Directory.Exists(_selectedMapping.Source))
                     {
                         DisplayedMappings.Remove(_selectedMapping);
                         _selectedMapping = new DirectoryMapping(null, _selectedMapping.Destination);
                     }
-                    if (!Directory.Exists(_selectedMapping.Destination))
+                    if (_selectedMapping.Destination != null && !Directory.Exists(_selectedMapping.Destination))
                     {
                         DisplayedMappings.Remove(_selectedMapping);
                         _selectedMapping = new DirectoryMapping(_selectedMapping.Source, null);
