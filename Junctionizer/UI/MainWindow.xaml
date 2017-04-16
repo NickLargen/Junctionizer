@@ -56,7 +56,7 @@
                           Command="{Binding DestinationCollection.SelectLocationCommand}"/>
                 <MenuItem Header="_Find Existing Junctions"
                           Command="{Binding FindExistingJunctionsCommand}" />
-                <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />
+<!--                <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />-->
                 <MenuItem Header="_Compact Interface"
                           x:Name="compactInterfaceMenuItem"
                           IsChecked="True"
