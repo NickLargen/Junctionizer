@@ -278,7 +278,10 @@ namespace Junctionizer.Model
             };
             _directoryWatcher.Renamed += (sender, args) => {
                 var folder = GetFolderByName(args.OldName);
-                Folders.UpdateKeyAsync(folder, () => folder.Rename(args.Name));
+                Folders.RemoveKeyAsync(args.OldName).ContinueWith(task => {
+                    folder.Rename(args.Name);
+                    Folders.AddAsync(folder);
+                });
             };
         }
 
