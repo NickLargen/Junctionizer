@@ -2,6 +2,8 @@
 using System.Windows.Controls;
 using System.Windows.Data;
 
+using Junctionizer.Model;
+
 namespace Junctionizer.UI.Columns
 {
     public partial class DependentOnFinalSizeColumn
@@ -30,7 +32,7 @@ namespace Junctionizer.UI.Columns
         {
             CellStyle = new Style(typeof(DataGridCell), (Style) Application.Current.FindResource("RightAlignCell"));
             var trigger = new DataTrigger {
-                Binding = new Binding(pathToFolder + "HasFinalSize"),
+                Binding = new Binding(pathToFolder + nameof(GameFolder.HasFinalSize)),
                 Value = "False"
             };
 
