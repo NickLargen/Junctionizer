@@ -20,7 +20,7 @@ namespace Junctionizer.UI
     public partial class MainWindow
     {
         public ExtendedContentPage ExtendedContentPage { get; }
-        public CompactContentPage SinglePane { get; }
+        public CompactContentPage CompactContentPage { get; }
 
         public MainWindow()
         {
@@ -36,7 +36,7 @@ namespace Junctionizer.UI
 
             // This maintains state (eg selecteditems) and allows fast navigation but creates extra work keeping them both in sync
             ExtendedContentPage = new ExtendedContentPage(mainWindowViewModel);
-            SinglePane = new CompactContentPage(mainWindowViewModel);
+            CompactContentPage = new CompactContentPage(mainWindowViewModel);
 
             SwitchInterfaces();
         }
@@ -61,7 +61,7 @@ namespace Junctionizer.UI
 
         private void SwitchInterfaces()
         {
-            if (compactInterfaceMenuItem.IsChecked) frame.Navigate(SinglePane);
+            if (compactInterfaceMenuItem.IsChecked) frame.Navigate(CompactContentPage);
             else frame.Navigate(ExtendedContentPage);
         }
     }
