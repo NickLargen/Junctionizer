@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,11 +21,8 @@ using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
-using Newtonsoft.Json;
-
 using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
-using Prism.Mvvm;
 
 using Utilities;
 
@@ -35,7 +30,7 @@ using static Junctionizer.StaticMethods;
 
 namespace Junctionizer.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
+    public class MainWindowViewModel : ViewModelBase
     {
         public MainWindowViewModel()
         {
@@ -47,13 +42,7 @@ namespace Junctionizer.ViewModels
 
         public void Initialize()
         {
-            RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-
             (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair(() => SynchronizationContext.Current is DispatcherSynchronizationContext);
-
-            SourceCollection.FolderBrowserDefaultLocation =
-                regKey == null ? @"C:" : regKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
-            DestinationCollection.FolderBrowserDefaultLocation = @"E:\Steam\SteamApps\common";
 
             FolderPairCollection = new GameFolderPairEnumerable(SourceCollection, DestinationCollection);
 
@@ -61,32 +50,35 @@ namespace Junctionizer.ViewModels
 
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
-            
-            var appDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                nameof(Junctionizer) + "Config");
-            SavedMappingsFilePath = Path.Combine(Directory.CreateDirectory(appDataDirectoryPath).FullName, "JunctionDirectories.json");
 
             Task.Run(() => {
-                // Run inside of a task so that the UI isn't blocked from appearing. Checking the existence of saved mappings can take a few seconds if a hard drive needs to turn on.
-                if (File.Exists(SavedMappingsFilePath))
-                {
-                    var deserializedMappings = JsonConvert.DeserializeObject<List<DirectoryMapping>>(File.ReadAllText(SavedMappingsFilePath, Encoding.UTF8));
-                    deserializedMappings.ForEach(mapping => {
-                        if ((mapping.Source == null || Directory.Exists(mapping.Source)) &&
-                            (mapping.Destination == null || Directory.Exists(mapping.Destination)))
-                        {
-                            mapping.IsSavedMapping = true;
-                            DisplayedMappings.Add(mapping);
-                        }
-                    });
-                }
-                else
-                {
-                    MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
-                }
+                // Run inside of a task so that the UI isn't blocked from appearing. 
 
-                DisplayedMappings.CollectionChanged += (sender, args) => WriteSavedMappings();
+                Settings.StateTracker.Configure(this).AddProperties(nameof(DisplayedMappings), nameof(SelectedMapping)).Apply();
+
+                var folderCollectionPersistedProperties = new[] {nameof(FolderCollection.FolderBrowserInitialLocation)};
+                Settings.StateTracker.Configure(SourceCollection).IdentifyAs("Source").AddProperties(folderCollectionPersistedProperties).Apply();
+                Settings.StateTracker.Configure(DestinationCollection).IdentifyAs("Destination").AddProperties(folderCollectionPersistedProperties).Apply();
+
+                if (!Directory.Exists(Settings.AppDataDirectoryPath)) NewUserSetup();
             });
+        }
+
+        private void NewUserSetup()
+        {
+            MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
+
+            RegistryKey steamRegKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
+            SourceCollection.FolderBrowserInitialLocation =
+                steamRegKey == null ? @"C:" : steamRegKey.GetValue("SteamPath").ToString().Replace(@"/", @"\") + @"\steamapps\common";
+
+            var suggestedBackupDrive =
+                DriveInfo.GetDrives()
+                         .Where(driveInfo => driveInfo.IsReady && driveInfo.Name != @"C:\" && driveInfo.DriveType == DriveType.Fixed)
+                         .OrderByDescending(driveInfo => driveInfo.AvailableFreeSpace)
+                         .Select(driveInfo => driveInfo.Name)
+                         .FirstOrDefault() ?? "E:";
+            DestinationCollection.FolderBrowserInitialLocation = suggestedBackupDrive;
         }
 
         /// <summary>Fody PropertyChanged handles creating change notification whenever something this function depends on changes.</summary>
@@ -140,9 +132,7 @@ namespace Junctionizer.ViewModels
 
         public GameFolderPairEnumerable FolderPairCollection { get; private set; }
 
-        public ObservableCollection<DirectoryMapping> DisplayedMappings { get; } = new ObservableCollection<DirectoryMapping>();
-
-        private string SavedMappingsFilePath { get; set; }
+        public ObservableCollection<DirectoryMapping> DisplayedMappings { get; [UsedImplicitly] private set; } = new ObservableCollection<DirectoryMapping>();
 
         /// <summary>Changes to folder locations and DisplayedMappings can result in the SelectedMapping setter being called. This tracks whether the origination of those changes is the SelectedMapping setter itself in order to prevent (indirect) recursive calls.</summary>
         private bool IsSettingSelectedMapping { get; set; }
@@ -190,17 +180,10 @@ namespace Junctionizer.ViewModels
             }
         }
 
-        private void WriteSavedMappings()
-        {
-            string json = JsonConvert.SerializeObject(DisplayedMappings.Where(mapping => mapping.IsSavedMapping), Formatting.Indented);
-            File.WriteAllText(SavedMappingsFilePath, json, Encoding.UTF8);
-        }
-
         private void SelectedMappingPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName.Equals(nameof(DirectoryMapping.IsSavedMapping)))
             {
-                WriteSavedMappings();
                 SaveCurrentLocationCommand.RaiseCanExecuteChanged();
                 DeleteCurrentLocationCommand.RaiseCanExecuteChanged();
             }
@@ -211,7 +194,10 @@ namespace Junctionizer.ViewModels
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
             if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
             {
-                SelectedMapping = new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
+                SelectedMapping = DisplayedMappings.FirstOrDefault(mapping =>
+                                      string.Equals(mapping.Source, SourceCollection.Location, StringComparison.OrdinalIgnoreCase) &&
+                                      string.Equals(mapping.Destination, DestinationCollection.Location, StringComparison.OrdinalIgnoreCase))
+                                  ?? new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
             }
         }
 

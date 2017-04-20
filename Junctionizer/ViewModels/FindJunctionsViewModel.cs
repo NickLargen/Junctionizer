@@ -4,11 +4,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Prism.Mvvm;
-
 namespace Junctionizer.ViewModels
 {
-    public class FindJunctionsViewModel : BindableBase
+    public class FindJunctionsViewModel : ViewModelBase
     {
         private CancellationTokenSource TokenSource { get; set; }
 

@@ -2,8 +2,6 @@
 
 using JetBrains.Annotations;
 
-using Newtonsoft.Json;
-
 using Prism.Mvvm;
 
 namespace Junctionizer.Model
@@ -24,7 +22,6 @@ namespace Junctionizer.Model
         [CanBeNull]
         public string Destination { get; }
 
-        [JsonIgnore]
         public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc/>

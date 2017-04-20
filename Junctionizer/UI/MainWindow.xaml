@@ -58,8 +58,7 @@
                           Command="{Binding FindExistingJunctionsCommand}" />
 <!--                <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />-->
                 <MenuItem Header="_Compact Interface"
-                          x:Name="compactInterfaceMenuItem"
-                          IsChecked="True"
+                          IsChecked="{Binding UISettings.IsCompactInterface}"
                           IsCheckable="True"
                           Unchecked="SwitchInterfaces"
                           Checked="SwitchInterfaces" />

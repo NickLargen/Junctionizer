@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Input;
 
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -19,9 +20,10 @@ namespace Junctionizer
         public static bool LockActiveDirectory { get; set; } = true;
 
         public static Action<Action> DisplayBusyDuring { get; set; } = action => {
-            Mouse.OverrideCursor = Cursors.Wait;
+            var apartmentState = Thread.CurrentThread.GetApartmentState();
+            if (apartmentState == ApartmentState.STA) Mouse.OverrideCursor = Cursors.Wait;
             action();
-            Mouse.OverrideCursor = null;
+            if (apartmentState == ApartmentState.STA) Mouse.OverrideCursor = null;
         };
 
         public static TCommand ObservesCollection<TCommand, TCollection>(this TCommand command,

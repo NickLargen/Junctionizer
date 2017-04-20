@@ -69,7 +69,7 @@ namespace Junctionizer.Model
         public FolderCollection CorrespondingCollection { get; private set; }
 
         [NotNull]
-        public string FolderBrowserDefaultLocation { get; set; } = string.Empty;
+        public string FolderBrowserInitialLocation { get; set; } = string.Empty;
 
         /// <summary>A dictionary where the keys are junction targets within this collection and the values are a list of the folders with that target (simply the opposite of the normal Folder -> junction target relationship).</summary>
         [NotNull]
@@ -242,10 +242,11 @@ namespace Junctionizer.Model
         public void SelectLocation()
         {
             var folderDialog = NewFolderDialog(Resources.SelectLocationCommand_Select_directory_containing_folders);
-            folderDialog.DefaultDirectory = FolderBrowserDefaultLocation;
+            folderDialog.InitialDirectory = FolderBrowserInitialLocation;
             if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 Location = folderDialog.FileName;
+                if (Location != null) FolderBrowserInitialLocation = Location;
             }
         }
 

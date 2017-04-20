@@ -29,6 +29,9 @@ namespace Junctionizer.UI
             BindingExceptionThrower.Attach();
             InitializeComponent();
 
+            // Persist window position and size when opening and closing the application
+            SourceInitialized += (sender, args) => Settings.StateTracker.Configure(this).IdentifyAs("WindowPosition").Apply();
+
             var mainWindowViewModel = (MainWindowViewModel) DataContext;
             mainWindowViewModel.Initialize();
 
@@ -61,7 +64,7 @@ namespace Junctionizer.UI
 
         private void SwitchInterfaces()
         {
-            if (compactInterfaceMenuItem.IsChecked) frame.Navigate(CompactContentPage);
+            if (UISettings.IsCompactInterface) frame.Navigate(CompactContentPage);
             else frame.Navigate(ExtendedContentPage);
         }
     }
