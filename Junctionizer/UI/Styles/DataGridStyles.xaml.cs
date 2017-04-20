@@ -20,8 +20,8 @@ namespace Junctionizer.UI.Styles
             }
             else if (dataGridRow?.Item is GameFolderPair pair)
             {
-                if (pair.SourceEntry?.IsJunction == false) OpenInFileExplorer(pair.SourceEntry);
-                if (pair.DestinationEntry?.IsJunction == false) OpenInFileExplorer(pair.DestinationEntry);
+                if (pair.DestinationEntry == null || pair.SourceEntry?.IsJunction == false) OpenInFileExplorer(pair.SourceEntry);
+                if (pair.DestinationEntry != null) OpenInFileExplorer(pair.DestinationEntry);
             }
         }
 
