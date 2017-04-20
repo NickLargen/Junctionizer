@@ -108,7 +108,7 @@ namespace Junctionizer.Model
         [NotNull]
         public IEnumerable<GameFolder> SelectedJunctions => AllSelectedGameFolders.Where(folder => folder.IsJunction);
 
-        private bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
+        public bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
 
         [NotNull] private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
 
