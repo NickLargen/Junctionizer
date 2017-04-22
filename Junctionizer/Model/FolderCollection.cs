@@ -237,17 +237,12 @@ namespace Junctionizer.Model
         }
 
         [AutoLazy.Lazy]
-        public DelegateCommand SelectLocationCommand => new DelegateCommand(SelectLocation);
+        public DelegateCommand SelectLocationCommand => new DelegateCommand(() => SelectLocation().Forget());
 
-        public void SelectLocation()
+        public async Task SelectLocation()
         {
-            var folderDialog = NewFolderDialog(Resources.SelectLocationCommand_Select_directory_containing_folders);
-            folderDialog.InitialDirectory = FolderBrowserInitialLocation;
-            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                Location = folderDialog.FileName;
-                if (Location != null) FolderBrowserInitialLocation = Location;
-            }
+            var directoryInfo = await Dialogs.PromptForDirectory(Resources.SelectLocationCommand_Select_directory_containing_folders, FolderBrowserInitialLocation);
+            if (directoryInfo != null) FolderBrowserInitialLocation = Location = directoryInfo.FullName;
         }
 
         #endregion

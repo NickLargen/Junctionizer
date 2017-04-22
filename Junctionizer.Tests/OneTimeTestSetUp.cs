@@ -31,6 +31,11 @@ namespace Junctionizer.Tests
 
             StaticMethods.LockActiveDirectory = false;
 
+            Dialogs.DisplayMessageBox = str => {
+                Console.WriteLine(str);
+                return null;
+            };
+
             ErrorHandling.HandleError = (message, exception, errorLevel) => {
                 Debug.WriteLine("Error handling received: " + exception.ToString());
                 Console.WriteLine(message);

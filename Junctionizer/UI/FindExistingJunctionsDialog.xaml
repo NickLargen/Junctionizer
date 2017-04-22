@@ -7,11 +7,11 @@
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:viewModels="clr-namespace:Junctionizer.ViewModels"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance d:Type=viewModels:MainWindowViewModel}"
+             d:DataContext="{d:DesignInstance d:Type=viewModels:FindJunctionsViewModel}"
              Width="400"
              MinHeight="150">
 
-    <DockPanel Margin="16" DataContext="{Binding FindJunctionsViewModel}" LastChildFill="False">
+    <DockPanel Margin="16 16 16 8" LastChildFill="False">
         <TextBlock TextWrapping="Wrap" DockPanel.Dock="Top">
             <TextBlock.Text>
                 <MultiBinding StringFormat="Found {0} junctions after searching {1} directories.">
@@ -27,24 +27,33 @@
             <Run Text="{Binding CurrentFolder, Mode=OneWay}" />
         </TextBlock>
         <Button DockPanel.Dock="Bottom"
+                HorizontalAlignment="Center"
+                IsDefault="True"
                 IsCancel="True"
-                Margin="0 0 0 0"
+                Margin="0 8 0 0"
                 Command="{x:Static wpf:DialogHost.CloseDialogCommand}">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsSearching}" Value="True">
                             <Setter Property="Content" Value="Stop Search" />
+                            <Setter Property="CommandParameter">
+                                <Setter.Value>
+                                    <system:Boolean>False</system:Boolean>
+                                </Setter.Value>
+                            </Setter>
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsSearching}" Value="False">
                             <Setter Property="Content" Value="Done" />
+                            <Setter Property="CommandParameter">
+                                <Setter.Value>
+                                    <system:Boolean>True</system:Boolean>
+                                </Setter.Value>
+                            </Setter>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Button.Style>
-            <Button.CommandParameter>
-                <system:Boolean>False</system:Boolean>
-            </Button.CommandParameter>
         </Button>
     </DockPanel>
 </UserControl>

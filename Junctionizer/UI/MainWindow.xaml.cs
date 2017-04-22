@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
 using Junctionizer.ViewModels;
-
-using MaterialDesignThemes.Wpf;
-
-using Prism.Commands;
 
 using WpfBindingErrors;
 
@@ -19,8 +14,8 @@ namespace Junctionizer.UI
 {
     public partial class MainWindow
     {
-        public ExtendedContentPage ExtendedContentPage { get; }
-        public CompactContentPage CompactContentPage { get; }
+        private ExtendedContentPage ExtendedContentPage { get; set; }
+        private CompactContentPage CompactContentPage { get; set; }
 
         public MainWindow()
         {
@@ -32,21 +27,19 @@ namespace Junctionizer.UI
             // Persist window position and size when opening and closing the application
             SourceInitialized += (sender, args) => Settings.StateTracker.Configure(this).IdentifyAs("WindowPosition").Apply();
 
-            var mainWindowViewModel = (MainWindowViewModel) DataContext;
-            mainWindowViewModel.Initialize();
+            ContentRendered += (sender, args) => {
+                var mainWindowViewModel = (MainWindowViewModel) DataContext;
+                mainWindowViewModel.Initialize();
 
-            EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
+                EnableLiveSorting(mainWindowViewModel.DisplayedMappings);
 
-            // This maintains state (eg selecteditems) and allows fast navigation but creates extra work keeping them both in sync
-            ExtendedContentPage = new ExtendedContentPage(mainWindowViewModel);
-            CompactContentPage = new CompactContentPage(mainWindowViewModel);
+                // This maintains state (eg selecteditems) and allows fast navigation but creates extra work keeping them both in sync
+                ExtendedContentPage = new ExtendedContentPage(mainWindowViewModel);
+                CompactContentPage = new CompactContentPage(mainWindowViewModel);
 
-            SwitchInterfaces();
+                SwitchInterfaces();
+            };
         }
-
-        public static DelegateCommand<object> OpenDialogCommand { get; } = new DelegateCommand<object>(o => OpenDialog(o));
-
-        public static Task OpenDialog(object obj) => DialogHost.Show(obj);
 
         /// Update sort order when properties on items within the collection change
         private static void EnableLiveSorting(IEnumerable observableCollection)

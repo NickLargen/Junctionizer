@@ -6,11 +6,12 @@
     </Style>
 
     <Style TargetType="Menu">
-        <Setter Property="Margin" Value="0 0 0 5"></Setter>
+        <Setter Property="Margin" Value="0 0 0 2" />
+        <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}" />
     </Style>
-    
-    <Style TargetType="MenuItem" >
-        <Setter Property="Padding" Value="7 3"></Setter>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Padding" Value="7 3" />
     </Style>
 
     <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">

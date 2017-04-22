@@ -7,13 +7,15 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:prism="http://prismlibrary.com/"
-        xmlns:ui="clr-namespace:Junctionizer.UI"
         xmlns:placeholderText="clr-namespace:Junctionizer.CustomWpfComponents.PlaceholderText"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:valueConverters="clr-namespace:Junctionizer.CustomWpfComponents.ValueConverters"
+        xmlns:junctionizer="clr-namespace:Junctionizer"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
         TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
+        TextElement.FontSize="14"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         Title="Junctionizer"
@@ -26,25 +28,13 @@
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
     
-    <materialDesign:DialogHost OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <materialDesign:DialogHost CloseOnClickAway="False" OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
-            <prism:InteractionRequestTrigger SourceObject="{Binding DisplayFindJunctionsDialogRequest}">
-                <i:InvokeCommandAction Command="{x:Static ui:MainWindow.OpenDialogCommand}">
-                    <i:InvokeCommandAction.CommandParameter>
-                        <ui:FindExistingJunctionsDialog />
-                    </i:InvokeCommandAction.CommandParameter>
-                </i:InvokeCommandAction>
-            </prism:InteractionRequestTrigger>
-
-            <prism:InteractionRequestTrigger SourceObject="{Binding CloseDialogRequest}">
+            <prism:InteractionRequestTrigger SourceObject="{x:Static junctionizer:Dialogs.CloseDialogRequest}">
                 <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
             </prism:InteractionRequestTrigger>
 
-            <i:EventTrigger EventName="DialogClosing">
-                <prism:InvokeCommandAction Command="{Binding DialogClosedCommand}" />
-            </i:EventTrigger>
-
-            <prism:InteractionRequestTrigger SourceObject="{Binding ShowErrorDialogRequest}">
+            <prism:InteractionRequestTrigger SourceObject="{x:Static junctionizer:Dialogs.ShowErrorDialogRequest}">
                 <prism:PopupWindowAction CenterOverAssociatedObject="True" IsModal="True"/>
             </prism:InteractionRequestTrigger>
         </i:Interaction.Triggers>

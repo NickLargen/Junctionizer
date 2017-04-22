@@ -8,7 +8,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Threading;
 
@@ -16,17 +15,11 @@ using JetBrains.Annotations;
 
 using Junctionizer.Model;
 
-using MaterialDesignThemes.Wpf;
-
 using Microsoft.Win32;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
-using Prism.Interactivity.InteractionRequest;
 
 using Utilities;
-
-using static Junctionizer.StaticMethods;
 
 namespace Junctionizer.ViewModels
 {
@@ -50,23 +43,19 @@ namespace Junctionizer.ViewModels
 
             SourceCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
             DestinationCollection.PropertyChanged += OnFolderCollectionPropertyChanged;
+            
+            Settings.StateTracker.Configure(this).AddProperties(nameof(DisplayedMappings), nameof(SelectedMapping)).Apply();
 
-            Task.Run(() => {
-                // Run inside of a task so that the UI isn't blocked from appearing. 
+            var folderCollectionPersistedProperties = new[] {nameof(FolderCollection.FolderBrowserInitialLocation)};
+            Settings.StateTracker.Configure(SourceCollection).IdentifyAs("Source").AddProperties(folderCollectionPersistedProperties).Apply();
+            Settings.StateTracker.Configure(DestinationCollection).IdentifyAs("Destination").AddProperties(folderCollectionPersistedProperties).Apply();
 
-                Settings.StateTracker.Configure(this).AddProperties(nameof(DisplayedMappings), nameof(SelectedMapping)).Apply();
-
-                var folderCollectionPersistedProperties = new[] {nameof(FolderCollection.FolderBrowserInitialLocation)};
-                Settings.StateTracker.Configure(SourceCollection).IdentifyAs("Source").AddProperties(folderCollectionPersistedProperties).Apply();
-                Settings.StateTracker.Configure(DestinationCollection).IdentifyAs("Destination").AddProperties(folderCollectionPersistedProperties).Apply();
-
-                if (!Directory.Exists(Settings.AppDataDirectoryPath)) NewUserSetup();
-            });
+            if (!Directory.Exists(Settings.AppDataDirectoryPath)) NewUserSetup();
         }
 
         private void NewUserSetup()
         {
-            MessageBox.Show("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive.");
+            Dialogs.DisplayMessageBox("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive that files can be copied into.");
 
             RegistryKey steamRegKey = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
             SourceCollection.FolderBrowserInitialLocation =
@@ -81,6 +70,7 @@ namespace Junctionizer.ViewModels
             DestinationCollection.FolderBrowserInitialLocation = suggestedBackupDrive;
         }
 
+        #region Filtering Displayed Items
         /// <summary>Fody PropertyChanged handles creating change notification whenever something this function depends on changes.</summary>
         [NotNull]
         [AutoLazy.Lazy]
@@ -116,16 +106,7 @@ namespace Junctionizer.ViewModels
             if (isNotFilteringBySize) LiveFilteringProperties.Remove(propertyName);
             else if (!LiveFilteringProperties.Contains(propertyName)) LiveFilteringProperties.Add(propertyName);
         }
-
-        public FindJunctionsViewModel FindJunctionsViewModel { get; } = new FindJunctionsViewModel();
-        public InteractionRequest<INotification> ShowErrorDialogRequest { get; } = new InteractionRequest<INotification>();
-        public InteractionRequest<INotification> DisplayFindJunctionsDialogRequest { get; } = new InteractionRequest<INotification>();
-        public InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
-
-        [AutoLazy.Lazy]
-        public DelegateCommand<DialogClosingEventArgs> DialogClosedCommand
-            => new DelegateCommand<DialogClosingEventArgs>(args => OnDialogClosed?.Invoke());
-        private event Action OnDialogClosed;
+        #endregion
 
         public FolderCollection SourceCollection { get; private set; }
         public FolderCollection DestinationCollection { get; private set; }
@@ -216,14 +197,14 @@ namespace Junctionizer.ViewModels
 
         private async Task FindExistingJunctions()
         {
-            var selectedDirectory = PromptForDirectory("Select Root Directory");
+            var selectedDirectory = await Dialogs.PromptForDirectory("Select Root Directory");
             if (selectedDirectory == null) return;
 
-            DisplayFindJunctionsDialogRequest.Raise(null);
-            OnDialogClosed = () => FindJunctionsViewModel.Cancel();
-
-            var junctions = await FindJunctionsViewModel.GetJunctions(selectedDirectory);
-
+            var findJunctionsViewModel  = new FindJunctionsViewModel();
+            var dialog = Dialogs.Show(findJunctionsViewModel, closingEventHandler: (sender, args) => findJunctionsViewModel.Cancel());
+            
+            var junctions = await findJunctionsViewModel.GetJunctions(selectedDirectory);
+            
             foreach (var directoryInfo in junctions)
             {
                 Debug.Assert(directoryInfo.Parent != null, "directoryInfo.Parent != null");
@@ -231,32 +212,8 @@ namespace Junctionizer.ViewModels
                     Directory.GetParent(JunctionPoint.GetTarget(directoryInfo)).FullName, isSavedMapping: true);
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
-        }
 
-        /// <summary>Shows an error message and then reprompts if the user selects an invalid entry. Returns null iff the dialog is cancelled.</summary>
-        private DirectoryInfo PromptForDirectory(string dialogTitle)
-        {
-            var folderDialog = NewFolderDialog(dialogTitle);
-
-            while (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                try
-                {
-                    return new DirectoryInfo(folderDialog.FileName);
-                }
-                catch (Exception)
-                {
-                    ShowErrorDialogRequest.Raise(
-                        new Prism.Interactivity.InteractionRequest.Notification {
-                            Title = "Invalid Selection",
-                            Content =
-                                $"Unable to search the selected location - did you select a valid directory path?" +
-                                $"\nTry choosing a more specific location."
-                        });
-                }
-            }
-
-            return null;
+            var ranToCompletion = (bool?) await dialog;
         }
 
         [AutoLazy.Lazy]
