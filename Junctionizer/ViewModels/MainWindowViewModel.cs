@@ -148,25 +148,14 @@ namespace Junctionizer.ViewModels
                     else
                     {
                         if (!DisplayedMappings.Contains(_selectedMapping)) DisplayedMappings.Add(_selectedMapping);
-                        _selectedMapping.PropertyChanged += SelectedMappingPropertyChanged;
                     }
                 }
 
                 if (previousValue?.IsSavedMapping == false) DisplayedMappings.Remove(previousValue);
-                if (previousValue != null) previousValue.PropertyChanged -= SelectedMappingPropertyChanged;
 
                 SourceCollection.Location = _selectedMapping?.Source;
                 DestinationCollection.Location = _selectedMapping?.Destination;
                 IsSettingSelectedMapping = false;
-            }
-        }
-
-        private void SelectedMappingPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName.Equals(nameof(DirectoryMapping.IsSavedMapping)))
-            {
-                SaveCurrentLocationCommand.RaiseCanExecuteChanged();
-                DeleteCurrentLocationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -181,16 +170,6 @@ namespace Junctionizer.ViewModels
                                   ?? new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
             }
         }
-
-        [AutoLazy.Lazy]
-        public DelegateCommand SaveCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedMapping != null) SelectedMapping.IsSavedMapping = true;
-        }, () => SelectedMapping?.IsSavedMapping == false).ObservesProperty(() => SelectedMapping);
-
-        [AutoLazy.Lazy]
-        public DelegateCommand DeleteCurrentLocationCommand => new DelegateCommand(() => {
-            if (SelectedMapping != null) SelectedMapping.IsSavedMapping = false;
-        }, () => SelectedMapping?.IsSavedMapping == true).ObservesProperty(() => SelectedMapping);
 
         [AutoLazy.Lazy]
         public DelegateCommand FindExistingJunctionsCommand => new DelegateCommand(() => FindExistingJunctions().Forget());

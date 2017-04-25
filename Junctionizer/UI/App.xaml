@@ -33,6 +33,7 @@
             <valueConverters:SizeToStringConverter x:Key="SizeConverter" />
             <valueConverters:LogScaleConverter x:Key="LogScaleConverter" />
             <valueConverters:LogScaleTooltipConverter x:Key="LogScaleTooltipConverter" />
+            <valueConverters:NullToFalseConverter x:Key="NullToFalseConverter" />
 
             <DataTemplate DataType="{x:Type viewModels:FindJunctionsViewModel}">
                 <ui:FindExistingJunctionsDialog />

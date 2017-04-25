@@ -25,7 +25,7 @@ namespace Junctionizer.Model
         public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{Source} => {Destination}";
+        public override string ToString() => $"{Source} → {Destination}";
 
         /// <inheritdoc/>
         public bool Equals(DirectoryMapping other)

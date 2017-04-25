@@ -39,15 +39,15 @@
                                       DockPanel.Dock="Top">
                 <DockPanel>
                     <userControls:IconButton Text="Select _Source"
-                                   Margin="12 0 0 0"
-                                   IconKind="FolderUpload"
-                                   Style="{DynamicResource HeaderButton}"
-                                   Command="{Binding SourceCollection.SelectLocationCommand}" />
+                                             Margin="12 0 0 0"
+                                             IconKind="FolderUpload"
+                                             Style="{DynamicResource HeaderButton}"
+                                             Command="{Binding SourceCollection.SelectLocationCommand}" />
                     <userControls:IconButton Text="Select _Destination"
-                                   Margin="12 0 0 0"
-                                   IconKind="FolderDownload"
-                                   Style="{StaticResource HeaderButton}"
-                                   Command="{Binding DestinationCollection.SelectLocationCommand}" />
+                                             Margin="12 0 0 0"
+                                             IconKind="FolderDownload"
+                                             Style="{StaticResource HeaderButton}"
+                                             Command="{Binding DestinationCollection.SelectLocationCommand}" />
                     <CheckBox Content="_Compact Interface"
                               Margin="12 0 0 0"
                               Style="{DynamicResource MaterialDesignUserForegroundCheckBox}"
@@ -87,24 +87,25 @@
                         </StackPanel>
                     </ScrollViewer>
                 </materialDesign:DrawerHost.RightDrawerContent>
-                <DockPanel Margin="0 5 0 0">
-                    <DockPanel Dock="Top">
-                        <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
-                        <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
+                <DockPanel>
+                    <DockPanel Dock="Top"
+                               Margin="0 3 10 3">
+                        <ToggleButton DockPanel.Dock="Left"
+                                      IsChecked="{Binding SelectedMapping.IsSavedMapping, Mode=TwoWay}"
+                                      IsEnabled="{Binding SelectedMapping, Converter={StaticResource NullToFalseConverter}}"
+                                      Background="Transparent"
+                                      Foreground="{DynamicResource MaterialDesignBody}"
+                                      Style="{StaticResource MaterialDesignActionToggleButton}">
+                            <ToggleButton.Content>
+                                <materialDesign:PackIcon Kind="StarOutline" />
+                            </ToggleButton.Content>
+                            <materialDesign:ToggleButtonAssist.OnContent>
+                                <materialDesign:PackIcon Kind="Star" />
+                            </materialDesign:ToggleButtonAssist.OnContent>
+                        </ToggleButton>
                         <ComboBox DockPanel.Dock="Left"
-                                  Margin="10 3 10 3"
                                   ItemsSource="{Binding DisplayedMappings}"
                                   SelectedItem="{Binding SelectedMapping, Mode=TwoWay}">
-
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <DockPanel>
-                                        <materialDesign:PackIcon Visibility="{Binding IsSavedMapping, Converter={StaticResource BooleanToVisibilityConverter}}" Kind="Star" />
-                                        <ContentPresenter Content="{Binding}" />
-                                    </DockPanel>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-
                             <ComboBox.Style>
                                 <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                     <Style.Triggers>
