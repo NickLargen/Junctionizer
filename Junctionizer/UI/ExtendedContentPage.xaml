@@ -28,9 +28,9 @@
                        DockPanel.Dock="Bottom"
                        LastChildFill="False">
                 <TextBlock Text="{Binding SelectedItems.Count}" />
-                <Button Command="{Binding CopySelectedCommand}" Content="Copy -&gt;" />
-                <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
+                <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" Style="{DynamicResource RaisedAccentButton}"/>
                 <Button Command="{Binding DeleteSelectedJunctionsCommand}" Content="Delete Junction" />
+                <Button Command="{Binding CopySelectedCommand}" Content="Copy -&gt;" />
                 <Button Command="{Binding ArchiveSelectedCommand}" Content="Archive -&gt;" />
             </DockPanel>
             <customWpfComponents:MultiSelectDataGrid x:Name="sourceGrid"
@@ -62,7 +62,7 @@
                 <TextBlock Text="{Binding SelectedItems.Count}" />
                 <Button Command="{Binding CopySelectedCommand}" Content="&lt;- Copy" />
                 <Button Command="{Binding CreateSelectedJunctionCommand}" Content="&lt;- Create Junction" />
-                <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" />
+                <Button Command="{Binding DeleteSelectedFoldersCommand}" Content="Delete" Style="{DynamicResource RaisedAccentButton}"/>
             </DockPanel>
 
             <customWpfComponents:MultiSelectDataGrid x:Name="destinationGrid"

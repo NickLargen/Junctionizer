@@ -22,7 +22,6 @@ namespace Junctionizer
 
     public static class Dialogs
     {
-        public static InteractionRequest<INotification> ShowErrorDialogRequest { get; } = new InteractionRequest<INotification>();
         public static InteractionRequest<INotification> CloseDialogRequest { get; } = new InteractionRequest<INotification>();
 
         public static void CloseDialog()

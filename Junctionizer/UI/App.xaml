@@ -9,6 +9,7 @@
              xmlns:viewModels="clr-namespace:Junctionizer.ViewModels"
              xmlns:ui="clr-namespace:Junctionizer.UI"
              xmlns:junctionizer="clr-namespace:Junctionizer"
+             xmlns:userControls="clr-namespace:Junctionizer.UI.UserControls"
 
              StartupUri="MainWindow.xaml">
     <Application.Resources>
@@ -16,22 +17,16 @@
         <ResourceDictionary>
 
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Indigo.Primary.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Amber.Accent.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.RangeSlider.xaml" />
+
                 <ResourceDictionary Source="Styles/Colors.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
                 <ResourceDictionary Source="Styles/Miscellaneous.xaml" />
-
-                <!--For Resharper's benefit-->
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBlock.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Menu.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ProgressBar.xaml" />
-
+                <ResourceDictionary Source="Styles/RangeSlider.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/UI/Styles/Colors.Light.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <valueConverters:DateTimeToStringConverter x:Key="DateTimeConverter" />
@@ -44,7 +39,7 @@
             </DataTemplate>
             
             <DataTemplate DataType="{x:Type junctionizer:Message}">
-                <ui:SimpleMessageDialog />
+                <userControls:SimpleMessageDialog />
             </DataTemplate>
         </ResourceDictionary>
 

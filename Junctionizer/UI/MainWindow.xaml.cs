@@ -57,8 +57,13 @@ namespace Junctionizer.UI
 
         private void SwitchInterfaces()
         {
-            if (UISettings.IsCompactInterface) frame.Navigate(CompactContentPage);
+            if (UISettings.Instance.IsCompactInterface) frame.Navigate(CompactContentPage);
             else frame.Navigate(ExtendedContentPage);
+        }
+
+        private void CloseRightDrawer(object sender, RoutedEventArgs e)
+        {
+            UISettings.Instance.IsRightDrawerOpen = false;
         }
     }
 }

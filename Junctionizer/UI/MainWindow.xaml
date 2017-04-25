@@ -7,10 +7,10 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:prism="http://prismlibrary.com/"
-        xmlns:placeholderText="clr-namespace:Junctionizer.CustomWpfComponents.PlaceholderText"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:valueConverters="clr-namespace:Junctionizer.CustomWpfComponents.ValueConverters"
         xmlns:junctionizer="clr-namespace:Junctionizer"
+        xmlns:userControls="clr-namespace:Junctionizer.UI.UserControls"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
@@ -27,102 +27,138 @@
     <Window.DataContext>
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
-    
+
     <materialDesign:DialogHost CloseOnClickAway="False" OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
             <prism:InteractionRequestTrigger SourceObject="{x:Static junctionizer:Dialogs.CloseDialogRequest}">
                 <i:InvokeCommandAction Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}" />
             </prism:InteractionRequestTrigger>
-
-            <prism:InteractionRequestTrigger SourceObject="{x:Static junctionizer:Dialogs.ShowErrorDialogRequest}">
-                <prism:PopupWindowAction CenterOverAssociatedObject="True" IsModal="True"/>
-            </prism:InteractionRequestTrigger>
         </i:Interaction.Triggers>
         <DockPanel>
-            <Menu DockPanel.Dock="Top">
-                <MenuItem Header="Select _Source"
-                          Command="{Binding SourceCollection.SelectLocationCommand}"/>
-                <MenuItem Header="Select _Destination"
-                          Command="{Binding DestinationCollection.SelectLocationCommand}"/>
-                <MenuItem Header="_Find Existing Junctions"
-                          Command="{Binding FindExistingJunctionsCommand}" />
-<!--                <MenuItem Header="_Refresh Sizes" Command="{Binding RefreshFolderSizesCommand}" />-->
-                <MenuItem Header="_Compact Interface"
-                          IsChecked="{Binding UISettings.IsCompactInterface}"
-                          IsCheckable="True"
-                          Unchecked="SwitchInterfaces"
-                          Checked="SwitchInterfaces" />
-            </Menu>
-            <DockPanel Dock="Top">
-                <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
-                <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
-                <ComboBox DockPanel.Dock="Left"
-                          Margin="10 3 10 3"
-                          ItemsSource="{Binding DisplayedMappings}"
-                          SelectedItem="{Binding SelectedMapping, Mode=TwoWay}">
+            <materialDesign:ColorZone Padding="4"
+                                      materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                      Mode="PrimaryMid"
+                                      DockPanel.Dock="Top">
+                <DockPanel>
 
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <DockPanel>
-                                <materialDesign:PackIcon Visibility="{Binding IsSavedMapping, Converter={StaticResource BooleanToVisibilityConverter}}" Kind="Star" />
-                                <ContentPresenter Content="{Binding}" />
-                            </DockPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
+                    <userControls:IconButton Text="Select _Source"
+                                   Margin="12 0 0 0"
+                                   IconKind="FolderUpload"
+                                   Style="{DynamicResource HeaderButton}"
+                                   Command="{Binding SourceCollection.SelectLocationCommand}" />
+                    <userControls:IconButton Text="Select _Destination"
+                                   Margin="12 0 0 0"
+                                   IconKind="FolderDownload"
+                                   Style="{StaticResource HeaderButton}"
+                                   Command="{Binding DestinationCollection.SelectLocationCommand}" />
+                    <CheckBox Content="_Compact Interface"
+                              Margin="12 0 0 0"
+                              Style="{DynamicResource MaterialDesignUserForegroundCheckBox}"
+                              Cursor="Hand"
+                              VerticalAlignment="Center"
+                              IsChecked="{Binding UISettings.IsCompactInterface}"
+                              Unchecked="SwitchInterfaces"
+                              Checked="SwitchInterfaces" />
 
-                    <ComboBox.Style>
-                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding DisplayedMappings.Count}" Value="0">
-                                    <Setter Property="IsEnabled" Value="False" />
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding DisplayedMappings.Count}" Value="1">
-                                    <Setter Property="IsEnabled" Value="False" />
-                                </DataTrigger>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding DisplayedMappings.Count}" Value="1" />
-                                        <Condition Binding="{Binding SelectedMapping}" Value="{x:Null}" />
-                                    </MultiDataTrigger.Conditions>
-                                    <Setter Property="IsEnabled" Value="True" />
-                                </MultiDataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ComboBox.Style>
-                </ComboBox>
-            </DockPanel>
-            <Grid DockPanel.Dock="Top">
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0.5*" />
-                    <ColumnDefinition Width="0.5*" />
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Margin="15 0" Text="{Binding FilterNameText, UpdateSourceTrigger=PropertyChanged}">
-                    <placeholderText:WatermarkService.Watermark>
-                        <TextBlock>Name filter</TextBlock>
-                    </placeholderText:WatermarkService.Watermark>
-                </TextBox>
-                <DockPanel Grid.Column="1" Margin="15 0">
-                    <TextBlock Margin="0 0 5 0">Size Filter</TextBlock>
-                    <controls:RangeSlider
-                        ToolTipService.Placement="MousePoint"
-                        ToolTip="Drag the handles to change what is displayed"
-                        Style="{StaticResource MaterialDesignRangeSlider}"
-                        Minimum="{x:Static valueConverters:LogScaleConverter.MINIMUM_EXPONENT}"
-                        Maximum="{x:Static valueConverters:LogScaleConverter.MAXIMUM_EXPONENT}"
-                        MinRangeWidth="1"
-                        ExtendedMode="True"
-                        MoveWholeRange="False"
-                        IsMoveToPointEnabled="True"
-                        IsSnapToTickEnabled="False"
-                        AutoToolTipPlacement="TopLeft"
-                        AutoToolTipTextConverter="{StaticResource LogScaleTooltipConverter}"
-                        LowerValue="{Binding FilterLowerSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}"
-                        UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}" />
+                    <ToggleButton DockPanel.Dock="Right"
+                                  x:Name="menuToggleButton"
+                                  IsChecked="{Binding UISettings.IsRightDrawerOpen, Mode=TwoWay}"
+                                  Style="{StaticResource MaterialDesignActionToggleButton}"
+                                  Background="Transparent"
+                                  Foreground="{DynamicResource PrimaryHueMidForegroundBrush}">
+                        <ToggleButton.Content>
+                            <materialDesign:PackIcon Kind="DotsVertical" />
+                        </ToggleButton.Content>
+                    </ToggleButton>
+                    <Rectangle />
                 </DockPanel>
-            </Grid>
-            <Frame x:Name="frame" NavigationUIVisibility="Hidden">
-            </Frame>
+            </materialDesign:ColorZone>
+            <materialDesign:DrawerHost IsRightDrawerOpen="{Binding ElementName=menuToggleButton, Path=IsChecked}">
+                <materialDesign:DrawerHost.RightDrawerContent>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Width="215">
+                        <StackPanel>
+                            <Button
+                                Content="Find Existing Junctions"
+                                Margin="0 8 0 0"
+                                HorizontalAlignment="Center"
+                                Style="{StaticResource RaisedAccentButton}"
+                                Click="CloseRightDrawer"
+                                Command="{Binding FindExistingJunctionsCommand}" />
+                            <userControls:PaletteSelector />
+                        </StackPanel>
+                    </ScrollViewer>
+                </materialDesign:DrawerHost.RightDrawerContent>
+                <DockPanel Margin="0 5 0 0">
+                    <DockPanel Dock="Top">
+                        <Button Command="{Binding DeleteCurrentLocationCommand}" DockPanel.Dock="Right">Delete</Button>
+                        <Button Command="{Binding SaveCurrentLocationCommand}" DockPanel.Dock="Right">Save Current</Button>
+                        <ComboBox DockPanel.Dock="Left"
+                                  Margin="10 3 10 3"
+                                  ItemsSource="{Binding DisplayedMappings}"
+                                  SelectedItem="{Binding SelectedMapping, Mode=TwoWay}">
+
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <materialDesign:PackIcon Visibility="{Binding IsSavedMapping, Converter={StaticResource BooleanToVisibilityConverter}}" Kind="Star" />
+                                        <ContentPresenter Content="{Binding}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+
+                            <ComboBox.Style>
+                                <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DisplayedMappings.Count}" Value="0">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding DisplayedMappings.Count}" Value="1">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding DisplayedMappings.Count}" Value="1" />
+                                                <Condition Binding="{Binding SelectedMapping}" Value="{x:Null}" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="IsEnabled" Value="True" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.Style>
+                        </ComboBox>
+                    </DockPanel>
+                    <Grid DockPanel.Dock="Top">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.5*" />
+                            <ColumnDefinition Width="0.5*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Margin="15 0"
+                                 Text="{Binding FilterNameText, UpdateSourceTrigger=PropertyChanged}"
+                                 materialDesign:HintAssist.Hint="Name Filter" />
+                        <DockPanel Grid.Column="1" Margin="15 0">
+                            <TextBlock Margin="0 0 5 0">Size Filter</TextBlock>
+                            <controls:RangeSlider
+                                ToolTipService.Placement="MousePoint"
+                                ToolTip="Drag the handles to change what is displayed"
+                                Style="{StaticResource MaterialDesignRangeSlider}"
+                                Minimum="{x:Static valueConverters:LogScaleConverter.MINIMUM_EXPONENT}"
+                                Maximum="{x:Static valueConverters:LogScaleConverter.MAXIMUM_EXPONENT}"
+                                MinRangeWidth="1"
+                                ExtendedMode="True"
+                                MoveWholeRange="False"
+                                IsMoveToPointEnabled="True"
+                                IsSnapToTickEnabled="False"
+                                AutoToolTipPlacement="TopLeft"
+                                AutoToolTipTextConverter="{StaticResource LogScaleTooltipConverter}"
+                                LowerValue="{Binding FilterLowerSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}"
+                                UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}" />
+                        </DockPanel>
+                    </Grid>
+                    <Frame x:Name="frame" NavigationUIVisibility="Hidden" />
+                </DockPanel>
+            </materialDesign:DrawerHost>
         </DockPanel>
     </materialDesign:DialogHost>
 </Window>

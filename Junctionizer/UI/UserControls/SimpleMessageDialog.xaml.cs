@@ -1,9 +1,7 @@
-﻿using System.Windows.Controls;
-
-namespace Junctionizer.UI
+﻿namespace Junctionizer.UI.UserControls
 {
     /// <summary>Interaction logic for SimpleMessageDialog.xaml</summary>
-    public partial class SimpleMessageDialog : UserControl
+    public partial class SimpleMessageDialog
     {
         public SimpleMessageDialog()
         {

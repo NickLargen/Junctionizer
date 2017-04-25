@@ -8,11 +8,12 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:customWpfComponents="clr-namespace:Junctionizer.CustomWpfComponents">
 
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
+    </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="CustomCellStyle" TargetType="DataGridCell">
-
-        <Setter Property="TextBlock.Foreground" Value="Black" />
-
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource MaterialDesignBody}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="BorderThickness" Value="0" />
@@ -38,9 +39,8 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-    
-    <Style x:Key="GameFolderDataGridRow" TargetType="DataGridRow">
 
+    <Style x:Key="GameFolderDataGridRow" TargetType="DataGridRow">
         <Setter Property="SnapsToDevicePixels" Value="true" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="ValidationErrorTemplate">
@@ -53,35 +53,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DataGridRow}">
-                    <Border x:Name="DGR_Border" BorderBrush="{TemplateBinding BorderBrush}" 
+                    <Border x:Name="DGR_Border" BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                             SnapsToDevicePixels="True">
                         <Grid>
-
                             <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"
                                                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-
-                            <Path x:Name="cross" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="Black" StrokeThickness="1" />
+                            <Path x:Name="cross" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="{DynamicResource MaterialDesignBody}" StrokeThickness="1" />
                         </Grid>
-
-                       <!-- <SelectiveScrollingGrid>
-                            <SelectiveScrollingGrid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </SelectiveScrollingGrid.ColumnDefinitions>
-                            <SelectiveScrollingGrid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </SelectiveScrollingGrid.RowDefinitions>
-                            <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1"
-                                                      SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
-                                                      Visibility="{TemplateBinding DetailsVisibility}" />
-                            <DataGridRowHeader Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
-                                               Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
-                            <Path x:Name="cross" Grid.Row="0" Grid.ColumnSpan="2" Grid.Column="0" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="Black" StrokeThickness="1" />
-                        </SelectiveScrollingGrid>-->
                     </Border>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsBeingDeleted}" Value="True">
@@ -91,7 +70,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        
+
         <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_OnMouseDoubleClick" />
 
         <Style.Triggers>
@@ -114,23 +93,23 @@
                 </BeginStoryboard>
             </EventTrigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#FFEEEEEE" />
+                <Setter Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
             </Trigger>
             <!--<MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsSelected" Value="True" />
                     <Condition Property="IsMouseOver" Value="False"/>
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}" />
+                <Setter Property="Background" Value="{DynamicResource DataGridSelection}" />
             </MultiTrigger>-->
             <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}" />
+                <Setter Property="Background" Value="{DynamicResource DataGridSelection}" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
-        <Setter Property="Background" Value="White" />
+        <Setter Property="Background" Value="{DynamicResource MaterialDesignToolBarBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}" />
         <Setter Property="BorderThickness" Value="0 0 1 0" />
     </Style>
@@ -142,7 +121,8 @@
 
     <Style x:Key="GameFolderDataGridStyle" TargetType="customWpfComponents:MultiSelectDataGrid" BasedOn="{StaticResource MaterialDesignDataGrid}">
         <Setter Property="RowStyle" Value="{StaticResource GameFolderDataGridRow}" />
-        <Setter Property="AlternatingRowBackground" Value="#FFFAFBFA" />
+        <Setter Property="RowBackground" Value="{DynamicResource MaterialDesignPaper}" />
+        <Setter Property="AlternatingRowBackground" Value="{DynamicResource MaterialDesignCardBackground}" />
         <Setter Property="SelectionUnit" Value="FullRow" />
         <Setter Property="EnableRowVirtualization" Value="True" />
         <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />

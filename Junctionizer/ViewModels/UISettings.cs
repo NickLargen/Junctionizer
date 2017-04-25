@@ -1,5 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Windows;
+
+using JetBrains.Annotations;
+
+using MaterialDesignColors;
+
+using MaterialDesignThemes.Wpf;
 
 using PropertyChanged;
 
@@ -8,12 +17,68 @@ namespace Junctionizer.ViewModels
     [ImplementPropertyChanged]
     public class UISettings
     {
-        public static bool IsCompactInterface { get; set; } = true;
+        public bool IsCompactInterface { get; set; } = true;
+
+        public bool IsRightDrawerOpen { get; set; } = false;
+
+        private ResourceDictionary ThemedColorsDictionary { get; }
+            = Application.Current.Resources.MergedDictionaries
+                         .Where(rd => rd.Source != null)
+                         .Single(rd => Regex.IsMatch(rd.Source.OriginalString, @".*Colors\.(Light|Dark)"));
+        
+        private void ReplaceThemedColorsDictionary()
+        {
+            var currentUri = ThemedColorsDictionary.Source.AbsoluteUri;
+            ThemedColorsDictionary.Source = new Uri(_isDarkTheme
+                                                        ? currentUri.Replace("Light.xaml", "Dark.xaml")
+                                                        : currentUri.Replace("Dark.xaml", "Light.xaml"));
+        }
+
+        private bool _isDarkTheme;
+        public bool IsDarkTheme
+        {
+            get => _isDarkTheme;
+            set {
+                _isDarkTheme = value;
+                PaletteHelper.SetLightDark(_isDarkTheme);
+                ReplaceThemedColorsDictionary();
+            }
+        }
+
+        private Swatch _primarySwatch;
+        public Swatch PrimarySwatch
+        {
+            [UsedImplicitly] get => _primarySwatch;
+            set {
+                _primarySwatch = value;
+                PaletteHelper.ReplacePrimaryColor(value);
+                ReplaceThemedColorsDictionary();
+            }
+        }
+        
+        private Swatch _accentSwatch;
+        public Swatch AccentSwatch
+        {
+            [UsedImplicitly] get => _accentSwatch;
+            set {
+                _accentSwatch = value;
+                PaletteHelper.ReplaceAccentColor(_accentSwatch);
+                ReplaceThemedColorsDictionary();
+            }
+        }
+
+        private PaletteHelper PaletteHelper { get; } = new PaletteHelper();
 
         private UISettings()
         {
+            // Set swatch values to default values (defined in App.xaml) in case there aren't any saved values available to load
+            var palette = PaletteHelper.QueryPalette();
+            AccentSwatch = palette.AccentSwatch;
+            PrimarySwatch = palette.PrimarySwatch;
+
+
             var propertyNames = GetType()
-                .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static)
+                .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
                 .Where(propertyInfo => propertyInfo.PropertyType != typeof(UISettings))
                 .Select(propertyInfo => propertyInfo.Name)
                 .ToArray();
