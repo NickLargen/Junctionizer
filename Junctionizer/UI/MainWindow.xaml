@@ -14,8 +14,6 @@
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="14"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         Title="Junctionizer"
@@ -40,7 +38,6 @@
                                       Mode="PrimaryMid"
                                       DockPanel.Dock="Top">
                 <DockPanel>
-
                     <userControls:IconButton Text="Select _Source"
                                    Margin="12 0 0 0"
                                    IconKind="FolderUpload"
@@ -55,7 +52,9 @@
                               Margin="12 0 0 0"
                               Style="{DynamicResource MaterialDesignUserForegroundCheckBox}"
                               Cursor="Hand"
+                              FontSize="14"
                               VerticalAlignment="Center"
+                              VerticalContentAlignment="Center"
                               IsChecked="{Binding UISettings.IsCompactInterface}"
                               Unchecked="SwitchInterfaces"
                               Checked="SwitchInterfaces" />

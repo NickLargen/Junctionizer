@@ -17,6 +17,8 @@
     </Style>
 
     <Style x:Key="FlatButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignFlatButton}">
+        <Setter Property="materialDesign:RippleAssist.Feedback" Value="{Binding RelativeSource={RelativeSource Self}, Path=Foreground}" />
+        
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -34,7 +36,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="BorderBrush" Value="#29757575" />
+                            <Setter Property="BorderBrush" Value="#28888888" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
                             <Setter Property="Opacity" Value="0.23" />
@@ -47,10 +49,9 @@
 
 
     <Style x:Key="RaisedButton" TargetType="{x:Type ButtonBase}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+        <Setter Property="materialDesign:RippleAssist.Feedback" Value="{Binding RelativeSource={RelativeSource Self}, Path=Foreground}" />
         <Setter Property="Padding" Value="16 0" />
         <Setter Property="Margin" Value="3 0" />
-
-        <Setter Property="materialDesign:RippleAssist.Feedback" Value="{DynamicResource PrimaryHueMidForegroundBrush}" />
     </Style>
 
     <Style x:Key="RaisedAccentButton" TargetType="{x:Type ButtonBase}" BasedOn="{StaticResource RaisedButton}">
@@ -59,23 +60,23 @@
         <Setter Property="Foreground" Value="{DynamicResource SecondaryAccentForegroundBrush}" />
     </Style>
 
-    <Style x:Key="HeaderButton" TargetType="Button" BasedOn="{StaticResource RaisedButton}">
-        <Setter Property="materialDesign:ShadowAssist.ShadowDepth" Value="Depth0" />
-        <Setter Property="Padding" Value="7 0" />
-        <Setter Property="BorderThickness" Value="0" />
-
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="materialDesign:ShadowAssist.ShadowDepth" Value="Depth1" />
-            </Trigger>
-        </Style.Triggers>
+    <Style x:Key="HeaderButton" TargetType="Button" BasedOn="{StaticResource FlatButton}">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidForegroundBrush}" />
+        <Setter Property="Padding" Value="8 0" />
     </Style>
-
+    
+    
 
     <!--   ***** Defaults *****   -->
-    <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignSwitchAccentToggleButton}" />
+    <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignSwitchAccentToggleButton}">
+        <Setter Property="Cursor" Value="Hand"></Setter>
+    </Style>
     <Style TargetType="RadioButton" BasedOn="{StaticResource MaterialDesignDarkRadioButton}" />
     <Style TargetType="CheckBox" BasedOn="{StaticResource MaterialDesignAccentCheckBox}" />
     <Style TargetType="Button" BasedOn="{StaticResource RaisedButton}" />
+    
+    <Style TargetType="Label" BasedOn="{StaticResource MaterialDesignLabel}">
+        <Setter Property="FontWeight" Value="Regular" />
+    </Style>
 
 </ResourceDictionary>
