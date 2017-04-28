@@ -61,9 +61,8 @@ namespace Junctionizer.UI
             else frame.Navigate(ExtendedContentPage);
         }
 
-        private void CloseRightDrawer(object sender, RoutedEventArgs e)
-        {
-            UISettings.Instance.IsRightDrawerOpen = false;
-        }
+        private void CloseRightDrawer(object sender, RoutedEventArgs e) => UISettings.Instance.IsRightDrawerOpen = false;
+
+        private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e) => UISettings.Instance.CheckWindowSize();
     }
 }

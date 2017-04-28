@@ -89,6 +89,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CustomWpfComponents\DelegateListCommand.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\DarkenColorConverter.cs" />
+    <Compile Include="CustomWpfComponents\ValueConverters\InverseBooleanConverter.cs" />
     <Compile Include="CustomWpfComponents\ValueConverters\OnlyDisplayMultipleConverter.cs" />
     <Compile Include="CustomWpfComponents\ValueConverters\NullToFalseConverter.cs" />
     <Compile Include="Dialogs.cs" />

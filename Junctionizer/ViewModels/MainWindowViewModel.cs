@@ -131,11 +131,7 @@ namespace Junctionizer.ViewModels
                 if (_selectedMapping != null)
                 {
                     // If a mapping is set that is equivalent to one already in DisplayedMappings, use that one instead
-                    if (DisplayedMappings.Contains(_selectedMapping) && 
-                        DisplayedMappings.All(mapping => !ReferenceEquals(mapping, _selectedMapping)))
-                    {
-                        _selectedMapping = DisplayedMappings.First(mapping => mapping == _selectedMapping);
-                    }
+                    _selectedMapping = DisplayedMappings.FirstOrDefault(mapping => mapping == _selectedMapping) ?? _selectedMapping;
 
                     if (_selectedMapping.Source != null && !Directory.Exists(_selectedMapping.Source))
                     {

@@ -18,11 +18,14 @@
 
     <!--   ***** Defaults *****   -->
     <Style TargetType="ToggleButton" BasedOn="{StaticResource MaterialDesignSwitchAccentToggleButton}">
-        <Setter Property="Cursor" Value="Hand"></Setter>
+        <Setter Property="Cursor" Value="Hand" />
     </Style>
     <Style TargetType="RadioButton" BasedOn="{StaticResource MaterialDesignDarkRadioButton}" />
-    <Style TargetType="CheckBox" BasedOn="{StaticResource MaterialDesignAccentCheckBox}" />
-    
+    <Style TargetType="CheckBox" BasedOn="{StaticResource MaterialDesignAccentCheckBox}">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}" />
+    </Style>
+
     <Style TargetType="Label" BasedOn="{StaticResource MaterialDesignLabel}">
         <Setter Property="FontWeight" Value="Regular" />
     </Style>

@@ -12,7 +12,9 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (int) value > 1 ? value : string.Empty;
+            if (!(value is int intValue)) throw new NotSupportedException();
+
+            return intValue > 1 ? value : string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

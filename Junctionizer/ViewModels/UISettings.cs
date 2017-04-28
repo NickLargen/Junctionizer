@@ -19,13 +19,27 @@ namespace Junctionizer.ViewModels
     {
         public bool IsCompactInterface { get; set; } = true;
 
+        public bool AutomaticallySwitchInterfaces { get; set; } = true;
+
+        [UsedImplicitly]
+        private void OnAutomaticallySwitchInterfacesChanged() => CheckWindowSize();
+
+        /// <summary>Performs any necessary settings modifications based on the current window size.</summary>
+        internal void CheckWindowSize()
+        {
+            if (AutomaticallySwitchInterfaces)
+            {
+                IsCompactInterface = Application.Current.MainWindow.ActualWidth < 1000;
+            }
+        }
+
         public bool IsRightDrawerOpen { get; set; } = false;
 
         private ResourceDictionary ThemedColorsDictionary { get; }
             = Application.Current.Resources.MergedDictionaries
                          .Where(rd => rd.Source != null)
                          .Single(rd => Regex.IsMatch(rd.Source.OriginalString, @".*Colors\.(Light|Dark)"));
-        
+
         private void ReplaceThemedColorsDictionary()
         {
             var currentUri = ThemedColorsDictionary.Source.AbsoluteUri;
@@ -55,7 +69,7 @@ namespace Junctionizer.ViewModels
                 ReplaceThemedColorsDictionary();
             }
         }
-        
+
         private Swatch _accentSwatch;
         public Swatch AccentSwatch
         {

@@ -11,14 +11,14 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
         public static LogScaleTooltipConverter Instance { get; } = new LogScaleTooltipConverter();
         public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
 
-        public object Convert(object objectValue, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            double value = (double) objectValue;
+            if (!(value is double doubleValue)) throw new NotSupportedException();
 
-            if (Math.Abs(value - LogScaleConverter.MAXIMUM_EXPONENT) < LogScaleConverter.EPSILON) return double.PositiveInfinity;
-            if (Math.Abs(value - LogScaleConverter.MINIMUM_EXPONENT) < LogScaleConverter.EPSILON) return 0;
+            if (Math.Abs(doubleValue - LogScaleConverter.MAXIMUM_EXPONENT) < LogScaleConverter.EPSILON) return double.PositiveInfinity;
+            if (Math.Abs(doubleValue - LogScaleConverter.MINIMUM_EXPONENT) < LogScaleConverter.EPSILON) return 0;
 
-            var size = (long) Math.Pow(LogScaleConverter.LOGARITHM_BASE, value);
+            var size = (long) Math.Pow(LogScaleConverter.LOGARITHM_BASE, doubleValue);
             return SizeToStringConverter.Instance.Convert(size);
         }
 

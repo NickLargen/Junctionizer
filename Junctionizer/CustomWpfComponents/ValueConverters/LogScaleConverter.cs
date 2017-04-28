@@ -18,24 +18,24 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
 
         public const double EPSILON = 1E-5;
 
-        public object Convert(object objectValue, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            double value = (double) objectValue;
+            if (!(value is double doubleValue)) throw new NotSupportedException();
 
-            if (double.IsPositiveInfinity(value)) return MAXIMUM_EXPONENT;
-            if (double.IsNegativeInfinity(value)) return MINIMUM_EXPONENT;
+            if (double.IsPositiveInfinity(doubleValue)) return MAXIMUM_EXPONENT;
+            if (double.IsNegativeInfinity(doubleValue)) return MINIMUM_EXPONENT;
 
-            return Math.Log(value, LOGARITHM_BASE);
+            return Math.Log(doubleValue, LOGARITHM_BASE);
         }
 
-        public object ConvertBack(object objectValue, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            double value = (double) objectValue;
+            if (!(value is double doubleValue)) throw new NotSupportedException();
 
-            if (Math.Abs(value - MAXIMUM_EXPONENT) < EPSILON) return double.PositiveInfinity;
-            if (Math.Abs(value - MINIMUM_EXPONENT) < EPSILON) return double.NegativeInfinity;
+            if (Math.Abs(doubleValue - MAXIMUM_EXPONENT) < EPSILON) return double.PositiveInfinity;
+            if (Math.Abs(doubleValue - MINIMUM_EXPONENT) < EPSILON) return double.NegativeInfinity;
 
-            return Math.Pow(LOGARITHM_BASE, value);
+            return Math.Pow(LOGARITHM_BASE, doubleValue);
         }
     }
 }
