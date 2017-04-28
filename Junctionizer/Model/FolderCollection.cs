@@ -14,7 +14,6 @@ using Junctionizer.CustomWpfComponents;
 using Junctionizer.Properties;
 
 using Microsoft.VisualBasic.FileIO;
-using Microsoft.WindowsAPICodePack.Dialogs;
 
 using Prism.Commands;
 using Prism.Mvvm;
@@ -112,7 +111,6 @@ namespace Junctionizer.Model
         [NotNull]
         public IEnumerable<GameFolder> AllSelectedGameFolders =>
             SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted);
-
         [NotNull]
         public IEnumerable<GameFolder> SelectedFolders => AllSelectedGameFolders.Where(folder => !folder.IsJunction);
         [NotNull]
@@ -194,12 +192,12 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public IDelegateListCommand ArchiveSelectedCommand => new DelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
-            folder => Archive(folder).Forget());
+            folder => ArchiveAsync(folder).Forget());
         
         [AutoLazy.Lazy]
         public IDelegateListCommand CopySelectedCommand => new DelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
-            folder => CorrespondingCollection.CopyFolder(folder));
+            folder => CorrespondingCollection.CopyFolderAsync(folder));
         
         [AutoLazy.Lazy]
         public IDelegateListCommand CreateSelectedJunctionCommand => new DelegateListCommand<GameFolder>(
@@ -209,7 +207,7 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public IDelegateListCommand DeleteSelectedFoldersCommand => new DelegateListCommand<GameFolder>(
             () => SelectedFolders, 
-            selectedFolder => DeleteFolderOrJunction(selectedFolder));
+            selectedFolder => DeleteFolderOrJunctionAsync(selectedFolder));
 
         [AutoLazy.Lazy]
         public IDelegateListCommand DeleteSelectedJunctionsCommand => new DelegateListCommand<GameFolder>(
@@ -239,9 +237,9 @@ namespace Junctionizer.Model
         }
 
         [AutoLazy.Lazy]
-        public DelegateCommand SelectLocationCommand => new DelegateCommand(() => SelectLocation().Forget());
+        public DelegateCommand SelectLocationCommand => new DelegateCommand(() => SelectLocationAsync().Forget());
 
-        public async Task SelectLocation()
+        public async Task SelectLocationAsync()
         {
             var directoryInfo = await Dialogs.PromptForDirectory(Resources.SelectLocationCommand_Select_directory_containing_folders, FolderBrowserInitialLocation);
             if (directoryInfo != null) FolderBrowserInitialLocation = Location = directoryInfo.FullName;
@@ -258,7 +256,7 @@ namespace Junctionizer.Model
 
             foreach (var folder in Folders)
             {
-                folder.RecalculateSize();
+                folder.RecalculateSizeAsync();
             }
         }
 
@@ -268,7 +266,7 @@ namespace Junctionizer.Model
             _directoryWatcher.InternalBufferSize = 40960;
             _directoryWatcher.Created += (sender, args) => {
                 var newFolder = new GameFolder(args.FullPath);
-                newFolder.ContinuoslyRecalculateSize().Forget();
+                newFolder.ContinuoslyRecalculateSizeAsync().Forget();
                 Folders.AddAsync(newFolder).Forget();
             };
             _directoryWatcher.Deleted += (sender, args) => {
@@ -295,12 +293,12 @@ namespace Junctionizer.Model
             return JunctionTargetsDictionary.TryGetValue(info.FullName, out var enumerable) ? enumerable : Enumerable.Empty<GameFolder>();
         }
 
-        public async Task Archive([NotNull] GameFolder folder)
+        public async Task ArchiveAsync([NotNull] GameFolder folder)
         {
-            var createdFolder = await CorrespondingCollection.CopyFolder(folder);
+            var createdFolder = await CorrespondingCollection.CopyFolderAsync(folder);
             if (createdFolder != null)
             {
-                var isFolderDeleted = await DeleteFolderOrJunction(folder);
+                var isFolderDeleted = await DeleteFolderOrJunctionAsync(folder);
                 if (isFolderDeleted) CreateJunctionTo(createdFolder);
             }
         }
@@ -324,7 +322,7 @@ namespace Junctionizer.Model
         }
 
         /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder only if the copy successfully ran to completion, null otherwise.</summary>
-        public Task<GameFolder> CopyFolder([NotNull] GameFolder folderToCopy)
+        public Task<GameFolder> CopyFolderAsync([NotNull] GameFolder folderToCopy)
         {
             return Task.Run(() => {
                 string targetDirectory = $@"{Location}\{folderToCopy.Name}";
@@ -347,14 +345,14 @@ namespace Junctionizer.Model
                         else
                         {
                             // Since a new folder isn't being created the file system watcher will not trigger size recalculation, so we do it here
-                            overwrittenFolder.ContinuoslyRecalculateSize().Forget();
+                            overwrittenFolder.ContinuoslyRecalculateSizeAsync().Forget();
                         }
                     }
 
                     FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
                     var createdFolder = GetFolderByName(targetDirectoryInfo.Name);
                     // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the prompt for replacing vs skipping duplicate files.
-                    createdFolder.RecalculateSize();
+                    createdFolder.RecalculateSizeAsync();
                     return createdFolder;
                 }
                 catch (OperationCanceledException e)
@@ -362,7 +360,7 @@ namespace Junctionizer.Model
                     Debug.WriteLine(e);
                     // If the user cancels the folder will still be partially copied
                     var createdFolder = GetFolderByName(targetDirectoryInfo.Name);
-                    createdFolder.RecalculateSize();
+                    createdFolder.RecalculateSizeAsync();
                     return null;
                 }
                 catch (IOException e)
@@ -374,7 +372,7 @@ namespace Junctionizer.Model
         }
 
         /// <summary>Returns true on successful delete, false if user cancels operation or there is an error.</summary>
-        public Task<bool> DeleteFolderOrJunction([NotNull] GameFolder folderToDelete)
+        public Task<bool> DeleteFolderOrJunctionAsync([NotNull] GameFolder folderToDelete)
         {
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {

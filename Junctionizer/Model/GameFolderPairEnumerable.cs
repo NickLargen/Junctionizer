@@ -174,8 +174,8 @@ namespace Junctionizer.Model
 
         private void Delete(GameFolderPair pair)
         {
-            if (pair.SourceEntry != null) SourceCollection.DeleteFolderOrJunction(pair.SourceEntry);
-            if (pair.DestinationEntry != null) DestinationCollection.DeleteFolderOrJunction(pair.DestinationEntry);
+            if (pair.SourceEntry != null) SourceCollection.DeleteFolderOrJunctionAsync(pair.SourceEntry);
+            if (pair.DestinationEntry != null) DestinationCollection.DeleteFolderOrJunctionAsync(pair.DestinationEntry);
         }
 
 
@@ -188,7 +188,7 @@ namespace Junctionizer.Model
 
         private async Task ArchiveAsync(GameFolderPair pair)
         {
-            if (pair.SourceEntry != null) await SourceCollection.Archive(pair.SourceEntry);
+            if (pair.SourceEntry != null) await SourceCollection.ArchiveAsync(pair.SourceEntry);
             else if (pair.DestinationEntry?.IsJunction == false) SourceCollection.CreateJunctionTo(pair.DestinationEntry);
         }
 
@@ -203,8 +203,8 @@ namespace Junctionizer.Model
         {
             Debug.Assert(gameFolderPair.DestinationEntry?.IsJunction == false);
 
-            var createdFolder = await SourceCollection.CopyFolder(gameFolderPair.DestinationEntry);
-            if (createdFolder != null) await DestinationCollection.DeleteFolderOrJunction(gameFolderPair.DestinationEntry);
+            var createdFolder = await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry);
+            if (createdFolder != null) await DestinationCollection.DeleteFolderOrJunctionAsync(gameFolderPair.DestinationEntry);
         }
 
 
@@ -221,12 +221,12 @@ namespace Junctionizer.Model
 
             if (gameFolderPair.DestinationEntry?.IsJunction == false)
             {
-                await SourceCollection.CopyFolder(gameFolderPair.DestinationEntry);
+                await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry);
             }
             else
             {
                 Debug.Assert(gameFolderPair.SourceEntry != null);
-                await DestinationCollection.CopyFolder(gameFolderPair.SourceEntry);
+                await DestinationCollection.CopyFolderAsync(gameFolderPair.SourceEntry);
             }
         }
     }

@@ -35,7 +35,7 @@ namespace Junctionizer.Model
                 JunctionTarget = JunctionPoint.GetTarget(directory);
             }
 
-            UpdatePropertiesFromSubdirectories().Forget();
+            UpdatePropertiesFromSubdirectoriesAsync().Forget();
         }
 
         [NotNull]
@@ -61,7 +61,7 @@ namespace Junctionizer.Model
 
         public void CancelSubdirectorySearch() => SafeCancelTokenSource(_propertyUpdateTokenSource);
 
-        private async Task UpdatePropertiesFromSubdirectories()
+        private async Task UpdatePropertiesFromSubdirectoriesAsync()
         {
             using (var tokenSource = new CancellationTokenSource())
             {
@@ -123,11 +123,11 @@ namespace Junctionizer.Model
             }
         }
 
-        public Task RecalculateSize() => UpdatePropertiesFromSubdirectories();
+        public Task RecalculateSizeAsync() => UpdatePropertiesFromSubdirectoriesAsync();
 
-        /// <summary>Periodically calls <see cref="RecalculateSize"/> until it is determined that the size is not longer changing.</summary>
+        /// <summary>Periodically calls <see cref="RecalculateSizeAsync"/> until it is determined that the size is not longer changing.</summary>
         /// <returns></returns>
-        public async Task ContinuoslyRecalculateSize()
+        public async Task ContinuoslyRecalculateSizeAsync()
         {
             IsContinuoslyRecalculating = true;
             long? oldSize;
@@ -137,7 +137,7 @@ namespace Junctionizer.Model
                 Debug.WriteLine($"{DirectoryInfo.FullName} oldSize {oldSize}  Size {Size}");
                 await Task.Delay(1500);
 
-                await UpdatePropertiesFromSubdirectories();
+                await UpdatePropertiesFromSubdirectoriesAsync();
             } while (Size != oldSize);
 
             IsContinuoslyRecalculating = false;
