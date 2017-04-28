@@ -130,15 +130,22 @@ namespace Junctionizer.ViewModels
 
                 if (_selectedMapping != null)
                 {
+                    // If a mapping is set that is equivalent to one already in DisplayedMappings, use that one instead
+                    if (DisplayedMappings.Contains(_selectedMapping) && 
+                        DisplayedMappings.All(mapping => !ReferenceEquals(mapping, _selectedMapping)))
+                    {
+                        _selectedMapping = DisplayedMappings.First(mapping => mapping == _selectedMapping);
+                    }
+
                     if (_selectedMapping.Source != null && !Directory.Exists(_selectedMapping.Source))
                     {
                         DisplayedMappings.Remove(_selectedMapping);
-                        _selectedMapping = new DirectoryMapping(null, _selectedMapping.Destination);
+                        _selectedMapping = FindOrCreateMapping(null, _selectedMapping.Destination);
                     }
                     if (_selectedMapping.Destination != null && !Directory.Exists(_selectedMapping.Destination))
                     {
                         DisplayedMappings.Remove(_selectedMapping);
-                        _selectedMapping = new DirectoryMapping(_selectedMapping.Source, null);
+                        _selectedMapping = FindOrCreateMapping(_selectedMapping.Source, null);
                     }
 
                     if (_selectedMapping.Source == null && _selectedMapping.Destination == null)
@@ -162,13 +169,18 @@ namespace Junctionizer.ViewModels
         private void OnFolderCollectionPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
             // When a new folder location is chosen, check if it is already saved and if so select it so that it can be displayed in the combo box
-            if (args.PropertyName.Equals(nameof(FolderCollection.Location)))
+            if (!IsSettingSelectedMapping && args.PropertyName.Equals(nameof(FolderCollection.Location)))
             {
-                SelectedMapping = DisplayedMappings.FirstOrDefault(mapping =>
-                                      string.Equals(mapping.Source, SourceCollection.Location, StringComparison.OrdinalIgnoreCase) &&
-                                      string.Equals(mapping.Destination, DestinationCollection.Location, StringComparison.OrdinalIgnoreCase))
-                                  ?? new DirectoryMapping(SourceCollection.Location, DestinationCollection.Location);
+                SelectedMapping = FindOrCreateMapping(SourceCollection.Location, DestinationCollection.Location);
             }
+        }
+
+        [NotNull]
+        private DirectoryMapping FindOrCreateMapping(string source, string destination)
+        {
+             return DisplayedMappings.FirstOrDefault(mapping =>
+                        string.Equals(mapping.Source, source, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(mapping.Destination, destination, StringComparison.OrdinalIgnoreCase)) ?? new DirectoryMapping(source, destination);
         }
 
         [AutoLazy.Lazy]
