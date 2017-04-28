@@ -5,14 +5,14 @@ using System.Windows.Markup;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    public class NullToFalseConverter : MarkupExtension, IValueConverter
+    public class OnlyDisplayMultipleConverter : MarkupExtension, IValueConverter
     {
-        public static NullToFalseConverter Instance { get; } = new NullToFalseConverter();
+        public static OnlyDisplayMultipleConverter Instance { get; } = new OnlyDisplayMultipleConverter();
         public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value != null;
+            return (int) value > 1 ? value : string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

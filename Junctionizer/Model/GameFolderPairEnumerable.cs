@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
-using Prism.Commands;
+using Junctionizer.CustomWpfComponents;
 
 using PropertyChanged;
 
@@ -35,6 +35,10 @@ namespace Junctionizer.Model
             set {
                 _selectedItems = value;
 
+                SelectedFolderPairs = SelectedItems.Reverse()
+                                                   .Cast<GameFolderPair>()
+                                                   .Where(pair => pair.SourceEntry?.IsBeingDeleted != true && pair.DestinationEntry?.IsBeingDeleted != true);
+
                 Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
                           .Throttle(TimeSpan.FromMilliseconds(1))
                           .Subscribe(pattern => CheckCanExecute());
@@ -50,13 +54,11 @@ namespace Junctionizer.Model
         }
 
         [NotNull]
-        public IEnumerable<GameFolderPair> SelectedFolderPairs =>
-            SelectedItems.Reverse()
-                         .Cast<GameFolderPair>()
-                         .Where(pair => pair.SourceEntry?.IsBeingDeleted != true && pair.DestinationEntry?.IsBeingDeleted != true);
+        public IEnumerable<GameFolderPair> SelectedFolderPairs { get; set; } = Enumerable.Empty<GameFolderPair>();
 
+        /// <summary>Returns Enumerable.Empty if SourceCollection and DestinationCollection do not currently both have a location.</summary>
         [NotNull]
-        private Func<GameFolder, string> KeySelector { get; }
+        private IEnumerable<GameFolderPair> SelectedFolderPairsIfInitialized => SourceCollection.BothCollectionsInitialized ? SelectedFolderPairs : Enumerable.Empty<GameFolderPair>();
 
         public Dictionary<string, GameFolderPair> Items { get; } = new Dictionary<string, GameFolderPair>();
 
@@ -64,8 +66,6 @@ namespace Junctionizer.Model
         {
             SourceCollection = sourceCollection;
             DestinationCollection = destinationCollection;
-
-            KeySelector = SourceCollection.Folders.GetKeyForItem;
 
             AddExistingValues();
 
@@ -76,7 +76,7 @@ namespace Junctionizer.Model
         private NotifyCollectionChangedEventHandler BackingCollectionChangedHandler(bool isFromSourceCollection)
         {
             return (sender, e) => {
-                switch (e.Action)   
+                switch (e.Action)
                 {
                     case NotifyCollectionChangedAction.Reset:
                         Items.Clear();
@@ -168,65 +168,54 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in neither location.</summary>
         [AutoLazy.Lazy]
-        public DelegateCommand DeleteCommand => new DelegateCommand(() => {
-            DeleteSelected().Forget();
-        }, () => SelectedFolderPairs.Any());
+        public IDelegateListCommand DeleteCommand => new DelegateListCommand<GameFolderPair>(
+            () => SelectedFolderPairs,
+            Delete);
 
-        private async Task DeleteSelected()
+        private void Delete(GameFolderPair pair)
         {
-            var sourceFolders = SelectedFolderPairs.Select(pair => pair.SourceEntry).Where(folder => folder != null).ToList();
-            SourceCollection.DeleteJunctions(sourceFolders);
-            await SourceCollection.DeleteFolders(sourceFolders);
-            await DestinationCollection.DeleteFolders(SelectedFolderPairs
-                .Select(pair => pair.DestinationEntry)
-                .Where(folder => folder != null));
+            if (pair.SourceEntry != null) SourceCollection.DeleteFolderOrJunction(pair.SourceEntry);
+            if (pair.DestinationEntry != null) DestinationCollection.DeleteFolderOrJunction(pair.DestinationEntry);
         }
 
 
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveCommand => new DelegateCommand(() => {
-            var itemsWithSource = ArchivableItems.ToLookup(pair => pair.SourceEntry != null);
-            SourceCollection.ArchiveFolders(itemsWithSource[true].Select(pair => pair.SourceEntry)).Forget();
-            DestinationCollection.CreateJunctionsTo(itemsWithSource[false].Select(pair => pair.DestinationEntry));
-        }, () => ArchivableItems.Any());
+        public IDelegateListCommand ArchiveCommand => new DelegateListCommand<GameFolderPair>(
+            () => SelectedFolderPairsIfInitialized.Where(pair => pair.SourceEntry?.IsJunction == false ||
+                                                                 pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false),
+            pair => ArchiveAsync(pair).Forget());
 
-        private IEnumerable<GameFolderPair> ArchivableItems => 
-            SourceCollection.BothCollectionsInitialized
-                   ? SelectedFolderPairs.Where(pair => pair.SourceEntry?.IsJunction == false
-                                                       || pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false)
-                   : Enumerable.Empty<GameFolderPair>();
+        private async Task ArchiveAsync(GameFolderPair pair)
+        {
+            if (pair.SourceEntry != null) await SourceCollection.Archive(pair.SourceEntry);
+            else if (pair.DestinationEntry?.IsJunction == false) SourceCollection.CreateJunctionTo(pair.DestinationEntry);
+        }
+
 
         /// <summary>Results in folder in source location, not in destination.</summary>
         [AutoLazy.Lazy]
-        public DelegateCommand RestoreCommand => new DelegateCommand(() => {
-            Task.WhenAll(RestorableItems.Select(Restore)).Forget();
-        }, () => RestorableItems.Any());
+        public IDelegateListCommand RestoreCommand => new DelegateListCommand<GameFolderPair>(
+            () => SelectedFolderPairsIfInitialized.Where(pair => pair.DestinationEntry?.IsJunction == false),
+            pair => RestoreAsync(pair).Forget());
 
-        private IEnumerable<GameFolderPair> RestorableItems =>
-            SourceCollection.BothCollectionsInitialized
-                ? SelectedFolderPairs.Where(pair => pair.DestinationEntry?.IsJunction == false)
-                : Enumerable.Empty<GameFolderPair>();
-
-        private async Task Restore(GameFolderPair gameFolderPair)
+        private async Task RestoreAsync(GameFolderPair gameFolderPair)
         {
             Debug.Assert(gameFolderPair.DestinationEntry?.IsJunction == false);
 
             var createdFolder = await SourceCollection.CopyFolder(gameFolderPair.DestinationEntry);
-            if (createdFolder != null) await DestinationCollection.DeleteFolder(gameFolderPair.DestinationEntry);
+            if (createdFolder != null) await DestinationCollection.DeleteFolderOrJunction(gameFolderPair.DestinationEntry);
         }
 
 
         /// <summary>Results in the folder existing in both locations</summary>
         [AutoLazy.Lazy]
-        public DelegateCommand MirrorCommand => new DelegateCommand(() => {
-            Task.WhenAll(MirrorableItems.Select(Mirror)).Forget();
-        }, () => MirrorableItems.Any());
+        public IDelegateListCommand MirrorCommand => new DelegateListCommand<GameFolderPair>(
+            () => SelectedFolderPairsIfInitialized.Where(pair => !(pair.SourceEntry?.IsJunction == false &&
+                                                                   pair.DestinationEntry?.IsJunction == false)),
+            pair => MirrorAsync(pair).Forget());
 
-        private IEnumerable<GameFolderPair> MirrorableItems =>
-            SourceCollection.BothCollectionsInitialized ? SelectedFolderPairs.Where(pair => !(pair.SourceEntry?.IsJunction == false && pair.DestinationEntry?.IsJunction == false)) : Enumerable.Empty<GameFolderPair>();
-
-        private async Task Mirror(GameFolderPair gameFolderPair)
+        private async Task MirrorAsync(GameFolderPair gameFolderPair)
         {
             Debug.Assert(!(gameFolderPair.SourceEntry?.IsJunction == false && gameFolderPair.DestinationEntry?.IsJunction == false));
 

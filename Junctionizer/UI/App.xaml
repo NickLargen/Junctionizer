@@ -22,18 +22,15 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Indigo.Primary.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Amber.Accent.xaml" />
 
+                <ResourceDictionary Source="Styles/Badge.xaml" />
+                <ResourceDictionary Source="Styles/Buttons.xaml" />
                 <ResourceDictionary Source="Styles/Colors.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
                 <ResourceDictionary Source="Styles/Miscellaneous.xaml" />
                 <ResourceDictionary Source="Styles/RangeSlider.xaml" />
+                
                 <ResourceDictionary Source="pack://application:,,,/UI/Styles/Colors.Light.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <valueConverters:DateTimeToStringConverter x:Key="DateTimeConverter" />
-            <valueConverters:SizeToStringConverter x:Key="SizeConverter" />
-            <valueConverters:LogScaleConverter x:Key="LogScaleConverter" />
-            <valueConverters:LogScaleTooltipConverter x:Key="LogScaleTooltipConverter" />
-            <valueConverters:NullToFalseConverter x:Key="NullToFalseConverter" />
 
             <DataTemplate DataType="{x:Type viewModels:FindJunctionsViewModel}">
                 <ui:FindExistingJunctionsDialog />

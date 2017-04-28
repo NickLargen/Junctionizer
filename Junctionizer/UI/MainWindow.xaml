@@ -92,7 +92,7 @@
                                Margin="0 3 10 3">
                         <ToggleButton DockPanel.Dock="Left"
                                       IsChecked="{Binding SelectedMapping.IsSavedMapping, Mode=TwoWay}"
-                                      IsEnabled="{Binding SelectedMapping, Converter={StaticResource NullToFalseConverter}}"
+                                      IsEnabled="{Binding SelectedMapping, Converter={valueConverters:NullToFalseConverter}}"
                                       Background="Transparent"
                                       Foreground="{DynamicResource MaterialDesignBody}"
                                       Style="{StaticResource MaterialDesignActionToggleButton}">
@@ -151,9 +151,9 @@
                                 IsMoveToPointEnabled="True"
                                 IsSnapToTickEnabled="False"
                                 AutoToolTipPlacement="TopLeft"
-                                AutoToolTipTextConverter="{StaticResource LogScaleTooltipConverter}"
-                                LowerValue="{Binding FilterLowerSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}"
-                                UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={StaticResource LogScaleConverter}}" />
+                                AutoToolTipTextConverter="{valueConverters:LogScaleTooltipConverter}"
+                                LowerValue="{Binding FilterLowerSizeLimit, Mode=TwoWay, Converter={valueConverters:LogScaleConverter}}"
+                                UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={valueConverters:LogScaleConverter}}" />
                         </DockPanel>
                     </Grid>
                     <Frame x:Name="frame" NavigationUIVisibility="Hidden" />

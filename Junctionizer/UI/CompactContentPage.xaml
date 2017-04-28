@@ -6,6 +6,8 @@
       xmlns:customWpfComponents="clr-namespace:Junctionizer.CustomWpfComponents"
       xmlns:columns="clr-namespace:Junctionizer.UI.Columns"
       xmlns:viewModels="clr-namespace:Junctionizer.ViewModels"
+      xmlns:userControls="clr-namespace:Junctionizer.UI.UserControls"
+      xmlns:valueConverters="clr-namespace:Junctionizer.CustomWpfComponents.ValueConverters"
       mc:Ignorable="d"
       d:DesignHeight="500" d:DesignWidth="800"
       Title="CompactContentPage"
@@ -14,13 +16,25 @@
 
     <DockPanel Margin="10 5 10 10" DataContext="{Binding FolderPairCollection}">
         <DockPanel HorizontalAlignment="Center"
-                       DockPanel.Dock="Bottom"
-                       LastChildFill="False">
-            <TextBlock Text="{Binding SelectedItems.Count}" />
-            <Button Command="{Binding DeleteCommand}" Content="Delete" ToolTip="Remove from both locations (where applicable)." Style="{DynamicResource RaisedAccentButton}"/>
-            <Button Command="{Binding ArchiveCommand}" Content="Archive" ToolTip="Move selected items to the destination folder and create a junction."/>
-            <Button Command="{Binding RestoreCommand}" Content="Restore" ToolTip="Move selected items to the source folder and remove them from the destination folder."/>
-            <Button Command="{Binding MirrorCommand}" Content="Mirror" ToolTip="Copies selected items so that they exist in both locations. Does nothing if there are already files at both locations."/>
+                   DockPanel.Dock="Bottom"
+                   LastChildFill="False">
+            <userControls:ListActionButton
+                Command="{Binding DeleteCommand}"
+                ButtonContent="Delete"
+                ToolTip="Remove from both locations (where applicable)."
+                ButtonStyle="{DynamicResource RaisedAccentButton}" />
+            <userControls:ListActionButton
+                Command="{Binding ArchiveCommand}"
+                ButtonContent="Archive"
+                ToolTip="Move selected items to the destination folder and create a junction." />
+            <userControls:ListActionButton
+                Command="{Binding RestoreCommand}"
+                ButtonContent="Restore"
+                ToolTip="Move selected items to the source folder and remove them from the destination folder." />
+            <userControls:ListActionButton
+                Command="{Binding MirrorCommand}"
+                ButtonContent="Mirror"
+                ToolTip="Copies selected items so that they exist in both locations. Does nothing if there are already files at both locations." />
         </DockPanel>
         <customWpfComponents:MultiSelectDataGrid x:Name="compactDataGrid"
                                                  SortOnFirstLoad="True"
@@ -30,9 +44,9 @@
             <DataGrid.Columns>
                 <columns:NameColumn />
                 <columns:DependentOnFinalSizeColumn Header="Source Size"
-                                                    Binding="{Binding SourceEntry.Size, Converter={StaticResource SizeConverter}}" />
+                                                    Binding="{Binding SourceEntry.Size, Converter={valueConverters:SizeToStringConverter}}" />
                 <columns:DependentOnFinalSizeColumn Header="Destination Size"
-                                                    Binding="{Binding DestinationEntry.Size, Converter={StaticResource SizeConverter}}" />
+                                                    Binding="{Binding DestinationEntry.Size, Converter={valueConverters:SizeToStringConverter}}" />
             </DataGrid.Columns>
         </customWpfComponents:MultiSelectDataGrid>
     </DockPanel>

@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Markup;
 
 using Junctionizer.Model;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    internal class SizeToStringConverter : IValueConverter
+    internal class SizeToStringConverter : MarkupExtension, IValueConverter
     {
         public static SizeToStringConverter Instance { get; } = new SizeToStringConverter();
+        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
 
         public object Convert(object objectValue, Type targetType = null, object parameter = null, CultureInfo culture = null)
         {

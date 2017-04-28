@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 using JetBrains.Annotations;
 
+using Junctionizer.CustomWpfComponents;
 using Junctionizer.Properties;
 
 using Microsoft.VisualBasic.FileIO;
@@ -50,17 +51,25 @@ namespace Junctionizer.Model
             InitDirectoryWatcher();
 
             Folders.CollectionChanged += (sender, args) => {
-                if (args.Action == NotifyCollectionChangedAction.Add ||
-                    args.Action == NotifyCollectionChangedAction.Remove ||
-                    args.Action == NotifyCollectionChangedAction.Replace)
-                {
-                    args.OldItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                        JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder);
-                    });
+                switch (args.Action) {
+                    case NotifyCollectionChangedAction.Add:
+                    case NotifyCollectionChangedAction.Remove:
+                    case NotifyCollectionChangedAction.Replace:
+                        args.OldItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
+                            JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder);
+                        });
 
-                    args.NewItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                        JunctionTargetsDictionary.Add(folder.JunctionTarget, folder);
-                    });
+                        args.NewItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
+                            JunctionTargetsDictionary.Add(folder.JunctionTarget, folder);
+                        });
+                        break;
+                    case NotifyCollectionChangedAction.Reset:
+                        JunctionTargetsDictionary.Clear();
+                        break;
+                    case NotifyCollectionChangedAction.Move:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             };
         }
@@ -103,6 +112,7 @@ namespace Junctionizer.Model
         [NotNull]
         public IEnumerable<GameFolder> AllSelectedGameFolders =>
             SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted);
+
         [NotNull]
         public IEnumerable<GameFolder> SelectedFolders => AllSelectedGameFolders.Where(folder => !folder.IsJunction);
         [NotNull]
@@ -124,7 +134,7 @@ namespace Junctionizer.Model
 
                 DisplayBusyDuring(() => {
                     // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized
-                    CorrespondingCollection?.RaisePropertyChanged(nameof(BothCollectionsInitialized));
+                    CorrespondingCollection.RaisePropertyChanged(nameof(BothCollectionsInitialized));
 
                     _directoryWatcher.EnableRaisingEvents = false;
                     _directoryLockFileStream?.Dispose();
@@ -182,37 +192,29 @@ namespace Junctionizer.Model
         #region Commands
 
         [AutoLazy.Lazy]
-        public DelegateCommand ArchiveSelectedCommand => new DelegateCommand(() => ArchiveFolders(SelectedFolders),
-            () => BothCollectionsInitialized && SelectedFolders.Any());
-
-        public Task ArchiveFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(Archive));
+        public IDelegateListCommand ArchiveSelectedCommand => new DelegateListCommand<GameFolder>(
+            () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
+            folder => Archive(folder).Forget());
+        
+        [AutoLazy.Lazy]
+        public IDelegateListCommand CopySelectedCommand => new DelegateListCommand<GameFolder>(
+            () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
+            folder => CorrespondingCollection.CopyFolder(folder));
+        
+        [AutoLazy.Lazy]
+        public IDelegateListCommand CreateSelectedJunctionCommand => new DelegateListCommand<GameFolder>(
+            () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
+            CorrespondingCollection.CreateJunctionTo);
 
         [AutoLazy.Lazy]
-        public DelegateCommand CopySelectedCommand => new DelegateCommand(() => CopyFolders(SelectedFolders),
-            () => BothCollectionsInitialized && SelectedFolders.Any());
-
-        public Task CopyFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(CorrespondingCollection.CopyFolder));
-
-        [AutoLazy.Lazy]
-        public DelegateCommand CreateSelectedJunctionCommand => new DelegateCommand(() => CreateJunctionsTo(SelectedFolders),
-            () => BothCollectionsInitialized && SelectedFolders.Any());
-
-        public void CreateJunctionsTo(IEnumerable<GameFolder> destinationFolders)
-        {
-            destinationFolders.Where(folder => !folder.IsJunction).ForEach(CorrespondingCollection.CreateJunctionTo);
-        }
+        public IDelegateListCommand DeleteSelectedFoldersCommand => new DelegateListCommand<GameFolder>(
+            () => SelectedFolders, 
+            selectedFolder => DeleteFolderOrJunction(selectedFolder));
 
         [AutoLazy.Lazy]
-        public DelegateCommand DeleteSelectedFoldersCommand => new DelegateCommand(() => DeleteFolders(SelectedFolders),
-            () => SelectedFolders.Any());
-
-        public Task DeleteFolders(IEnumerable<GameFolder> folders) => Task.WhenAll(folders.Where(folder => !folder.IsJunction).Select(DeleteFolder));
-
-        [AutoLazy.Lazy]
-        public DelegateCommand DeleteSelectedJunctionsCommand => new DelegateCommand(() => DeleteJunctions(SelectedJunctions),
-            () => SelectedJunctions.Any());
-
-        public void DeleteJunctions(IEnumerable<GameFolder> junctions) => junctions.Where(folder => folder.IsJunction).ForEach(DeleteJunction);
+        public IDelegateListCommand DeleteSelectedJunctionsCommand => new DelegateListCommand<GameFolder>(
+            () => SelectedJunctions, 
+            DeleteJunction);
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectUniqueFolders)
@@ -298,7 +300,7 @@ namespace Junctionizer.Model
             var createdFolder = await CorrespondingCollection.CopyFolder(folder);
             if (createdFolder != null)
             {
-                var isFolderDeleted = await DeleteFolder(folder);
+                var isFolderDeleted = await DeleteFolderOrJunction(folder);
                 if (isFolderDeleted) CreateJunctionTo(createdFolder);
             }
         }
@@ -371,8 +373,8 @@ namespace Junctionizer.Model
             });
         }
 
-        /// <summary>Returns true on successful delete, false if user cancels operation or there is an error</summary>
-        public Task<bool> DeleteFolder([NotNull] GameFolder folderToDelete)
+        /// <summary>Returns true on successful delete, false if user cancels operation or there is an error.</summary>
+        public Task<bool> DeleteFolderOrJunction([NotNull] GameFolder folderToDelete)
         {
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {

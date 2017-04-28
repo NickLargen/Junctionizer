@@ -81,8 +81,8 @@ namespace Junctionizer.Tests.Model.FolderCollectionTests
             Ensure(SourceCollection.Folders, Is.Not.Empty);
             Ensure(SourceCollection.AllSelectedGameFolders, Is.Not.Empty);
 
-            SourceCollection.DeleteJunctions(SourceCollection.SelectedJunctions);
-            SourceCollection.DeleteFolders(SourceCollection.SelectedFolders).RunTaskSynchronously();
+            SourceCollection.DeleteSelectedJunctionsCommand.Execute();
+            SourceCollection.DeleteSelectedFoldersCommand.Execute();
 
             // The deletion needs to propagate through the filesystemwatcher
             while (SourceCollection.Folders.Count != 0)

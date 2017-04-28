@@ -3,16 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:local="clr-namespace:Junctionizer.UI.UserControls"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        d:DesignHeight="300" d:DesignWidth="300">
+        d:DesignHeight="300" d:DesignWidth="300"
+        x:Name="iconButton">
     <StackPanel Orientation="Horizontal"
-                DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IconButton}}">
+                DataContext="{Binding ElementName=iconButton}">
         <materialDesign:PackIcon Kind="{Binding IconKind}"
                                  VerticalAlignment="Center" />
         <Label Content="{Binding Text}"
                VerticalAlignment="Center"
-               Foreground="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=Button}, Path=Foreground}" />
+               Foreground="{Binding ElementName=iconButton, Path=Foreground}" />
     </StackPanel>
 </Button>

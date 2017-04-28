@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Markup;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
     /// <summary>Converts a double to its logarithm to facilitate a non-linear slider.</summary>
-    public class LogScaleConverter : IValueConverter
+    public class LogScaleConverter : MarkupExtension, IValueConverter
     {
+        public static LogScaleConverter Instance { get; } = new LogScaleConverter();
+        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
+
         public const int LOGARITHM_BASE = 2;
 
         public const double MINIMUM_EXPONENT = 10;
