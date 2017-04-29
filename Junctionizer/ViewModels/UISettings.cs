@@ -29,7 +29,8 @@ namespace Junctionizer.ViewModels
         {
             if (AutomaticallySwitchInterfaces)
             {
-                IsCompactInterface = Application.Current.MainWindow.ActualWidth < 1000;
+                IsCompactInterface = Application.Current.MainWindow.ActualWidth < 1200 &&
+                                     Application.Current.MainWindow.WindowState != WindowState.Maximized;
             }
         }
 

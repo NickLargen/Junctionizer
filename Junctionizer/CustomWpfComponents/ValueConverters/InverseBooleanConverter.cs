@@ -14,7 +14,7 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
         {
             if (!(value is bool boolean)) throw new NotSupportedException();
 
-            return boolean;
+            return !boolean;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
