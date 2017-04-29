@@ -188,7 +188,7 @@ namespace Junctionizer.Model
 
         private async Task ArchiveAsync(GameFolderPair pair)
         {
-            if (pair.SourceEntry != null) await SourceCollection.ArchiveAsync(pair.SourceEntry);
+            if (pair.SourceEntry != null) await SourceCollection.ArchiveAsync(pair.SourceEntry).ConfigureAwait(false);
             else if (pair.DestinationEntry?.IsJunction == false) SourceCollection.CreateJunctionTo(pair.DestinationEntry);
         }
 
@@ -203,8 +203,8 @@ namespace Junctionizer.Model
         {
             Debug.Assert(gameFolderPair.DestinationEntry?.IsJunction == false);
 
-            var createdFolder = await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry);
-            if (createdFolder != null) await DestinationCollection.DeleteFolderOrJunctionAsync(gameFolderPair.DestinationEntry);
+            var createdFolder = await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry).ConfigureAwait(false);
+            if (createdFolder != null) await DestinationCollection.DeleteFolderOrJunctionAsync(gameFolderPair.DestinationEntry).ConfigureAwait(false);
         }
 
 
@@ -212,7 +212,7 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public IDelegateListCommand MirrorCommand => new DelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => !(pair.SourceEntry?.IsJunction == false &&
-                                                                   pair.DestinationEntry?.IsJunction == false)),
+                                                                   pair.DestinationEntry?.IsJunction == false)), 
             pair => MirrorAsync(pair).Forget());
 
         private async Task MirrorAsync(GameFolderPair gameFolderPair)
@@ -221,12 +221,12 @@ namespace Junctionizer.Model
 
             if (gameFolderPair.DestinationEntry?.IsJunction == false)
             {
-                await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry);
+                await SourceCollection.CopyFolderAsync(gameFolderPair.DestinationEntry).ConfigureAwait(false);
             }
             else
             {
                 Debug.Assert(gameFolderPair.SourceEntry != null);
-                await DestinationCollection.CopyFolderAsync(gameFolderPair.SourceEntry);
+                await DestinationCollection.CopyFolderAsync(gameFolderPair.SourceEntry).ConfigureAwait(false);
             }
         }
     }

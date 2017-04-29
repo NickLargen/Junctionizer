@@ -184,7 +184,7 @@ namespace Junctionizer.ViewModels
 
         private async Task FindExistingJunctions()
         {
-            var selectedDirectory = await Dialogs.PromptForDirectory("Select Root Directory");
+            var selectedDirectory = await Dialogs.PromptForDirectory("Select Root Directory").ConfigureAwait(false);
             if (selectedDirectory == null) return;
 
             var findJunctionsViewModel  = new FindJunctionsViewModel();
@@ -200,7 +200,7 @@ namespace Junctionizer.ViewModels
                 if (!DisplayedMappings.Contains(folderMapping)) DisplayedMappings.Add(folderMapping);
             }
 
-            var ranToCompletion = (bool?) await dialog;
+            var ranToCompletion = (bool?) await dialog.ConfigureAwait(false);
         }
 
         [AutoLazy.Lazy]

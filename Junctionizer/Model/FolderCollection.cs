@@ -295,10 +295,10 @@ namespace Junctionizer.Model
 
         public async Task ArchiveAsync([NotNull] GameFolder folder)
         {
-            var createdFolder = await CorrespondingCollection.CopyFolderAsync(folder);
+            var createdFolder = await CorrespondingCollection.CopyFolderAsync(folder).ConfigureAwait(false);
             if (createdFolder != null)
             {
-                var isFolderDeleted = await DeleteFolderOrJunctionAsync(folder);
+                var isFolderDeleted = await DeleteFolderOrJunctionAsync(folder).ConfigureAwait(false);
                 if (isFolderDeleted) CreateJunctionTo(createdFolder);
             }
         }
@@ -324,7 +324,7 @@ namespace Junctionizer.Model
         /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder only if the copy successfully ran to completion, null otherwise.</summary>
         public Task<GameFolder> CopyFolderAsync([NotNull] GameFolder folderToCopy)
         {
-            return Task.Run(() => {
+            return Task.Run(async () => {
                 string targetDirectory = $@"{Location}\{folderToCopy.Name}";
 
                 var targetDirectoryInfo = new DirectoryInfo(targetDirectory);
@@ -350,17 +350,21 @@ namespace Junctionizer.Model
                     }
 
                     FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
-                    var createdFolder = GetFolderByName(targetDirectoryInfo.Name);
+
+                    var createdFolder = await Folders.GetValueAsync(targetDirectoryInfo.Name).ConfigureAwait(false);
+
                     // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the prompt for replacing vs skipping duplicate files.
-                    createdFolder.RecalculateSizeAsync();
+                    createdFolder.RecalculateSizeAsync().Forget();
                     return createdFolder;
                 }
                 catch (OperationCanceledException e)
                 {
                     Debug.WriteLine(e);
                     // If the user cancels the folder will still be partially copied
-                    var createdFolder = GetFolderByName(targetDirectoryInfo.Name);
-                    createdFolder.RecalculateSizeAsync();
+                    if (Folders.TryGetValue(targetDirectoryInfo.Name, out var createdFolder))
+                    {
+                        createdFolder.RecalculateSizeAsync().Forget();
+                    }
                     return null;
                 }
                 catch (IOException e)

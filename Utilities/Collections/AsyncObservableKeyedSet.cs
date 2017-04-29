@@ -22,14 +22,14 @@ namespace Utilities.Collections
         public AsyncObservableKeyedSet(Func<TItem, TKey> getKeyForItem,
             SynchronizationContext context = null,
             IReadOnlyList<TItem> initialItems = null,
-            IEqualityComparer<TKey> comparer = null) : this(getKeyForItem, initialItems, comparer, context, null) {}
+            IEqualityComparer<TKey> comparer = null) : this(getKeyForItem, initialItems, comparer, context, null) { }
 
         /// <summary>Instead of providing a synchronization context that will be compared against for synchronous operation, a function can be provided that will cause write operations to execute in the current context it evaluates to true. This is especially useful for WPF because <see cref="DispatcherSynchronizationContext.CreateCopy"/> means logically equivalent contexts fail referential equality checks.</summary>
         public AsyncObservableKeyedSet(
             Func<TItem, TKey> getKeyForItem,
             Func<bool> isDesiredThread,
             IReadOnlyList<TItem> initialItems = null,
-            IEqualityComparer<TKey> comparer = null) : this(getKeyForItem, initialItems, comparer, null, isDesiredThread) {}
+            IEqualityComparer<TKey> comparer = null) : this(getKeyForItem, initialItems, comparer, null, isDesiredThread) { }
 
         private AsyncObservableKeyedSet(
             Func<TItem, TKey> getKeyForItem,
@@ -164,7 +164,6 @@ namespace Utilities.Collections
             });
         }
 
-
         public Task RemoveAllAsync([NotNull] [ItemNotNull] IEnumerable<TItem> enumerable)
         {
             return RunOnSynchronizationContext(() => {
@@ -190,6 +189,12 @@ namespace Utilities.Collections
         }
 
         public TItem this[[NotNull] TKey key] => BackingDictionary[key];
+
+        /// <summary>Use <see cref="AsyncObservableKeyedSet{TKey,TItem}.this"/> for synchronous reads.</summary>
+        public Task<TItem> GetValueAsync([NotNull] TKey key)
+        {
+            return RunOnSynchronizationContext(() => this[key]);
+        }
 
         /// <summary>
         ///     <see cref="Dictionary{TKey,TValue}.TryGetValue"/>

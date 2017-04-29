@@ -15,10 +15,10 @@ namespace Utilities
 
         public async Task Enqueue(Func<Task> taskGenerator, CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                await taskGenerator();
+                await taskGenerator().ConfigureAwait(false);
             }
             finally
             {
