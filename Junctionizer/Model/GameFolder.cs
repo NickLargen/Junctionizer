@@ -23,7 +23,7 @@ namespace Junctionizer.Model
         public const int UNKNOWN_SIZE = -1;
         public const int JUNCTION_POINT_SIZE = -2;
 
-        public GameFolder([NotNull] string fullPath) : this(new DirectoryInfo(fullPath)) {}
+        public GameFolder([NotNull] string fullPath) : this(new DirectoryInfo(fullPath)) { }
 
         public GameFolder([NotNull] DirectoryInfo directory)
         {
@@ -71,17 +71,15 @@ namespace Junctionizer.Model
                 IsSizeOutdated = true;
 
                 var cancellationToken = tokenSource.Token;
-                try
-                {
-                    await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
-                                             .Enqueue(() => {
-                                                 return Task.Run(() => SearchSubdirectories(cancellationToken), cancellationToken);
-                                             }, cancellationToken);
-                }
-                catch (TaskCanceledException)
-                {
-                    // That's fine, do nothing
-                }
+                await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
+                                         .Enqueue(() => {
+                                             // Handle cancellation without incurring exception overhead
+                                             return cancellationToken.IsCancellationRequested
+                                                        ? Task.CompletedTask
+                                                        // ReSharper disable once MethodSupportsCancellation
+                                                        : Task.Run(() => SearchSubdirectories(cancellationToken));
+                                         }, cancellationToken)
+                                         .ConfigureAwait(false);
 
                 // If there are no other updates on the task queue null out the token source since we no longer need it
                 Interlocked.CompareExchange(ref _propertyUpdateTokenSource, null, tokenSource);
@@ -91,7 +89,7 @@ namespace Junctionizer.Model
         private void SearchSubdirectories(CancellationToken cancellationToken)
         {
             // This method may be called simultaneously from multiple threads
-
+            
             try
             {
                 if (IsJunction)
@@ -103,7 +101,7 @@ namespace Junctionizer.Model
                     long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        if (cancellationToken.IsCancellationRequested) return;
 
                         if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;
 
@@ -135,9 +133,9 @@ namespace Junctionizer.Model
             {
                 oldSize = Size;
                 Debug.WriteLine($"{DirectoryInfo.FullName} oldSize {oldSize}  Size {Size}");
-                await Task.Delay(1500);
+                await Task.Delay(1500).ConfigureAwait(false);
 
-                await UpdatePropertiesFromSubdirectoriesAsync();
+                await UpdatePropertiesFromSubdirectoriesAsync().ConfigureAwait(false);
             } while (Size != oldSize);
 
             IsContinuoslyRecalculating = false;
