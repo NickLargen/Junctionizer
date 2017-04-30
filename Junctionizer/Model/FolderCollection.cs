@@ -30,10 +30,10 @@ namespace Junctionizer.Model
     {
         public static class Factory
         {
-            public static (FolderCollection source, FolderCollection destination) CreatePair(Func<bool> isDesiredThread = null)
+            public static (FolderCollection source, FolderCollection destination) CreatePair(Func<bool> isDesiredThread = null, PauseTokenSource pauseTokenSource = default(PauseTokenSource))
             {
-                var source = new FolderCollection(isDesiredThread);
-                var destination = new FolderCollection(isDesiredThread);
+                var source = new FolderCollection(isDesiredThread, pauseTokenSource);
+                var destination = new FolderCollection(isDesiredThread, pauseTokenSource);
                 source.CorrespondingCollection = destination;
                 destination.CorrespondingCollection = source;
 
@@ -42,8 +42,11 @@ namespace Junctionizer.Model
         }
 
         // ReSharper disable once NotNullMemberIsNotInitialized - CorrespondingCollection can't be initialized here because it doesn't exist yet
-        private FolderCollection(Func<bool> isDesiredThread)
+        private FolderCollection(Func<bool> isDesiredThread, PauseTokenSource pauseTokenSource)
         {
+            PauseTokenSource = pauseTokenSource;
+            if (PauseTokenSource != null) PauseToken = pauseTokenSource.Token;
+
             Folders = new AsyncObservableKeyedSet<string, GameFolder>(folder => folder.Name, isDesiredThread,
                 comparer: StringComparer.OrdinalIgnoreCase);
 
@@ -120,6 +123,9 @@ namespace Junctionizer.Model
 
         [NotNull] private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
 
+        [CanBeNull] private PauseTokenSource PauseTokenSource { get; }
+        private PauseToken PauseToken { get; }
+
         [CanBeNull] private FileStream _directoryLockFileStream;
 
         private string _location;
@@ -176,7 +182,7 @@ namespace Junctionizer.Model
                 var newFolders = new DirectoryInfo(loc)
                     .EnumerateDirectories()
                     .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0)
-                    .Select(info => new GameFolder(info));
+                    .Select(info => new GameFolder(info, PauseToken));
 
                 Folders.AddAllAsync(newFolders).RunTaskSynchronously();
             }
@@ -190,29 +196,35 @@ namespace Junctionizer.Model
         #region Commands
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand ArchiveSelectedCommand => new DelegateListCommand<GameFolder>(
+        public IDelegateListCommand ArchiveSelectedCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
-            folder => ArchiveAsync(folder).Forget());
+            ArchiveAsync, PauseTokenSource);
         
         [AutoLazy.Lazy]
-        public IDelegateListCommand CopySelectedCommand => new DelegateListCommand<GameFolder>(
+        public IDelegateListCommand CopySelectedCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
-            folder => CorrespondingCollection.CopyFolderAsync(folder));
+            folder => CorrespondingCollection.CopyFolderAsync(folder), PauseTokenSource);
         
         [AutoLazy.Lazy]
-        public IDelegateListCommand CreateSelectedJunctionCommand => new DelegateListCommand<GameFolder>(
+        public IDelegateListCommand CreateSelectedJunctionCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
-            CorrespondingCollection.CreateJunctionTo);
+            folder => {
+                CorrespondingCollection.CreateJunctionTo(folder);
+                return Task.CompletedTask;
+            }, PauseTokenSource);
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteSelectedFoldersCommand => new DelegateListCommand<GameFolder>(
+        public IDelegateListCommand DeleteSelectedFoldersCommand => new PausingDelegateListCommand<GameFolder>(
             () => SelectedFolders, 
-            selectedFolder => DeleteFolderOrJunctionAsync(selectedFolder));
+            DeleteFolderOrJunctionAsync, PauseTokenSource);
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteSelectedJunctionsCommand => new DelegateListCommand<GameFolder>(
-            () => SelectedJunctions, 
-            DeleteJunction);
+        public IDelegateListCommand DeleteSelectedJunctionsCommand => new PausingDelegateListCommand<GameFolder>(
+            () => SelectedJunctions,
+            folder => {
+                DeleteJunction(folder);
+                return Task.CompletedTask;
+            }, PauseTokenSource);
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectUniqueFolders)
@@ -265,8 +277,7 @@ namespace Junctionizer.Model
             _directoryWatcher.NotifyFilter = NotifyFilters.DirectoryName;
             _directoryWatcher.InternalBufferSize = 40960;
             _directoryWatcher.Created += (sender, args) => {
-                var newFolder = new GameFolder(args.FullPath);
-                newFolder.ContinuoslyRecalculateSizeAsync().Forget();
+                var newFolder = new GameFolder(args.FullPath, PauseToken);
                 Folders.AddAsync(newFolder).Forget();
             };
             _directoryWatcher.Deleted += (sender, args) => {
@@ -345,7 +356,7 @@ namespace Junctionizer.Model
                         else
                         {
                             // Since a new folder isn't being created the file system watcher will not trigger size recalculation, so we do it here
-                            overwrittenFolder.ContinuoslyRecalculateSizeAsync().Forget();
+                            overwrittenFolder.RecalculateSizeAsync().Forget();
                         }
                     }
 

@@ -23,11 +23,12 @@ namespace Junctionizer.Model
         public const int UNKNOWN_SIZE = -1;
         public const int JUNCTION_POINT_SIZE = -2;
 
-        public GameFolder([NotNull] string fullPath) : this(new DirectoryInfo(fullPath)) { }
+        public GameFolder([NotNull] string fullPath, PauseToken pauseToken) : this(new DirectoryInfo(fullPath), pauseToken) { }
 
-        public GameFolder([NotNull] DirectoryInfo directory)
+        public GameFolder([NotNull] DirectoryInfo directory, PauseToken pauseToken)
         {
             DirectoryInfo = directory;
+            PauseToken = pauseToken;
             IsJunction = JunctionPoint.Exists(directory);
             if (IsJunction)
             {
@@ -57,6 +58,7 @@ namespace Junctionizer.Model
         private bool IsContinuoslyRecalculating { get; set; }
         private bool IsSizeOutdated { get; set; }
 
+        private PauseToken PauseToken { get; }
         [CanBeNull] private CancellationTokenSource _propertyUpdateTokenSource;
 
         public void CancelSubdirectorySearch() => SafeCancelTokenSource(_propertyUpdateTokenSource);
@@ -77,7 +79,7 @@ namespace Junctionizer.Model
                                              return cancellationToken.IsCancellationRequested
                                                         ? Task.CompletedTask
                                                         // ReSharper disable once MethodSupportsCancellation
-                                                        : Task.Run(() => SearchSubdirectories(cancellationToken));
+                                                        : Task.Run(() => SearchSubdirectoriesAsync(cancellationToken));
                                          }, cancellationToken)
                                          .ConfigureAwait(false);
 
@@ -86,10 +88,10 @@ namespace Junctionizer.Model
             }
         }
 
-        private void SearchSubdirectories(CancellationToken cancellationToken)
+        private async Task SearchSubdirectoriesAsync(CancellationToken cancellationToken)
         {
             // This method may be called simultaneously from multiple threads
-            
+
             try
             {
                 if (IsJunction)
@@ -101,6 +103,7 @@ namespace Junctionizer.Model
                     long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
                     {
+                        if (PauseToken.IsPaused) await PauseToken.WaitWhilePausedAsync();
                         if (cancellationToken.IsCancellationRequested) return;
 
                         if (info.LastWriteTime > LastWriteTime) LastWriteTime = info.LastWriteTime;

@@ -10,13 +10,20 @@ using MaterialDesignColors;
 
 using MaterialDesignThemes.Wpf;
 
+using Newtonsoft.Json;
+
 using PropertyChanged;
+
+using Utilities;
 
 namespace Junctionizer.ViewModels
 {
     [ImplementPropertyChanged]
     public class UISettings
     {
+        [JsonIgnore]
+        public bool IsModifyingFileSystem { get; set; }
+
         public bool IsCompactInterface { get; set; } = true;
 
         public bool AutomaticallySwitchInterfaces { get; set; } = true;
@@ -33,7 +40,8 @@ namespace Junctionizer.ViewModels
                                      Application.Current.MainWindow.WindowState != WindowState.Maximized;
             }
         }
-
+        
+        [JsonIgnore]
         public bool IsRightDrawerOpen { get; set; } = false;
 
         private ResourceDictionary ThemedColorsDictionary { get; }
@@ -83,6 +91,8 @@ namespace Junctionizer.ViewModels
         }
 
         private PaletteHelper PaletteHelper { get; } = new PaletteHelper();
+        
+        internal static PauseTokenSource PauseTokenSource { get; } = new PauseTokenSource();
 
         private UISettings()
         {
@@ -91,10 +101,13 @@ namespace Junctionizer.ViewModels
             AccentSwatch = palette.AccentSwatch;
             PrimarySwatch = palette.PrimarySwatch;
 
+            PauseTokenSource.PropertyChanged += (sender, args) => {
+                IsModifyingFileSystem = PauseTokenSource.IsPaused;
+            };
 
             var propertyNames = GetType()
                 .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
-                .Where(propertyInfo => propertyInfo.PropertyType != typeof(UISettings))
+                .Where(propertyInfo => propertyInfo.GetCustomAttribute<JsonIgnoreAttribute>() == null)
                 .Select(propertyInfo => propertyInfo.Name)
                 .ToArray();
 

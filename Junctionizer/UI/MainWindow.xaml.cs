@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Data;
@@ -64,5 +65,14 @@ namespace Junctionizer.UI
         private void CloseRightDrawer(object sender, RoutedEventArgs e) => UISettings.Instance.IsRightDrawerOpen = false;
 
         private void MainWindow_OnSizeChanged(object sender, SizeChangedEventArgs e) => UISettings.Instance.CheckWindowSize();
+
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            if (UISettings.Instance.IsModifyingFileSystem)
+            {
+                e.Cancel = true;
+                Dialogs.DisplayMessageBox("Cannot exit until all queued file system operations have been completed or cancelled.");
+            }
+        }
     }
 }

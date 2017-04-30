@@ -53,6 +53,9 @@ namespace Junctionizer.Model
             MirrorCommand.RaiseCanExecuteChanged();
         }
 
+        [CanBeNull]
+        private PauseTokenSource PauseTokenSource { get; }
+
         [NotNull]
         public IEnumerable<GameFolderPair> SelectedFolderPairs { get; set; } = Enumerable.Empty<GameFolderPair>();
 
@@ -62,10 +65,12 @@ namespace Junctionizer.Model
 
         public Dictionary<string, GameFolderPair> Items { get; } = new Dictionary<string, GameFolderPair>();
 
-        public GameFolderPairEnumerable(FolderCollection sourceCollection, FolderCollection destinationCollection)
+        public GameFolderPairEnumerable(FolderCollection sourceCollection, FolderCollection destinationCollection, [CanBeNull] PauseTokenSource pauseTokenSource)
         {
             SourceCollection = sourceCollection;
             DestinationCollection = destinationCollection;
+
+            PauseTokenSource = pauseTokenSource;
 
             AddExistingValues();
 
@@ -168,23 +173,28 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in neither location.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteCommand => new DelegateListCommand<GameFolderPair>(
+        public IDelegateListCommand DeleteCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairs,
-            Delete);
+            DeleteAsync, PauseTokenSource);
 
-        private void Delete(GameFolderPair pair)
+        private Task DeleteAsync(GameFolderPair pair)
         {
-            if (pair.SourceEntry != null) SourceCollection.DeleteFolderOrJunctionAsync(pair.SourceEntry);
-            if (pair.DestinationEntry != null) DestinationCollection.DeleteFolderOrJunctionAsync(pair.DestinationEntry);
+            var newTasks = new List<Task>();
+            if (pair.SourceEntry?.IsJunction == true) SourceCollection.DeleteJunction(pair.SourceEntry);
+            else if (pair.SourceEntry != null) newTasks.Add(SourceCollection.DeleteFolderOrJunctionAsync(pair.SourceEntry));
+
+            if (pair.DestinationEntry != null) newTasks.Add(DestinationCollection.DeleteFolderOrJunctionAsync(pair.DestinationEntry));
+
+            return Task.WhenAll(newTasks);
         }
 
 
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand ArchiveCommand => new DelegateListCommand<GameFolderPair>(
+        public IDelegateListCommand ArchiveCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.SourceEntry?.IsJunction == false ||
                                                                  pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false),
-            pair => ArchiveAsync(pair).Forget());
+            ArchiveAsync, PauseTokenSource);
 
         private async Task ArchiveAsync(GameFolderPair pair)
         {
@@ -195,9 +205,9 @@ namespace Junctionizer.Model
 
         /// <summary>Results in folder in source location, not in destination.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand RestoreCommand => new DelegateListCommand<GameFolderPair>(
+        public IDelegateListCommand RestoreCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.DestinationEntry?.IsJunction == false),
-            pair => RestoreAsync(pair).Forget());
+            RestoreAsync, PauseTokenSource);
 
         private async Task RestoreAsync(GameFolderPair gameFolderPair)
         {
@@ -210,10 +220,10 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder existing in both locations</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand MirrorCommand => new DelegateListCommand<GameFolderPair>(
+        public IDelegateListCommand MirrorCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => !(pair.SourceEntry?.IsJunction == false &&
-                                                                   pair.DestinationEntry?.IsJunction == false)), 
-            pair => MirrorAsync(pair).Forget());
+                                                                   pair.DestinationEntry?.IsJunction == false)),
+            MirrorAsync, PauseTokenSource);
 
         private async Task MirrorAsync(GameFolderPair gameFolderPair)
         {

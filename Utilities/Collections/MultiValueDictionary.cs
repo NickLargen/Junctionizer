@@ -708,6 +708,41 @@ namespace Utilities.Collections
         }
 
         /// <summary>
+        /// Removes the first instance (if any) of a number of key-value pairs from this 
+        /// <see cref="MultiValueDictionary{TKey,TValue}"/>, where the key for each value is
+        /// <paramref name="key"/>, and the value for a pair is an element from <paramref name="values"/>
+        /// </summary>
+        /// <param name="key">The <typeparamref name="TKey"/> of all entries to remove</param>
+        /// <param name="values">An <see cref="IEnumerable{TValue}"/> of values to remove</param>
+        /// <exception cref="ArgumentNullException"><paramref name="key"/> must be non-null</exception>
+        /// <returns>The number of items removed</returns>
+        /// <remarks>
+        /// If all of the values associated with <paramref name="key"/> are removed, then that 
+        /// <typeparamref name="TKey"/> will be removed from the <see cref="MultiValueDictionary{TKey,TValue}"/> and its 
+        /// associated <see cref="IReadOnlyCollection{TValue}"/> will be freed as if a call to <see cref="Remove(TKey)"/>
+        /// had been made.
+        /// </remarks>
+        public int RemoveRange(TKey key, IEnumerable<TValue> values)
+        {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (values == null) throw new ArgumentNullException(nameof(values));
+
+            if (dictionary.TryGetValue(key, out InnerCollectionView collection))
+            {
+                var numRemoved = values.Count(value => collection.RemoveValue(value));
+
+                if (numRemoved > 0)
+                {
+                    if (collection.Count == 0) dictionary.Remove(key);
+                    version++;
+                    return numRemoved;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
         /// Determines if the given <typeparamref name="TKey"/>-<typeparamref name="TValue"/> 
         /// pair exists within this <see cref="MultiValueDictionary{TKey,TValue}"/>.
         /// </summary>

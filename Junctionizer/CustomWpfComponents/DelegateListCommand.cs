@@ -9,8 +9,6 @@ using JetBrains.Annotations;
 
 using Prism.Commands;
 
-using Utilities.Collections;
-
 namespace Junctionizer.CustomWpfComponents
 {
     /// <summary>Exists so that <see cref="DelegateListCommand{T}"/> can be referenced without specifying a type.</summary>
@@ -24,16 +22,20 @@ namespace Junctionizer.CustomWpfComponents
 
     /// <summary>A command that executes an action on every item in a collection. Maintains a count of the number of items the action will be executed on and returns false for CanExecute if that count is 0. RaiseCanExecuteChanged() must be called whenever it is possible that the number of items has changed.</summary>
     /// <typeparam name="T">The type of items in the list.</typeparam>
-    public class DelegateListCommand<T> : DelegateCommandBase, INotifyPropertyChanged, IDelegateListCommand
+    public abstract class DelegateListCommandBase<T> : DelegateCommandBase, INotifyPropertyChanged, IDelegateListCommand
     {
-        private Action<T> IndividualExecuteMethod { get; }
-        private Func<IEnumerable<T>> ApplicableItemsFunc { get; }
+        protected Func<IEnumerable<T>> ApplicableItemsFunc { get; }
+
+        protected DelegateListCommandBase(Func<IEnumerable<T>> applicableItemsFunc)
+        {
+            ApplicableItemsFunc = applicableItemsFunc;
+        }
 
         private int _count;
         public int Count
         {
             get => _count;
-            private set {
+            protected set {
                 if (value != _count)
                 {
                     _count = value;
@@ -42,27 +44,18 @@ namespace Junctionizer.CustomWpfComponents
             }
         }
 
-        public DelegateListCommand(Func<IEnumerable<T>> applicableItemsFunc, [NotNull] Action<T> individualExecuteMethod)
-        {
-            ApplicableItemsFunc = applicableItemsFunc;
-            IndividualExecuteMethod = individualExecuteMethod;
-        }
-
-        public void Execute() => ApplicableItemsFunc().ForEach(IndividualExecuteMethod);
-
-        public bool CanExecute() => Count > 0;
-
         protected override void OnCanExecuteChanged()
         {
             Count = ApplicableItemsFunc().Count();
             base.OnCanExecuteChanged();
         }
 
-        protected override void Execute(object parameter) => Execute();
+        protected override bool CanExecute(object parameter) => Count > 0;
 
-        protected override bool CanExecute(object parameter) => CanExecute();
+        public bool CanExecute() => CanExecute(null);
+        public void Execute() => Execute(null);
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public virtual event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)

@@ -31,6 +31,7 @@ namespace Junctionizer
 
         public static Task<object> Show(object content, DialogOpenedEventHandler openedEventHandler = null, DialogClosingEventHandler closingEventHandler = null)
         {
+            CloseDialog();
             return DialogHost.Show(content, openedEventHandler, closingEventHandler);
         }
 
