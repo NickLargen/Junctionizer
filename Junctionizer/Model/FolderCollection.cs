@@ -335,6 +335,7 @@ namespace Junctionizer.Model
         /// <summary>Copies the provided folder to the current directory. Returns the created/overwritten folder only if the copy successfully ran to completion, null otherwise.</summary>
         public Task<GameFolder> CopyFolderAsync([NotNull] GameFolder folderToCopy)
         {
+            folderToCopy.IsBeingAccessed = true;
             return Task.Run(async () => {
                 string targetDirectory = $@"{Location}\{folderToCopy.Name}";
 
@@ -383,12 +384,17 @@ namespace Junctionizer.Model
                     HandleException(e);
                     return null;
                 }
+                finally
+                {
+                    folderToCopy.IsBeingAccessed = false;
+                }
             });
         }
 
         /// <summary>Returns true on successful delete, false if user cancels operation or there is an error.</summary>
         public Task<bool> DeleteFolderOrJunctionAsync([NotNull] GameFolder folderToDelete)
         {
+            folderToDelete.IsBeingAccessed = true;
             folderToDelete.IsBeingDeleted = true;
             return Task.Run(() => {
                 try
@@ -405,6 +411,10 @@ namespace Junctionizer.Model
                     if (e is OperationCanceledException) return false;
 
                     HandleException(e);
+                }
+                finally
+                {
+                    folderToDelete.IsBeingAccessed = false;
                 }
 
                 //Delete junctions pointing to the deleted folder

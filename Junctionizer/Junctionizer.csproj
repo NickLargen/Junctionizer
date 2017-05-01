@@ -96,6 +96,7 @@
     <Compile Include="CustomWpfComponents\ValueConverters\NullToFalseConverter.cs" />
     <Compile Include="CustomWpfComponents\ValueConverters\TrueToParameterConverter.cs" />
     <Compile Include="Dialogs.cs" />
+    <Compile Include="Model\IMonitorsAccess.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

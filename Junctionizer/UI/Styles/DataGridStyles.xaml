@@ -6,20 +6,21 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     mc:Ignorable="d"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:customWpfComponents="clr-namespace:Junctionizer.CustomWpfComponents">
+                    xmlns:customWpfComponents="clr-namespace:Junctionizer.CustomWpfComponents"
+                    xmlns:model="clr-namespace:Junctionizer.Model">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.DataGrid.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <Style x:Key="CustomCellStyle" TargetType="DataGridCell">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource MaterialDesignBody}" />
+        <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-
+        
         <Setter Property="Padding"
                 Value="{Binding RelativeSource={RelativeSource Self}, Path=(materialDesign:DataGridAssist.CellPadding)}" />
         <Setter Property="Template">
@@ -40,7 +41,8 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="GameFolderDataGridRow" TargetType="DataGridRow">
+    <Style x:Key="GameFolderDataGridRow" TargetType="DataGridRow" d:DataContext="{d:DesignInstance d:Type=model:IMonitorsAccess}">
+        <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
         <Setter Property="SnapsToDevicePixels" Value="true" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="ValidationErrorTemplate">
@@ -59,11 +61,11 @@
                         <Grid>
                             <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"
                                                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            <Path x:Name="cross" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="{DynamicResource MaterialDesignBody}" StrokeThickness="1" />
+                            <Path x:Name="cross" Visibility="Hidden" Data="M0,0.5 L1,0.5" Stretch="Fill" Stroke="White" StrokeThickness="1" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <DataTrigger Binding="{Binding IsBeingDeleted}" Value="True">
+                        <DataTrigger Binding="{Binding IsBeingDeleted, Mode=OneWay}" Value="True">
                             <Setter TargetName="cross" Property="Visibility" Value="Visible" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
@@ -105,6 +107,9 @@
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource DataGridSelection}" />
             </Trigger>
+            <DataTrigger Binding="{Binding IsBeingAccessed, Mode=OneWay}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource DataGridRowUnselectable}" />
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 

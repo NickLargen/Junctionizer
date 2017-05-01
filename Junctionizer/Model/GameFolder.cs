@@ -18,7 +18,7 @@ using static Junctionizer.ErrorHandling;
 namespace Junctionizer.Model
 {
     [DebuggerDisplay(nameof(GameFolder) + " {" + nameof(DirectoryInfo) + "}")]
-    public class GameFolder : BindableBase, IComparable, IComparable<GameFolder>
+    public class GameFolder : BindableBase, IComparable, IComparable<GameFolder>, IMonitorsAccess
     {
         public const int UNKNOWN_SIZE = -1;
         public const int JUNCTION_POINT_SIZE = -2;
@@ -52,6 +52,7 @@ namespace Junctionizer.Model
         public bool IsJunction { get; }
         public long Size { get; private set; } = UNKNOWN_SIZE;
 
+        public bool IsBeingAccessed { get; set; }
         public bool IsBeingDeleted { get; set; }
         public bool HasFinalSize => !IsSizeOutdated && !IsContinuoslyRecalculating;
 
@@ -100,6 +101,9 @@ namespace Junctionizer.Model
                 }
                 else
                 {
+                    // Wait to start searching until the directory finishes copying
+                    if (PauseToken.IsPaused) await PauseToken.WaitWhilePausedAsync();
+
                     long tempSize = 0;
                     foreach (var info in DirectoryInfo.EnumerateAllAccessibleDirectories())
                     {

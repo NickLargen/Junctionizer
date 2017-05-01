@@ -9,11 +9,8 @@ using Prism.Mvvm;
 
 namespace Junctionizer.Model
 {
-    public class GameFolderPair : BindableBase, IEquatable<GameFolderPair>, IComparable<GameFolderPair>
+    public class GameFolderPair : BindableBase, IEquatable<GameFolderPair>, IComparable<GameFolderPair>, IMonitorsAccess
     {
-        private const string SOURCE_ENTRY_SIZE_PROPERTY_NAME = nameof(SourceEntry) + "." + nameof(GameFolder.Size);
-        private const string DESTINATION_ENTRY_SIZE_PROPERTY_NAME = nameof(DestinationEntry) + "." + nameof(GameFolder.Size);
-
         private GameFolder _sourceEntry;
         [CanBeNull]
         public GameFolder SourceEntry
@@ -24,25 +21,20 @@ namespace Junctionizer.Model
                 {
                     if (_sourceEntry != null)
                     {
-                        PropertyChangedEventManager.RemoveHandler(_sourceEntry, OnSourcePropertyChanged, string.Empty);
+                        PropertyChangedEventManager.RemoveHandler(_sourceEntry, OnSubPropertyChanged, string.Empty);
                     }
 
                     _sourceEntry = value;
 
                     if (_sourceEntry != null)
                     {
-                        PropertyChangedEventManager.AddHandler(_sourceEntry, OnSourcePropertyChanged, string.Empty);
+                        PropertyChangedEventManager.AddHandler(_sourceEntry, OnSubPropertyChanged, string.Empty);
                     }
-
-                    RaisePropertyChanged(SOURCE_ENTRY_SIZE_PROPERTY_NAME);
 
                     Debug.Assert(SourceEntry == null || DestinationEntry == null || SourceEntry.Name == DestinationEntry.Name);
                 }
             }
         }
-
-        private void OnSourcePropertyChanged(object sender, PropertyChangedEventArgs e)
-            => RaisePropertyChanged(nameof(SourceEntry) + "." + e.PropertyName);
 
         private GameFolder _destinationEntry;
         [CanBeNull]
@@ -54,25 +46,23 @@ namespace Junctionizer.Model
                 {
                     if (_destinationEntry != null)
                     {
-                        PropertyChangedEventManager.RemoveHandler(_destinationEntry, OnDestinationPropertyChanged, string.Empty);
+                        PropertyChangedEventManager.RemoveHandler(_destinationEntry, OnSubPropertyChanged, string.Empty);
                     }
 
                     _destinationEntry = value;
 
                     if (_destinationEntry != null)
                     {
-                        PropertyChangedEventManager.AddHandler(_destinationEntry, OnDestinationPropertyChanged, string.Empty);
+                        PropertyChangedEventManager.AddHandler(_destinationEntry, OnSubPropertyChanged, string.Empty);
                     }
-                    
-                    RaisePropertyChanged(DESTINATION_ENTRY_SIZE_PROPERTY_NAME);
 
                     Debug.Assert(SourceEntry == null || DestinationEntry == null || SourceEntry.Name == DestinationEntry.Name);
                 }
             }
         }
 
-        private void OnDestinationPropertyChanged(object sender, PropertyChangedEventArgs e)
-            => RaisePropertyChanged(nameof(DestinationEntry) + "." + e.PropertyName);
+        /// <summary>Raises changes for properties in <see cref="IMonitorsAccess"/>.</summary>
+        private void OnSubPropertyChanged(object sender, PropertyChangedEventArgs e) => OnPropertyChanged(e);
 
         /// <inheritdoc/>
         public GameFolderPair([CanBeNull] GameFolder sourceEntry = null, [CanBeNull] GameFolder destinationEntry = null)
@@ -86,7 +76,7 @@ namespace Junctionizer.Model
             HashCode = Name.GetHashCode();
         }
 
-        [UsedImplicitly]
+        public bool IsBeingAccessed => SourceEntry?.IsBeingAccessed == true || DestinationEntry?.IsBeingAccessed == true;
         public bool IsBeingDeleted => SourceEntry?.IsBeingDeleted == true || DestinationEntry?.IsBeingDeleted == true;
 
         private int HashCode { get; }
