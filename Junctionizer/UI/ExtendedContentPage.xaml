@@ -30,18 +30,25 @@
                        DockPanel.Dock="Bottom"
                        LastChildFill="False">
                 <userControls:ListActionButton
-                    Command="{Binding DeleteSelectedFoldersCommand}"
-                    ButtonContent="Delete"
-                    ButtonStyle="{DynamicResource RaisedAccentButton}" />
+                    Command="{Binding DeleteSelectedFoldersCommand}">
+                    <Button Style="{DynamicResource RaisedAccentButton}">Delete</Button>
+                </userControls:ListActionButton>
                 <userControls:ListActionButton
-                    Command="{Binding DeleteSelectedJunctionsCommand}"
-                    ButtonContent="Delete Junction" />
+                    Command="{Binding DeleteSelectedJunctionsCommand}">
+                    <Button>Delete Junction</Button>
+                </userControls:ListActionButton>
                 <userControls:ListActionButton
-                    Command="{Binding CopySelectedCommand}"
-                    ButtonContent="Copy -&gt;" />
+                    Command="{Binding CopySelectedCommand}">
+                    <userControls:IconButton Text="Copy" 
+                                             IconKind="ArrowRightBold"
+                                             IconPosition="Right" />
+                </userControls:ListActionButton>
                 <userControls:ListActionButton
-                    Command="{Binding ArchiveSelectedCommand}"
-                    ButtonContent="Archive -&gt;" />
+                    Command="{Binding ArchiveSelectedCommand}">
+                    <userControls:IconButton Text="Archive"
+                                             IconKind="ArrowRightBold"
+                                             IconPosition="Right" />
+                </userControls:ListActionButton>
             </DockPanel>
             <customWpfComponents:MultiSelectDataGrid x:Name="sourceGrid"
                                                      SortOnFirstLoad="True"
@@ -65,20 +72,26 @@
                        DockPanel.Dock="Bottom">
                 <Button Command="{Binding SelectFoldersNotInOtherPaneCommand}" Content="Select Not In Source" />
             </DockPanel>
-
+            
             <DockPanel HorizontalAlignment="Center"
                        DockPanel.Dock="Bottom"
                        LastChildFill="False">
                 <userControls:ListActionButton
-                    Command="{Binding CopySelectedCommand}"
-                    ButtonContent="&lt;- Copy" />
+                    Command="{Binding CopySelectedCommand}">
+                    <userControls:IconButton Text="Copy"
+                                             IconKind="ArrowLeftBold"
+                                             IconPosition="Left" />
+                </userControls:ListActionButton>
                 <userControls:ListActionButton
-                    Command="{Binding CreateSelectedJunctionCommand}"
-                    ButtonContent="&lt;- Create Junction" />
+                    Command="{Binding CreateSelectedJunctionCommand}">
+                    <userControls:IconButton Text="Create Junction"
+                                             IconKind="ArrowLeftBold"
+                                             IconPosition="Left" />
+                </userControls:ListActionButton>
                 <userControls:ListActionButton
-                    Command="{Binding DeleteSelectedFoldersCommand}"
-                    ButtonContent="Delete"
-                    ButtonStyle="{DynamicResource RaisedAccentButton}" />
+                    Command="{Binding DeleteSelectedFoldersCommand}">
+                    <Button Style="{DynamicResource RaisedAccentButton}">Delete</Button>
+                </userControls:ListActionButton>
             </DockPanel>
 
             <customWpfComponents:MultiSelectDataGrid x:Name="destinationGrid"

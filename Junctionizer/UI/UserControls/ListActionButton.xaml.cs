@@ -1,12 +1,12 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Markup;
 
 using Junctionizer.CustomWpfComponents;
 
 namespace Junctionizer.UI.UserControls
 {
-    /// <summary>Interaction logic for ListActionButton.xaml</summary>
-    [ContentProperty(nameof(ButtonContent))]
+    [ContentProperty(nameof(InnerContent))]
     public partial class ListActionButton
     {
         public ListActionButton()
@@ -14,15 +14,14 @@ namespace Junctionizer.UI.UserControls
             InitializeComponent();
         }
 
-        public object ButtonContent
+        public Button InnerContent
         {
-            get => GetValue(ButtonContentProperty);
-            set => SetValue(ButtonContentProperty, value);
+            get => (Button) GetValue(InnerContentProperty);
+            set => SetValue(InnerContentProperty, value);
         }
 
-        public static readonly DependencyProperty ButtonContentProperty =
-            DependencyProperty.Register(nameof(ButtonContent), typeof(object), typeof(ListActionButton));
-
+        public static readonly DependencyProperty InnerContentProperty =
+            DependencyProperty.Register(nameof(InnerContent), typeof(Button), typeof(ListActionButton));
 
         public IListCommand Command
         {
@@ -31,16 +30,9 @@ namespace Junctionizer.UI.UserControls
         }
 
         public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register(nameof(Command), typeof(IListCommand), typeof(ListActionButton));
-
-
-        public Style ButtonStyle
-        {
-            get => (Style) GetValue(ButtonStyleProperty);
-            set => SetValue(ButtonStyleProperty, value);
-        }
-
-        public static readonly DependencyProperty ButtonStyleProperty =
-            DependencyProperty.Register(nameof(ButtonStyle), typeof(Style), typeof(ListActionButton));
+            DependencyProperty.Register(nameof(Command), typeof(IListCommand), typeof(ListActionButton), new FrameworkPropertyMetadata((source, e) => {
+                var actionButton = (ListActionButton) source;
+                actionButton.InnerContent.Command = actionButton.Command;
+            }));
     }
 }

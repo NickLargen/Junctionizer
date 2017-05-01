@@ -20,21 +20,24 @@
                    LastChildFill="False">
             <userControls:ListActionButton
                 Command="{Binding DeleteCommand}"
-                ButtonContent="Delete"
-                ToolTip="Remove from both locations (where applicable)."
-                ButtonStyle="{DynamicResource RaisedAccentButton}" />
+                ToolTip="Remove from both locations (where applicable).">
+                <Button Style="{DynamicResource RaisedAccentButton}">Delete</Button>
+            </userControls:ListActionButton>
             <userControls:ListActionButton
                 Command="{Binding ArchiveCommand}"
-                ButtonContent="Archive"
-                ToolTip="Move selected items to the destination folder and create a junction." />
+                ToolTip="Move selected items to the destination folder and create a junction.">
+                <Button>Archive</Button>
+            </userControls:ListActionButton>
             <userControls:ListActionButton
                 Command="{Binding RestoreCommand}"
-                ButtonContent="Restore"
-                ToolTip="Move selected items to the source folder and remove them from the destination folder." />
+                ToolTip="Move selected items to the source folder and remove them from the destination folder.">
+                <Button>Restore</Button>
+            </userControls:ListActionButton>
             <userControls:ListActionButton
                 Command="{Binding MirrorCommand}"
-                ButtonContent="Mirror"
-                ToolTip="Copies selected items so that they exist in both locations. Does nothing if there are already files at both locations." />
+                ToolTip="Copies selected items so that they exist in both locations. Does nothing if there are already files at both locations.">
+                <Button>Mirror</Button>
+            </userControls:ListActionButton>
         </DockPanel>
         <customWpfComponents:MultiSelectDataGrid x:Name="compactDataGrid"
                                                  SortOnFirstLoad="True"

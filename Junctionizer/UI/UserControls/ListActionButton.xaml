@@ -9,10 +9,7 @@
              d:DesignHeight="300" d:DesignWidth="300"
              x:Name="listActionButton">
 
-    <materialDesign:Badged DataContext="{Binding ElementName=listActionButton}"
-                           Badge="{Binding Command.Count, Converter={valueConverters:OnlyDisplayMultipleConverter}}">
-        <Button Command="{Binding Command}" 
-                Content="{Binding ButtonContent}"
-                Style="{Binding ButtonStyle}"/>
+    <materialDesign:Badged Badge="{Binding ElementName=listActionButton, Path=Command.Count, Converter={valueConverters:OnlyDisplayMultipleConverter}}">
+        <Binding ElementName="listActionButton" Path="InnerContent" />
     </materialDesign:Badged>
 </UserControl>
