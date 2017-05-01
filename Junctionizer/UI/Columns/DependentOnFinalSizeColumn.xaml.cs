@@ -32,8 +32,8 @@ namespace Junctionizer.UI.Columns
         {
             CellStyle = new Style(typeof(DataGridCell), (Style) Application.Current.FindResource("RightAlignCell"));
             var trigger = new DataTrigger {
-                Binding = new Binding(pathToFolder + nameof(GameFolder.HasFinalSize)),
-                Value = "False"
+                Binding = new Binding(pathToFolder + nameof(GameFolder.IsSizeOutdated)),
+                Value = "True"
             };
 
             trigger.Setters.Add(new Setter(FontStyleProperty, FontStyles.Italic));

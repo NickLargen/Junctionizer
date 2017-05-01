@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -348,18 +346,10 @@ namespace Junctionizer.Model
 
                     var createdFolder = await Folders.GetValueAsync(targetDirectoryInfo.Name).ConfigureAwait(false);
 
-                    // Send a final recalculation request in case the user had previously paused the operation, or if there was a pause while answering the prompt for replacing vs skipping duplicate files.
-                    createdFolder.RecalculateSizeAsync().Forget();
                     return createdFolder;
                 }
                 catch (OperationCanceledException e)
                 {
-                    Debug.WriteLine(e);
-                    // If the user cancels the folder will still be partially copied
-                    if (Folders.TryGetValue(targetDirectoryInfo.Name, out var createdFolder))
-                    {
-                        createdFolder.RecalculateSizeAsync().Forget();
-                    }
                     return null;
                 }
                 catch (IOException e)

@@ -54,10 +54,8 @@ namespace Junctionizer.Model
 
         public bool IsBeingAccessed { get; set; }
         public bool IsBeingDeleted { get; set; }
-        public bool HasFinalSize => !IsSizeOutdated && !IsContinuoslyRecalculating;
 
-        private bool IsContinuoslyRecalculating { get; set; }
-        private bool IsSizeOutdated { get; set; }
+        public bool IsSizeOutdated { [UsedImplicitly] get; private set; }
 
         private PauseToken PauseToken { get; }
         [CanBeNull] private CancellationTokenSource _propertyUpdateTokenSource;
@@ -129,24 +127,6 @@ namespace Junctionizer.Model
         }
 
         public Task RecalculateSizeAsync() => UpdatePropertiesFromSubdirectoriesAsync();
-
-        /// <summary>Periodically calls <see cref="RecalculateSizeAsync"/> until it is determined that the size is not longer changing.</summary>
-        /// <returns></returns>
-        public async Task ContinuoslyRecalculateSizeAsync()
-        {
-            IsContinuoslyRecalculating = true;
-            long? oldSize;
-            do
-            {
-                oldSize = Size;
-                Debug.WriteLine($"{DirectoryInfo.FullName} oldSize {oldSize}  Size {Size}");
-                await Task.Delay(1500).ConfigureAwait(false);
-
-                await UpdatePropertiesFromSubdirectoriesAsync().ConfigureAwait(false);
-            } while (Size != oldSize);
-
-            IsContinuoslyRecalculating = false;
-        }
 
         /// <inheritdoc/>
         int IComparable.CompareTo(object obj) => CompareTo((GameFolder) obj);
