@@ -15,7 +15,7 @@ namespace Junctionizer.CustomWpfComponents
         internal static MultiValueDictionary<PauseTokenSource, Task> RunningTasks { get; } = new MultiValueDictionary<PauseTokenSource, Task>();
     }
 
-    public class PausingDelegateListCommand<T> : DelegateListCommandBase<T>
+    public class PausingListCommand<T> : ListCommandBase<T>
     {
         [NotNull]
         private PauseTokenSource TokenSource { get; }
@@ -24,7 +24,7 @@ namespace Junctionizer.CustomWpfComponents
         private Func<T, Task> IndividualExecuteMethod { get; }
 
         /// <inheritdoc/>
-        public PausingDelegateListCommand(Func<IEnumerable<T>> applicableItemsFunc, [NotNull] Func<T, Task> individualExecuteMethod, [CanBeNull] PauseTokenSource tokenSource)
+        public PausingListCommand(Func<IEnumerable<T>> applicableItemsFunc, [NotNull] Func<T, Task> individualExecuteMethod, [CanBeNull] PauseTokenSource tokenSource)
             : base(applicableItemsFunc)
         {
             IndividualExecuteMethod = individualExecuteMethod;
@@ -32,7 +32,7 @@ namespace Junctionizer.CustomWpfComponents
         }
 
         /// <inheritdoc/>
-        protected override void Execute(object parameter)
+        public override void Execute(object parameter)
         {
             Task.Run(ExecuteAsync);
         }

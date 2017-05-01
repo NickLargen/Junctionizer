@@ -91,29 +91,12 @@ namespace Junctionizer.Model
         public AsyncObservableKeyedSet<string, GameFolder> Folders { get; }
         
         // The initial value is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
-        private ObservableCollection<object> _selectedItems = new ObservableCollection<object>();
         [NotNull]
-        public ObservableCollection<object> SelectedItems
-        {
-            get => _selectedItems;
-            set {
-                _selectedItems = value;
+        public ObservableCollection<object> SelectedItems { get; set; } = new ObservableCollection<object>();
 
-                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
-                          .Throttle(TimeSpan.FromMilliseconds(1))
-                          .Subscribe(pattern => {
-                              ArchiveSelectedCommand.RaiseCanExecuteChanged();
-                              CopySelectedCommand.RaiseCanExecuteChanged();
-                              CreateSelectedJunctionCommand.RaiseCanExecuteChanged();
-                              DeleteSelectedFoldersCommand.RaiseCanExecuteChanged();
-                              DeleteSelectedJunctionsCommand.RaiseCanExecuteChanged();
-                          });
-            }
-        }
-        
         [NotNull]
         public IEnumerable<GameFolder> AllSelectedGameFolders =>
-            SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingDeleted);
+            SelectedItems.Reverse().Cast<GameFolder>().Where(folder => !folder.IsBeingAccessed);
         [NotNull]
         public IEnumerable<GameFolder> SelectedFolders => AllSelectedGameFolders.Where(folder => !folder.IsJunction);
         [NotNull]
@@ -196,17 +179,17 @@ namespace Junctionizer.Model
         #region Commands
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand ArchiveSelectedCommand => new PausingDelegateListCommand<GameFolder>(
+        public IListCommand ArchiveSelectedCommand => new PausingListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             ArchiveAsync, PauseTokenSource);
         
         [AutoLazy.Lazy]
-        public IDelegateListCommand CopySelectedCommand => new PausingDelegateListCommand<GameFolder>(
+        public IListCommand CopySelectedCommand => new PausingListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             folder => CorrespondingCollection.CopyFolderAsync(folder), PauseTokenSource);
         
         [AutoLazy.Lazy]
-        public IDelegateListCommand CreateSelectedJunctionCommand => new PausingDelegateListCommand<GameFolder>(
+        public IListCommand CreateSelectedJunctionCommand => new PausingListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             folder => {
                 CorrespondingCollection.CreateJunctionTo(folder);
@@ -214,12 +197,12 @@ namespace Junctionizer.Model
             }, PauseTokenSource);
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteSelectedFoldersCommand => new PausingDelegateListCommand<GameFolder>(
+        public IListCommand DeleteSelectedFoldersCommand => new PausingListCommand<GameFolder>(
             () => SelectedFolders, 
             DeleteFolderOrJunctionAsync, PauseTokenSource);
 
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteSelectedJunctionsCommand => new PausingDelegateListCommand<GameFolder>(
+        public IListCommand DeleteSelectedJunctionsCommand => new PausingListCommand<GameFolder>(
             () => SelectedJunctions,
             folder => {
                 DeleteJunction(folder);

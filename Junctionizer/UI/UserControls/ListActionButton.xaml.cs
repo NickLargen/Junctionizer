@@ -24,14 +24,14 @@ namespace Junctionizer.UI.UserControls
             DependencyProperty.Register(nameof(ButtonContent), typeof(object), typeof(ListActionButton));
 
 
-        public IDelegateListCommand Command
+        public IListCommand Command
         {
-            get => (IDelegateListCommand) GetValue(CommandProperty);
+            get => (IListCommand) GetValue(CommandProperty);
             set => SetValue(CommandProperty, value);
         }
 
         public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register(nameof(Command), typeof(IDelegateListCommand), typeof(ListActionButton));
+            DependencyProperty.Register(nameof(Command), typeof(IListCommand), typeof(ListActionButton));
 
 
         public Style ButtonStyle

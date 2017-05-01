@@ -37,20 +37,8 @@ namespace Junctionizer.Model
 
                 SelectedFolderPairs = SelectedItems.Reverse()
                                                    .Cast<GameFolderPair>()
-                                                   .Where(pair => pair.SourceEntry?.IsBeingDeleted != true && pair.DestinationEntry?.IsBeingDeleted != true);
-
-                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
-                          .Throttle(TimeSpan.FromMilliseconds(1))
-                          .Subscribe(pattern => CheckCanExecute());
+                                                   .Where(pair => pair.IsBeingAccessed == false);
             }
-        }
-
-        private void CheckCanExecute()
-        {
-            DeleteCommand.RaiseCanExecuteChanged();
-            ArchiveCommand.RaiseCanExecuteChanged();
-            RestoreCommand.RaiseCanExecuteChanged();
-            MirrorCommand.RaiseCanExecuteChanged();
         }
 
         [CanBeNull]
@@ -103,8 +91,6 @@ namespace Junctionizer.Model
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
-                CheckCanExecute();
             };
         }
 
@@ -173,7 +159,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in neither location.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand DeleteCommand => new PausingDelegateListCommand<GameFolderPair>(
+        public IListCommand DeleteCommand => new PausingListCommand<GameFolderPair>(
             () => SelectedFolderPairs,
             DeleteAsync, PauseTokenSource);
 
@@ -191,7 +177,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand ArchiveCommand => new PausingDelegateListCommand<GameFolderPair>(
+        public IListCommand ArchiveCommand => new PausingListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.SourceEntry?.IsJunction == false ||
                                                                  pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false),
             ArchiveAsync, PauseTokenSource);
@@ -205,7 +191,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in folder in source location, not in destination.</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand RestoreCommand => new PausingDelegateListCommand<GameFolderPair>(
+        public IListCommand RestoreCommand => new PausingListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.DestinationEntry?.IsJunction == false),
             RestoreAsync, PauseTokenSource);
 
@@ -220,7 +206,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder existing in both locations</summary>
         [AutoLazy.Lazy]
-        public IDelegateListCommand MirrorCommand => new PausingDelegateListCommand<GameFolderPair>(
+        public IListCommand MirrorCommand => new PausingListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => !(pair.SourceEntry?.IsJunction == false &&
                                                                    pair.DestinationEntry?.IsJunction == false)),
             MirrorAsync, PauseTokenSource);
