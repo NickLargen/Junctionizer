@@ -103,6 +103,8 @@ namespace Junctionizer.Model
         public bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
 
         [NotNull] private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
+        
+        public event Action JunctionCreated;
 
         [CanBeNull] private PauseTokenSource PauseTokenSource { get; }
         private PauseToken PauseToken { get; }
@@ -313,6 +315,7 @@ namespace Junctionizer.Model
                 if (junctionDirectory.Exists == false)
                 {
                     JunctionPoint.Create(junctionDirectory, junctionTarget.DirectoryInfo, false);
+                    JunctionCreated?.Invoke();
                 }
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)

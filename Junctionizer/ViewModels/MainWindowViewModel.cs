@@ -37,6 +37,8 @@ namespace Junctionizer.ViewModels
         {
             (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair(() => SynchronizationContext.Current is DispatcherSynchronizationContext, UISettings.PauseTokenSource);
 
+            SourceCollection.JunctionCreated += () => SelectedMapping.IsSavedMapping = true;
+
             FolderPairCollection = new GameFolderPairEnumerable(SourceCollection, DestinationCollection, UISettings.PauseTokenSource);
 
             BindingOperations.EnableCollectionSynchronization(DisplayedMappings, new object());
