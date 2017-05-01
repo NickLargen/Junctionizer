@@ -269,6 +269,7 @@ namespace Junctionizer.Model
             _directoryWatcher.InternalBufferSize = 40960;
             _directoryWatcher.Created += (sender, args) => {
                 var newFolder = new GameFolder(args.FullPath, PauseToken);
+                if (!newFolder.IsJunction) newFolder.IsBeingAccessed = true;
                 Folders.AddAsync(newFolder).Forget();
             };
             _directoryWatcher.Deleted += (sender, args) => {
@@ -348,6 +349,7 @@ namespace Junctionizer.Model
                         }
                         else
                         {
+                            overwrittenFolder.IsBeingAccessed = true;
                             // Since a new folder isn't being created the file system watcher will not trigger size recalculation, so we do it here
                             overwrittenFolder.RecalculateSizeAsync().Forget();
                         }

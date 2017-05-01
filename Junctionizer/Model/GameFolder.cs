@@ -119,6 +119,7 @@ namespace Junctionizer.Model
                 }
 
                 IsSizeOutdated = false;
+                IsBeingAccessed = false;
             }
             catch (IOException e)
             {

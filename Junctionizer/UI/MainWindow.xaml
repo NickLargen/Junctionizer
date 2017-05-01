@@ -94,6 +94,7 @@
                                     Margin="0 32 0 0"
                                     HorizontalAlignment="Center"
                                     Style="{StaticResource RaisedAccentButton}"
+                                    Click="CloseRightDrawer"
                                     Command="{Binding RefreshFolderSizesCommand}" />
                         </StackPanel>
                     </ScrollViewer>
