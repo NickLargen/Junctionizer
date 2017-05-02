@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -32,6 +33,30 @@ namespace Junctionizer.CustomWpfComponents
                     }
                 }
             };
+        }
+
+        public IReadOnlyList<int> DisplayIndices
+        {
+            get => (IReadOnlyList<int>) GetValue(DisplayIndicesProperty);
+            set => SetValue(DisplayIndicesProperty, value);
+        }
+
+        public static readonly DependencyProperty DisplayIndicesProperty =
+            DependencyProperty.Register(nameof(DisplayIndices), typeof(IReadOnlyList<int>), typeof(MultiSelectDataGrid), new FrameworkPropertyMetadata((source, e) => {
+                var dataGrid = (MultiSelectDataGrid) source;
+                if (dataGrid.Columns.Count == dataGrid.DisplayIndices.Count)
+                {
+                    for (var i = 0; i < dataGrid.DisplayIndices.Count; i++)
+                    {
+                        dataGrid.Columns[i].DisplayIndex = dataGrid.DisplayIndices[i];
+                    }
+                }
+            }));
+
+        protected override void OnColumnReordered(DataGridColumnEventArgs e)
+        {
+            base.OnColumnReordered(e);
+            DisplayIndices = Columns.Select(column => column.DisplayIndex).ToList();
         }
 
         public IList SelectedItemsList

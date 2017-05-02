@@ -11,7 +11,8 @@
       mc:Ignorable="d"
       d:DesignHeight="500" d:DesignWidth="800"
       Title="CompactContentPage"
-      d:DataContext="{d:DesignInstance d:Type=viewModels:MainWindowViewModel}">
+      d:DataContext="{d:DesignInstance d:Type=viewModels:MainWindowViewModel}"
+      x:Name="page">
 
 
     <DockPanel Margin="10 5 10 10" DataContext="{Binding FolderPairCollection}">
@@ -42,6 +43,7 @@
         <customWpfComponents:MultiSelectDataGrid x:Name="compactDataGrid"
                                                  SortOnFirstLoad="True"
                                                  SelectedItemsList="{Binding SelectedItems}"
+                                                 DisplayIndices="{Binding ElementName=page, Path=DataContext.UISettings.ColumnOrderingCompactGrid, Mode=TwoWay}"
                                                  CellStyle="{StaticResource CustomCellStyle}"
                                                  Style="{StaticResource GameFolderDataGridStyle}">
             <DataGrid.Columns>

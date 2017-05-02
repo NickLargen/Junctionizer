@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -89,6 +90,10 @@ namespace Junctionizer.ViewModels
                 ReplaceThemedColorsDictionary();
             }
         }
+        
+        public IReadOnlyList<int> ColumnOrderingSourceGrid { get; set; }
+        public IReadOnlyList<int> ColumnOrderingDestinationGrid { get; set; }
+        public IReadOnlyList<int> ColumnOrderingCompactGrid { get; set; }
 
         private PaletteHelper PaletteHelper { get; } = new PaletteHelper();
         
