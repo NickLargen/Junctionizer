@@ -361,7 +361,7 @@ namespace Junctionizer.Model
 
                     return createdFolder;
                 }
-                catch (OperationCanceledException e)
+                catch (OperationCanceledException)
                 {
                     return null;
                 }
