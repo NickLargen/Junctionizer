@@ -390,6 +390,6 @@
     <Message Text="File version is $(MyAssemblyFileVersion)" Importance="high" />
     <Exec Command="nuget pack Junctionizer.nuspec -Version $(MyAssemblyFileVersion) -Properties Configuration=Release -OutputDirectory $(OutDir) -BasePath $(OutDir)" />
     <Exec Command="squirrel --releasify $(OutDir)$(ProjectName).$(MyAssemblyFileVersion).nupkg --no-msi" />
-    <Exec Command="move /y Releases\Setup.exe Releases\JunctionizerSetup.exe" />
+    <Exec Command="move /y Releases\Setup.exe Releases\JunctionizerSetup-$(MyAssemblyFileVersion).exe" />
   </Target>
 </Project>
