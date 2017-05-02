@@ -84,9 +84,7 @@
                 </userControls:ListActionButton>
                 <userControls:ListActionButton
                     Command="{Binding CreateSelectedJunctionCommand}">
-                    <userControls:IconButton Text="Create Junction"
-                                             IconKind="ArrowLeftBold"
-                                             IconPosition="Left" />
+                    <Button>Create Junction</Button>
                 </userControls:ListActionButton>
                 <userControls:ListActionButton
                     Command="{Binding DeleteSelectedFoldersCommand}">
