@@ -31,10 +31,7 @@ namespace Junctionizer.ViewModels
                                                       .Where(pattern => pattern.EventArgs.PropertyName == nameof(PassesFilter))
                                                       .Sample(TimeSpan.FromMilliseconds(200))
                                                       .ObserveOn(SynchronizationContext.Current);
-        }
 
-        public void Initialize()
-        {
             (SourceCollection, DestinationCollection) = FolderCollection.Factory.CreatePair(() => SynchronizationContext.Current is DispatcherSynchronizationContext, UISettings.PauseTokenSource);
 
             SourceCollection.JunctionCreated += () => SelectedMapping.IsSavedMapping = true;
@@ -51,11 +48,9 @@ namespace Junctionizer.ViewModels
             var folderCollectionPersistedProperties = new[] {nameof(FolderCollection.FolderBrowserInitialLocation)};
             Settings.StateTracker.Configure(SourceCollection).IdentifyAs("Source").AddProperties(folderCollectionPersistedProperties).Apply();
             Settings.StateTracker.Configure(DestinationCollection).IdentifyAs("Destination").AddProperties(folderCollectionPersistedProperties).Apply();
-
-            if (!Directory.Exists(Settings.AppDataDirectoryPath)) NewUserSetup();
         }
 
-        private void NewUserSetup()
+        public void NewUserSetup()
         {
             Dialogs.DisplayMessageBox("To get started select a source directory (top left) that contains the directories you wish to move. Then select a destination directory on another drive that files can be copied into.");
 
@@ -110,10 +105,10 @@ namespace Junctionizer.ViewModels
         }
         #endregion
 
-        public FolderCollection SourceCollection { get; private set; }
-        public FolderCollection DestinationCollection { get; private set; }
+        public FolderCollection SourceCollection { get; }
+        public FolderCollection DestinationCollection { get; }
 
-        public GameFolderPairEnumerable FolderPairCollection { get; private set; }
+        public GameFolderPairEnumerable FolderPairCollection { get; }
 
         public ObservableCollection<DirectoryMapping> DisplayedMappings { get; [UsedImplicitly] private set; } = new ObservableCollection<DirectoryMapping>();
 

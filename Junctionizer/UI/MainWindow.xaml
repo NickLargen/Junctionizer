@@ -11,6 +11,7 @@
         xmlns:valueConverters="clr-namespace:Junctionizer.CustomWpfComponents.ValueConverters"
         xmlns:junctionizer="clr-namespace:Junctionizer"
         xmlns:userControls="clr-namespace:Junctionizer.UI.UserControls"
+        xmlns:ui="clr-namespace:Junctionizer.UI"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
@@ -79,8 +80,6 @@
                                       Margin="0 2 0 0"
                                       HorizontalAlignment="Center"
                                       IsChecked="{Binding UISettings.IsCompactInterface}"
-                                      Unchecked="SwitchInterfaces"
-                                      Checked="SwitchInterfaces"
                                       IsEnabled="{Binding UISettings.AutomaticallySwitchInterfaces, Converter={valueConverters:InverseBooleanConverter}}" />
                             <Button Content="Find Existing Junctions"
                                     Margin="0 5 0 0"
@@ -142,7 +141,6 @@
                         </StackPanel>
                     </DockPanel>
                     <Grid DockPanel.Dock="Top">
-
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="0.5*" />
                             <ColumnDefinition Width="0.5*" />
@@ -170,7 +168,8 @@
                                 UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={valueConverters:LogScaleConverter}}" />
                         </DockPanel>
                     </Grid>
-                    <Frame x:Name="frame" NavigationUIVisibility="Hidden" />
+                    <ui:CompactContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:ExtendedContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={valueConverters:InvertedBooleanToVisibilityConverter}}" />
                 </DockPanel>
             </materialDesign:DrawerHost>
         </DockPanel>

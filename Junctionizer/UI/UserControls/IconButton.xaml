@@ -11,10 +11,10 @@
         <materialDesign:PackIcon Kind="{Binding IconKind}"
                                  DockPanel.Dock="{Binding IconPosition}"
                                  VerticalAlignment="Center" />
-        <Label Content="{Binding Text}"
-               Padding="0"
-               Margin="2 0"
-               VerticalAlignment="Center"
-               Foreground="{Binding ElementName=iconButton, Path=Foreground}" />
+        <StackPanel DockPanel.Dock="{Binding IconPosition}"
+                    Width="3" />
+        <TextBlock Text="{Binding Text}"
+                   VerticalAlignment="Center"
+                   Foreground="{Binding ElementName=iconButton, Path=Foreground}" />
     </DockPanel>
 </Button>

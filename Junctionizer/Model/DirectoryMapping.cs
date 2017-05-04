@@ -2,6 +2,8 @@
 
 using JetBrains.Annotations;
 
+using Newtonsoft.Json;
+
 using Prism.Mvvm;
 
 namespace Junctionizer.Model
@@ -14,6 +16,7 @@ namespace Junctionizer.Model
             Source = source;
             Destination = destination;
             IsSavedMapping = isSavedMapping;
+            StringRepresentation = $"{Source} → {Destination}";
         }
 
         [CanBeNull]
@@ -22,10 +25,13 @@ namespace Junctionizer.Model
         [CanBeNull]
         public string Destination { get; }
 
+        [NotNull, JsonIgnore]
+        public string StringRepresentation { get; }
+
         public bool IsSavedMapping { get; set; }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{Source} → {Destination}";
+        public override string ToString() => StringRepresentation;
 
         /// <inheritdoc/>
         public bool Equals(DirectoryMapping other)
