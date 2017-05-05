@@ -25,6 +25,9 @@ namespace Junctionizer.CustomWpfComponents
             Sorting
         }
 
+        private static IList<LiveShapingCategory> LiveShapingCategories { get; }
+            = Enum.GetValues(typeof(LiveShapingCategory)).Cast<LiveShapingCategory>().ToList();
+
         private struct LiveShapingProperty
         {
             public LiveShapingCategory Category { get; }
@@ -54,7 +57,10 @@ namespace Junctionizer.CustomWpfComponents
 
             if (LiveShapingView.IsLiveSorting == false && LiveShapingView.IsLiveFiltering == false) throw new NotSupportedException($"Only use {nameof(LiveShapingSortedValueList<T>)} if you are actually live shaping.");
 
+            LiveShapingView.LiveSortingProperties.ForEach(propertyName => AddLiveShapingProperty(propertyName, LiveShapingCategory.Sorting));
             LiveShapingView.LiveSortingProperties.CollectionChanged += CreateCollectionChangedEventHandlerFor(LiveShapingCategory.Sorting);
+
+            LiveShapingView.LiveFilteringProperties.ForEach(propertyName => AddLiveShapingProperty(propertyName, LiveShapingCategory.Filtering));
             LiveShapingView.LiveFilteringProperties.CollectionChanged += CreateCollectionChangedEventHandlerFor(LiveShapingCategory.Filtering);
         }
 
@@ -114,9 +120,7 @@ namespace Junctionizer.CustomWpfComponents
 
         private static LiveShapingCategory GetCategoryOfDependencyProperty(DependencyProperty dp)
         {
-            return Enum.GetValues(typeof(LiveShapingCategory))
-                       .Cast<LiveShapingCategory>()
-                       .Single(category => dp.Name.StartsWith(category.ToString(), StringComparison.Ordinal));
+            return LiveShapingCategories.Single(category => dp.Name.StartsWith(category.ToString(), StringComparison.Ordinal));
         }
 
         [NotNull]
@@ -446,11 +450,30 @@ namespace Junctionizer.CustomWpfComponents
         }
 
         /// <inheritdoc/>
+        public override int Remove(T item, Action<int> actionBeforeRemove = null)
+        {
+            if (!PassesFilter(item))
+            {
+                var isRemoved = FilteredItems.Remove(item);
+                Debug.Assert(isRemoved);
+                RemoveLiveShapingItemFor(item);
+                return -1;
+            }
+
+            return base.Remove(item, actionBeforeRemove);
+        }
+
+        /// <inheritdoc/>
         public override void RemoveAt(int index)
         {
-            OnLiveShapingItemRemoved(LiveShapingItems[BackingList[index]]);
-            LiveShapingItems.Remove(BackingList[index]);
+            RemoveLiveShapingItemFor(BackingList[index]);
             base.RemoveAt(index);
+        }
+
+        private void RemoveLiveShapingItemFor(T item)
+        {
+            OnLiveShapingItemRemoved(LiveShapingItems[item]);
+            LiveShapingItems.Remove(item);
         }
 
 #if !DisableRemoveAll

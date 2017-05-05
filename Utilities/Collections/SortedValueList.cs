@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using JetBrains.Annotations;
@@ -22,7 +23,7 @@ namespace Utilities.Collections
 
         [CanBeNull] private IComparer<T> _orderingComparer;
         /// <summary>Maintains the sorted collection first by the provided comparer, then by the default ordering of <typeparamref name="T"/>.</summary>
-        public IComparer<T> OrderingComparer
+        [NotNull] public IComparer<T> OrderingComparer
         {
             get { return _orderingComparer ?? Comparer<T>.Default; }
             set {
@@ -183,24 +184,18 @@ namespace Utilities.Collections
         /// <summary>Returns the zero based index of the element if it exists, otherwise the bit complement of where it would exist. Assumes that the collection's items are unique with respect to the actual comparer.</summary>
         public virtual int IndexOf(T item) => BackingList.BinarySearch(item, CompositeComparer);
 
-        /// <summary>If the item is found in this collection then it is removed. Returns the <see cref="IndexOf"/> the item before it was removed (a negative number for elements not present in the collection).</summary>
-        public int Remove(T item)
-        {
-            int index = IndexOf(item);
-            if (index >= 0) RemoveAt(index);
-            return index;
-        }
-
         /// <summary>If the item is found in this collection the action is executed with its index as the argument and then it is removed. Returns the <see cref="IndexOf"/> the item before it was removed (a negative number for elements not present in the collection).</summary>
-        public int Remove(T item, Action<int> actionBeforeRemove)
+        [SuppressMessage("ReSharper", "MethodOverloadWithOptionalParameter")]
+        public virtual int Remove(T item, Action<int> actionBeforeRemove = null)
         {
             int index = IndexOf(item);
             if (index >= 0)
             {
-                actionBeforeRemove.Invoke(index);
+                actionBeforeRemove?.Invoke(index);
                 RemoveAt(index);
             }
 
+            Debug.Assert(index >= 0);
             return index;
         }
 
