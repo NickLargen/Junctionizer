@@ -30,6 +30,8 @@
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
     <Window.InputBindings>
+        <KeyBinding Gesture="F5"
+                    Command="{Binding RefreshFolderSizesCommand}" />
         <KeyBinding Gesture="F9"
                     Command="{Binding ToggleRightDrawerCommand}" />
         <KeyBinding Gesture="F10"
