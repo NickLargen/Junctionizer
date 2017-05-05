@@ -1,25 +1,12 @@
-﻿using System;
-using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Markup;
+﻿using System.Globalization;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    public class InverseBooleanConverter : MarkupExtension, IValueConverter
+    public class InverseBooleanConverter : SimpleConverter<bool, bool>
     {
-        public static InverseBooleanConverter Instance { get; } = new InverseBooleanConverter();
-        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override bool Convert(bool value, CultureInfo culture)
         {
-            if (!(value is bool boolean)) throw new NotSupportedException();
-
-            return !boolean;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
+            return !value;
         }
     }
 }

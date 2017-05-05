@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Markup;
 
 using Junctionizer.Model;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    internal class SizeToStringConverter : MarkupExtension, IValueConverter
+    internal class SizeToStringConverter : SimpleConverter<long, string>
     {
-        public static SizeToStringConverter Instance { get; } = new SizeToStringConverter();
-        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
-
-        public object Convert(object value, Type targetType = null, object parameter = null, CultureInfo culture = null)
+        public override string Convert(long longValue, CultureInfo culture)
         {
-            if (!(value is long longValue)) throw new NotSupportedException();
+            return Convert(longValue);
+        }
 
+        public static string Convert(long longValue)
+        {
             if (longValue == GameFolder.JUNCTION_POINT_SIZE) return "∅";
             if (longValue == GameFolder.UNKNOWN_SIZE) return "?";
 
@@ -38,11 +36,6 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
             }
 
             return longValue + " B";
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
         }
     }
 }

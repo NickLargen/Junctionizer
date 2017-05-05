@@ -1,6 +1,4 @@
-﻿using Junctionizer.UI;
-
-using Prism.Mvvm;
+﻿using Prism.Mvvm;
 
 namespace Junctionizer.ViewModels
 {

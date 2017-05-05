@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:valueConverters="clr-namespace:Junctionizer.CustomWpfComponents.ValueConverters">
 
-    <SolidColorBrush x:Key="DataGridSelection" Color="{Binding Source={StaticResource PrimaryHueDarkBrush}, Path=Color, Converter={valueConverters:DarkenColorConverter}, ConverterParameter=.35}" />
-    <SolidColorBrush x:Key="DataGridRowUnselectable" Color="#89FFFFFF"/>
-    <SolidColorBrush x:Key="MaterialDesignBody" Color="#eeFFFFFF"/>
+    <SolidColorBrush x:Key="DataGridSelection" Color="{Binding Source={StaticResource PrimaryHueDarkBrush}, Path=Color, Converter={valueConverters:DarkenColorConverter Multiplier=0.35}}" />
+    <SolidColorBrush x:Key="DataGridRowUnselectable" Color="#89FFFFFF" />
+    <SolidColorBrush x:Key="MaterialDesignBody" Color="#eeFFFFFF" />
 
 </ResourceDictionary>

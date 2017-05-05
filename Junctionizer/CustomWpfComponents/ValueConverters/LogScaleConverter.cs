@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Markup;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
     /// <summary>Converts a double to its logarithm to facilitate a non-linear slider.</summary>
-    public class LogScaleConverter : MarkupExtension, IValueConverter
+    public class LogScaleConverter : SimpleConverter<double, double>
     {
-        public static LogScaleConverter Instance { get; } = new LogScaleConverter();
-        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
-
         public const int LOGARITHM_BASE = 2;
 
         public const double MINIMUM_EXPONENT = 10;
@@ -18,20 +13,16 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
 
         public const double EPSILON = 1E-5;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override double Convert(double value, CultureInfo culture)
         {
-            if (!(value is double doubleValue)) throw new NotSupportedException();
+            if (double.IsPositiveInfinity(value)) return MAXIMUM_EXPONENT;
+            if (double.IsNegativeInfinity(value)) return MINIMUM_EXPONENT;
 
-            if (double.IsPositiveInfinity(doubleValue)) return MAXIMUM_EXPONENT;
-            if (double.IsNegativeInfinity(doubleValue)) return MINIMUM_EXPONENT;
-
-            return Math.Log(doubleValue, LOGARITHM_BASE);
+            return Math.Log(value, LOGARITHM_BASE);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public override double ConvertBack(double doubleValue, CultureInfo culture)
         {
-            if (!(value is double doubleValue)) throw new NotSupportedException();
-
             if (Math.Abs(doubleValue - MAXIMUM_EXPONENT) < EPSILON) return double.PositiveInfinity;
             if (Math.Abs(doubleValue - MINIMUM_EXPONENT) < EPSILON) return double.NegativeInfinity;
 

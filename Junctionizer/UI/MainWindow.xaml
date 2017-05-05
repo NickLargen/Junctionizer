@@ -25,7 +25,7 @@
         mc:Ignorable="d"
         SizeChanged="MainWindow_OnSizeChanged"
         Closing="MainWindow_OnClosing"
-        Cursor="{Binding UISettings.IsModifyingFileSystem, Converter={valueConverters:TrueToParameterConverter}, ConverterParameter='AppStarting'}">
+        Cursor="{Binding UISettings.IsModifyingFileSystem, Converter={valueConverters:BooleanToObjectConverter TrueValue={x:Static Cursors.AppStarting}}}">
     <Window.DataContext>
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
@@ -178,8 +178,8 @@
                                 UpperValue="{Binding FilterUpperSizeLimit, Mode=TwoWay, Converter={valueConverters:LogScaleConverter}}" />
                         </DockPanel>
                     </Grid>
-                    <ui:CompactContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ui:ExtendedContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={valueConverters:InvertedBooleanToVisibilityConverter}}" />
+                    <ui:CompactContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={valueConverters:BooleanToVisibilityConverter}}" />
+                    <ui:ExtendedContentPage Visibility="{Binding UISettings.IsCompactInterface, Converter={valueConverters:BooleanToVisibilityConverter Invert=True}}" />
                 </DockPanel>
             </materialDesign:DrawerHost>
         </DockPanel>

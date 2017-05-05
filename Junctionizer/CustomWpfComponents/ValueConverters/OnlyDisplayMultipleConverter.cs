@@ -1,25 +1,12 @@
-﻿using System;
-using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Markup;
+﻿using System.Globalization;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    public class OnlyDisplayMultipleConverter : MarkupExtension, IValueConverter
+    public class OnlyDisplayMultipleConverter : SimpleConverter<int, string>
     {
-        public static OnlyDisplayMultipleConverter Instance { get; } = new OnlyDisplayMultipleConverter();
-        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public override string Convert(int value, CultureInfo culture)
         {
-            if (!(value is int intValue)) throw new NotSupportedException();
-
-            return intValue > 1 ? value : string.Empty;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
+            return value > 1 ? value.ToString() : string.Empty;
         }
     }
 }

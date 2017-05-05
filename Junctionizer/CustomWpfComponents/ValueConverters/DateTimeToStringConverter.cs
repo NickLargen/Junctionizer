@@ -1,27 +1,14 @@
 using System;
 using System.Globalization;
-using System.Windows.Data;
-using System.Windows.Markup;
 
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
-    public class DateTimeToStringConverter : MarkupExtension, IValueConverter
+    public class DateTimeToStringConverter : SimpleConverter<DateTime, string>
     {
-        public static DateTimeToStringConverter Instance { get; } = new DateTimeToStringConverter();
-        public override object ProvideValue(IServiceProvider serviceProvider) => Instance;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        /// <inheritdoc/>
+        public override string Convert(DateTime dateTime, CultureInfo culture)
         {
-            if (value == null) return string.Empty;
-
-            if (!(value is DateTime dateTime)) throw new NotSupportedException();
-
             return dateTime == DateTime.MinValue ? "?" : dateTime.ToString(culture);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
         }
     }
 }
