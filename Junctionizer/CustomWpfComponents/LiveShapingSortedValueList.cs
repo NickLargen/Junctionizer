@@ -227,6 +227,7 @@ namespace Junctionizer.CustomWpfComponents
         {
             LiveShapingItems.Values.ForEach(OnLiveShapingItemRemoved);
             LiveShapingItems.Clear();
+            FilteredItems.Clear();
             base.Clear();
         }
 
@@ -244,7 +245,7 @@ namespace Junctionizer.CustomWpfComponents
         private void RegisterBinding(LiveShapingItem<T> liveShapingItem, LiveShapingProperty lsp, DependencyProperty dp)
         {
             liveShapingItem.AddBinding(lsp.PropertyName, dp);
-            if ( lsp.Category == LiveShapingCategory.Sorting)
+            if (lsp.Category == LiveShapingCategory.Sorting)
             {
                 PropertyChangedEventManager.AddHandler(liveShapingItem.Item, OnItemSortPropertyChanged, lsp.PropertyName);
             }
