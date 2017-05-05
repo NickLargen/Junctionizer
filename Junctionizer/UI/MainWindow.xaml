@@ -29,7 +29,16 @@
     <Window.DataContext>
         <viewModels:MainWindowViewModel />
     </Window.DataContext>
-
+    <Window.InputBindings>
+        <KeyBinding Gesture="F9"
+                    Command="{Binding ToggleRightDrawerCommand}" />
+        <KeyBinding Gesture="F10"
+                    Command="{Binding ToggleRightDrawerCommand}" />
+        <KeyBinding Gesture="F11"
+                    Command="{Binding ToggleRightDrawerCommand}" />
+        <KeyBinding Gesture="F12"
+                    Command="{Binding ToggleRightDrawerCommand}" />
+    </Window.InputBindings>
     <materialDesign:DialogHost CloseOnClickAway="False" OpenDialogCommandDataContextSource="DialogHostInstance" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <i:Interaction.Triggers>
             <prism:InteractionRequestTrigger SourceObject="{x:Static junctionizer:Dialogs.CloseDialogRequest}">
@@ -63,6 +72,7 @@
                             <materialDesign:PackIcon Kind="DotsVertical" />
                         </ToggleButton.Content>
                     </ToggleButton>
+                    <!-- Transparent rectangle fills remaining space -->
                     <Rectangle />
                 </DockPanel>
             </materialDesign:ColorZone>
@@ -81,14 +91,14 @@
                                       HorizontalAlignment="Center"
                                       IsChecked="{Binding UISettings.IsCompactInterface}"
                                       IsEnabled="{Binding UISettings.AutomaticallySwitchInterfaces, Converter={valueConverters:InverseBooleanConverter}}" />
-                            <Button Content="Find Existing Junctions"
+                            <Button Content="_Find Existing Junctions"
                                     Margin="0 5 0 0"
                                     HorizontalAlignment="Center"
                                     Style="{StaticResource RaisedAccentButton}"
                                     Click="CloseRightDrawer"
                                     Command="{Binding FindExistingJunctionsCommand}" />
                             <userControls:PaletteSelector />
-                            <Button Content="Refresh Sizes"
+                            <Button Content="_Refresh Sizes"
                                     ToolTip="May be necessary to reflect changes made outside of this application."
                                     Margin="0 32 0 0"
                                     HorizontalAlignment="Center"

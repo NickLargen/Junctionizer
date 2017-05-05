@@ -13,8 +13,7 @@
                                  VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="{Binding IconPosition}"
                     Width="3" />
-        <TextBlock Text="{Binding Text}"
-                   VerticalAlignment="Center"
-                   Foreground="{Binding ElementName=iconButton, Path=Foreground}" />
+        <Label Content="{Binding Text}"
+               Style="{DynamicResource ButtonLabel}"/>
     </DockPanel>
 </Button>

@@ -205,5 +205,10 @@ namespace Junctionizer.ViewModels
             SourceCollection.RefreshSizes();
             DestinationCollection.RefreshSizes();
         });
+
+        [AutoLazy.Lazy]
+        public DelegateCommand ToggleRightDrawerCommand => new DelegateCommand(() => {
+            UISettings.IsRightDrawerOpen = !UISettings.IsRightDrawerOpen;
+        });
     }
 }
