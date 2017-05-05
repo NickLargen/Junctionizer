@@ -77,32 +77,11 @@ namespace Junctionizer.ViewModels
 
         public IObservable<EventPattern<PropertyChangedEventArgs>> PassesFilterChangedObservable { get; }
 
-        public ObservableCollection<string> LiveFilteringProperties { get; } = new ObservableCollection<string>();
-
         public string FilterNameText { get; set; } = string.Empty;
-        [UsedImplicitly]
-        private void OnFilterNameTextChanged()
-        {
-            const string propertyName = nameof(GameFolder.Name);
-            if (string.IsNullOrEmpty(FilterNameText)) LiveFilteringProperties.Remove(propertyName);
-            else if (!LiveFilteringProperties.Contains(propertyName)) LiveFilteringProperties.Add(propertyName);
-        }
 
         public double FilterLowerSizeLimit { get; set; } = double.NegativeInfinity;
-        [UsedImplicitly]
-        private void OnFilterLowerSizeLimitChanged() => OnSizeFilterChanged();
 
         public double FilterUpperSizeLimit { get; set; } = double.PositiveInfinity;
-        [UsedImplicitly]
-        private void OnFilterUpperSizeLimitChanged() => OnSizeFilterChanged();
-
-        private void OnSizeFilterChanged()
-        {
-            const string propertyName = nameof(GameFolder.Size);
-            var isNotFilteringBySize = double.IsNegativeInfinity(FilterLowerSizeLimit) && double.IsPositiveInfinity(FilterUpperSizeLimit);
-            if (isNotFilteringBySize) LiveFilteringProperties.Remove(propertyName);
-            else if (!LiveFilteringProperties.Contains(propertyName)) LiveFilteringProperties.Add(propertyName);
-        }
         #endregion
 
         public FolderCollection SourceCollection { get; }

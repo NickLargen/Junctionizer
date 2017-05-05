@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 
 using Junctionizer.CustomWpfComponents;
 using Junctionizer.Model;
@@ -24,7 +25,8 @@ namespace Junctionizer.UI
 
         private void SetItemsSource(MultiSelectDataGrid dataGrid, FolderCollection folderCollection, MainWindowViewModel mainWindowViewModel)
         {
-            var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>(folderCollection.Folders, mainWindowViewModel.LiveFilteringProperties);
+            var liveFilteringProperties = new ObservableCollection<string> {nameof(GameFolder.Size)};
+            var setCollectionView = new SetCollectionView<GameFolder, AsyncObservableKeyedSet<string, GameFolder>>(folderCollection.Folders, liveFilteringProperties);
 
             setCollectionView.Filter = obj => mainWindowViewModel.PassesFilter((GameFolder) obj);
 

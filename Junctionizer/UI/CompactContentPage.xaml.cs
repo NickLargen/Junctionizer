@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 using Junctionizer.CustomWpfComponents;
 using Junctionizer.Model;
@@ -16,29 +16,11 @@ namespace Junctionizer.UI
             DataContextChanged += (source, e) => {
                 var mainWindowViewModel = (MainWindowViewModel) DataContext;
 
-                var setCollectionView = new SetCollectionView<GameFolderPair, GameFolderPairEnumerable>(mainWindowViewModel.FolderPairCollection);
-
-                mainWindowViewModel.LiveFilteringProperties.CollectionChanged += (sender, args) => {
-                    switch (args.Action)
-                    {
-                        case NotifyCollectionChangedAction.Add:
-                            setCollectionView.LiveFilteringProperties.Add(nameof(GameFolderPair.SourceEntry) + "." + args.NewItems[0]);
-                            setCollectionView.LiveFilteringProperties.Add(nameof(GameFolderPair.DestinationEntry) + "." + args.NewItems[0]);
-                            break;
-                        case NotifyCollectionChangedAction.Remove:
-                            setCollectionView.LiveFilteringProperties.Remove(nameof(GameFolderPair.SourceEntry) + "." + args.OldItems[0]);
-                            setCollectionView.LiveFilteringProperties.Remove(nameof(GameFolderPair.DestinationEntry) + "." + args.OldItems[0]);
-                            break;
-                        case NotifyCollectionChangedAction.Replace:
-                            throw new NotSupportedException();
-                        case NotifyCollectionChangedAction.Move:
-                            throw new NotSupportedException();
-                        case NotifyCollectionChangedAction.Reset:
-                            throw new NotSupportedException();
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                var liveFilteringProperties = new ObservableCollection<string>() {
+                    nameof(GameFolderPair.SourceEntry) + "." + nameof(GameFolder.Size),
+                    nameof(GameFolderPair.DestinationEntry) + "." + nameof(GameFolder.Size),
                 };
+                var setCollectionView = new SetCollectionView<GameFolderPair, GameFolderPairEnumerable>(mainWindowViewModel.FolderPairCollection, liveFilteringProperties);
 
                 setCollectionView.Filter = obj => {
                     var folderPair = (GameFolderPair) obj;
