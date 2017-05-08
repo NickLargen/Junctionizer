@@ -7,7 +7,7 @@ Junctionizer is designed for seamlessly moving directories off of your primary d
 - One click operation to archive a directory or restore it to its original location
 - View and sort by size to easily find what is using the most space
 - Select multiple items for easy batch operations
-- Uses the native Windows file copy dialog to provide time estiamtes and allow pausing and cancelling
+- Uses the native Windows file copy dialog to provide time estimates and allow pausing and cancelling
 - Filter by directory name or size
 - Store mappings between directories so that you can back up to different locations
 - Search your computer for any preexisting junction points

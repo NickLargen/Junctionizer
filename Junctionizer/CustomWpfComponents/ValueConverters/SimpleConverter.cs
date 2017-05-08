@@ -5,6 +5,8 @@ using System.Linq;
 using System.Windows.Data;
 using System.Windows.Markup;
 
+using JetBrains.Annotations;
+
 namespace Junctionizer.CustomWpfComponents.ValueConverters
 {
     public abstract class MarkupExtensionCache : MarkupExtension
@@ -19,11 +21,17 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
         }
     }
 
+    [PublicAPI]
     public abstract class SimpleConverter<T1, T2> : MarkupExtensionCache, IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is T1 typedValue)) throw new ArgumentException(nameof(value));
+            if (!(value is T1 typedValue))
+            {
+                if (ReferenceEquals(value, default(T1))) return Convert(default(T1), culture);
+
+                throw new ArgumentException($"{GetType()} can only convert objects of type {typeof(T1)}, but received type {value.GetType()} with value '{value}'.");
+            }
 
             return Convert(typedValue, culture);
         }
@@ -32,14 +40,17 @@ namespace Junctionizer.CustomWpfComponents.ValueConverters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (!(value is T2 typedValue)) throw new ArgumentException(nameof(value));
+            if (!(value is T2 typedValue))
+            {
+                if (ReferenceEquals(value, default(T2))) return ConvertBack(default(T2), culture);
+
+                throw new ArgumentException($"{GetType()} can only convert back objects of type {typeof(T2)}, but received type {value.GetType()} with value '{value}'.");
+            }
+
 
             return ConvertBack(typedValue, culture);
         }
 
-        public virtual T1 ConvertBack(T2 value, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
+        public virtual T1 ConvertBack(T2 value, CultureInfo culture) => throw new NotSupportedException();
     }
 }
