@@ -35,9 +35,13 @@
             <DataTemplate DataType="{x:Type viewModels:FindJunctionsViewModel}">
                 <ui:FindExistingJunctionsDialog />
             </DataTemplate>
-            
+
             <DataTemplate DataType="{x:Type junctionizer:Message}">
                 <userControls:SimpleMessageDialog />
+            </DataTemplate>
+            
+            <DataTemplate DataType="{x:Type junctionizer:BooleanPrompt}">
+                <userControls:BooleanPrompt />
             </DataTemplate>
         </ResourceDictionary>
 

@@ -216,7 +216,10 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public IListCommand DeleteSelectedFoldersCommand => new PausingListCommand<GameFolder>(
             () => SelectedFolders, 
-            DeleteFolderOrJunctionAsync, PauseTokenSource);
+            DeleteFolderOrJunctionAsync, PauseTokenSource, itemsToDelete => {
+                var count = itemsToDelete.Count;
+                return Dialogs.RequestBooleanPromptAsync($"Are you sure you want to move {count} {"item".Pluralize(count)} to the Recycle Bin?");
+            });
 
         [AutoLazy.Lazy]
         public IListCommand DeleteSelectedJunctionsCommand => new PausingListCommand<GameFolder>(
@@ -224,7 +227,10 @@ namespace Junctionizer.Model
             folder => {
                 DeleteJunction(folder);
                 return Task.CompletedTask;
-            }, PauseTokenSource);
+            }, PauseTokenSource, itemsToDelete => {
+                var count = itemsToDelete.Count;
+                return Dialogs.RequestBooleanPromptAsync($"Are you sure you want to delete {count} {"junction".Pluralize(count)}? This does not affect the junction target.");
+            });
 
         [AutoLazy.Lazy]
         public DelegateCommand SelectFoldersNotInOtherPaneCommand => new DelegateCommand(SelectUniqueFolders)

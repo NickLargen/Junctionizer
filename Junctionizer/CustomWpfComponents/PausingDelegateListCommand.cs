@@ -22,13 +22,15 @@ namespace Junctionizer.CustomWpfComponents
 
         [NotNull]
         private Func<T, Task> IndividualExecuteMethod { get; }
+        public Func<IList<T>, Task<bool>> ShouldExecuteFunc { get; }
 
         /// <inheritdoc/>
-        public PausingListCommand(Func<IEnumerable<T>> applicableItemsFunc, [NotNull] Func<T, Task> individualExecuteMethod, [CanBeNull] PauseTokenSource tokenSource)
+        public PausingListCommand(Func<IEnumerable<T>> applicableItemsFunc, [NotNull] Func<T, Task> individualExecuteMethod, [CanBeNull] PauseTokenSource tokenSource, Func<IList<T>, Task<bool>> shouldExecuteFunc = null)
             : base(applicableItemsFunc)
         {
             IndividualExecuteMethod = individualExecuteMethod;
             TokenSource = tokenSource ?? new PauseTokenSource();
+            ShouldExecuteFunc = shouldExecuteFunc;
         }
 
         /// <inheritdoc/>
@@ -39,11 +41,19 @@ namespace Junctionizer.CustomWpfComponents
 
         private async Task ExecuteAsync()
         {
+            IList<T> applicableItems = ApplicableItemsFunc().ToList();
+
+            if (ShouldExecuteFunc != null)
+            {
+                var shouldExecute = await ShouldExecuteFunc(applicableItems);
+                if (!shouldExecute) return;
+            }
+
             List<Task> newTasks;
             lock (TokenSource)
             {
                 TokenSource.IsPaused = true;
-                newTasks = ApplicableItemsFunc().Select(IndividualExecuteMethod).ToList();
+                newTasks = applicableItems.Select(IndividualExecuteMethod).ToList();
                 TaskPausingTracker.RunningTasks.AddRange(TokenSource, newTasks);
             }
 

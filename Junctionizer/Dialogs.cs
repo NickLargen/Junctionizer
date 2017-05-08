@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 
 using MaterialDesignThemes.Wpf;
 
@@ -10,6 +11,16 @@ using Prism.Interactivity.InteractionRequest;
 
 namespace Junctionizer
 {
+    public struct BooleanPrompt
+    {
+        public BooleanPrompt(string content)
+        {
+            Content = content;
+        }
+
+        public string Content { get; }
+    }
+
     public struct Message
     {
         public Message(string content)
@@ -31,12 +42,19 @@ namespace Junctionizer
 
         public static Task<object> Show(object content, DialogOpenedEventHandler openedEventHandler = null, DialogClosingEventHandler closingEventHandler = null)
         {
-            CloseDialog();
-            return DialogHost.Show(content, openedEventHandler, closingEventHandler);
+            return Application.Current.Dispatcher.Invoke(() => {
+                CloseDialog();
+                return DialogHost.Show(content, openedEventHandler, closingEventHandler);
+            });
         }
 
         /// <summary>Can only display one dialog at a time</summary>
         public static Func<string, Task<object>> DisplayMessageBox { get; set; } = message => Show(new Message(message));
+
+        public static async Task<bool> RequestBooleanPromptAsync(string message)
+        {
+            return (bool) await Show(new BooleanPrompt(message));
+        }
 
         /// <summary>Wrapper for standard default values for opening a folder picker.</summary>
         public static CommonOpenFileDialog NewFolderDialog(string title)

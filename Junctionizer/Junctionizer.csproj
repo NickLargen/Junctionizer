@@ -88,6 +88,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CustomWpfComponents\SystemTypeExtension.cs" />
     <Compile Include="CustomWpfComponents\ValueConverters\BooleanToVisibilityConverter.cs" />
     <Compile Include="CustomWpfComponents\DelegateListCommand.cs" />
     <Compile Include="CustomWpfComponents\PausingDelegateListCommand.cs" />
@@ -105,6 +106,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="UI\UserControls\BooleanPrompt.xaml.cs">
+      <DependentUpon>BooleanPrompt.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\UserControls\IconButton.xaml.cs">
       <DependentUpon>IconButton.xaml</DependentUpon>
     </Compile>
@@ -169,6 +173,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Styles\Buttons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\UserControls\BooleanPrompt.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

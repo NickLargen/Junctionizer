@@ -6,7 +6,6 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -161,7 +160,10 @@ namespace Junctionizer.Model
         [AutoLazy.Lazy]
         public IListCommand DeleteCommand => new PausingListCommand<GameFolderPair>(
             () => SelectedFolderPairs,
-            DeleteAsync, PauseTokenSource);
+            DeleteAsync, PauseTokenSource, itemsToDelete => {
+                var count = itemsToDelete.Count;
+                return Dialogs.RequestBooleanPromptAsync($"Are you sure you want to move {count} {"item".Pluralize(count)} to the Recycle Bin?");
+            });
 
         private Task DeleteAsync(GameFolderPair pair)
         {
