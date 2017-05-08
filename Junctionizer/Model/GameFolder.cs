@@ -40,7 +40,7 @@ namespace Junctionizer.Model
         }
 
         [NotNull]
-        private static ConcurrentDictionary<string, TaskQueue> TaskQueueDictionary { get; } = new ConcurrentDictionary<string, TaskQueue>();
+        private static ConcurrentDictionary<string, TaskStack> TaskStackDictionary { get; } = new ConcurrentDictionary<string, TaskStack>();
 
         [NotNull]
         public DirectoryInfo DirectoryInfo { get; set; }
@@ -72,17 +72,17 @@ namespace Junctionizer.Model
                 IsSizeOutdated = true;
 
                 var cancellationToken = tokenSource.Token;
-                await TaskQueueDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskQueue(2))
+                await TaskStackDictionary.GetOrAdd(DirectoryInfo.Root.Name, new TaskStack(2))
                                          .Enqueue(() => {
                                              // Handle cancellation without incurring exception overhead
                                              return cancellationToken.IsCancellationRequested
                                                         ? Task.CompletedTask
                                                         // ReSharper disable once MethodSupportsCancellation
                                                         : Task.Run(() => SearchSubdirectoriesAsync(cancellationToken));
-                                         }, cancellationToken)
+                                         })
                                          .ConfigureAwait(false);
 
-                // If there are no other updates on the task queue null out the token source since we no longer need it
+                // If there are no other updates scheduled for this folder on the task queue null out the token source since we no longer need it
                 Interlocked.CompareExchange(ref _propertyUpdateTokenSource, null, tokenSource);
             }
         }

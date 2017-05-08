@@ -127,55 +127,64 @@ namespace Junctionizer.Model
                     _location = Directory.Exists(value) ? value : null;
                 }
 
-                DisplayBusyDuring(() => {
-                    // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized
-                    CorrespondingCollection.RaisePropertyChanged(nameof(BothCollectionsInitialized));
-
-                    _directoryWatcher.EnableRaisingEvents = false;
-                    _directoryLockFileStream?.Dispose();
-
-                    foreach (var folder in Folders)
-                    {
-                        folder.CancelSubdirectorySearch();
-                    }
-
-                    Folders.ClearAsync().RunTaskSynchronously();
-
-                    // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
-                    if (Directory.Exists(Location)) SetNewLocationImpl(Location);
-                });
+                DisplayBusyDuring(() => InitializeLocationAsync(Location));
             }
         }
 
-        private void SetNewLocationImpl(string loc)
+        private async Task InitializeLocationAsync(string location)
         {
-            if (LockActiveDirectory)
+            // Fody PropertyChanged handles raising a change event for this collections BothCollectionsInitialized
+            CorrespondingCollection.RaisePropertyChanged(nameof(BothCollectionsInitialized));
+
+            _directoryWatcher.EnableRaisingEvents = false;
+            _directoryLockFileStream?.Dispose();
+
+            foreach (var folder in Folders)
             {
-                try
-                {
-                    // Attempt to create a hidden file that will prevent the user from renaming the directory currently being observed
-                    var directoryLockFilePath = Path.Combine(loc, $"{nameof(Junctionizer)}DirectoryLock.tmp");
-                    _directoryLockFileStream = new FileStream(directoryLockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None,
-                        4096, FileOptions.DeleteOnClose);
-                    File.SetAttributes(directoryLockFilePath, FileAttributes.Hidden);
-                }
-                catch (Exception)
-                {
-                    // This does not need to succeed for the application to function
-                }
+                folder.CancelSubdirectorySearch();
             }
 
-            _directoryWatcher.Path = Location;
-            _directoryWatcher.EnableRaisingEvents = true;
+            await Folders.ClearAsync();
 
+            // If the location doesn't exist (ie a saved location that has since been deleted) just ignore it
+            if (Directory.Exists(location))
+            {
+                if (LockActiveDirectory) LockDirectory(location);
+
+                _directoryWatcher.Path = Location;
+                _directoryWatcher.EnableRaisingEvents = true;
+
+                await AddCurrentFoldersAsync(location);
+            }
+        }
+        
+        private void LockDirectory(string location)
+        {
             try
             {
-                var newFolders = new DirectoryInfo(loc)
+                // Attempt to create a hidden file that will prevent the user from renaming the directory currently being observed
+                var directoryLockFilePath = Path.Combine(location, $"{nameof(Junctionizer)}DirectoryLock.tmp");
+                _directoryLockFileStream = new FileStream(directoryLockFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None,
+                    4096, FileOptions.DeleteOnClose);
+                File.SetAttributes(directoryLockFilePath, FileAttributes.Hidden);
+            }
+            catch (Exception)
+            {
+                // This does not need to succeed for the application to function
+            }
+        }
+
+        private async Task AddCurrentFoldersAsync(string location)
+        {
+            try
+            {
+                var newFolders = new DirectoryInfo(location)
                     .EnumerateDirectories()
                     .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0)
+                    .Reverse()
                     .Select(info => new GameFolder(info, PauseToken));
 
-                Folders.AddAllAsync(newFolders).RunTaskSynchronously();
+                await Folders.AddAllAsync(newFolders);
             }
             catch (IOException e)
             {

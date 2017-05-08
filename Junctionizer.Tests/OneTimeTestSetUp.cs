@@ -42,9 +42,9 @@ namespace Junctionizer.Tests
                 throw exception;
             };
 
-            StaticMethods.DisplayBusyDuring = action => {
+            StaticMethods.DisplayBusyDuring = async func => {
 //                var stopwatch = Stopwatch.StartNew();
-                action();
+                await func();
 //                Console.WriteLine($"Potentially long running action took {stopwatch.ElapsedMilliseconds}ms to complete.");
             };
         }

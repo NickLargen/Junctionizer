@@ -13,9 +13,9 @@ namespace Utilities
             _semaphore = new SemaphoreSlim(degreeParallelism);
         }
 
-        public async Task Enqueue(Func<Task> taskGenerator, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task Enqueue(Func<Task> taskGenerator)
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
                 await taskGenerator().ConfigureAwait(false);

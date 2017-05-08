@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 using Prism.Commands;
@@ -16,9 +17,9 @@ namespace Junctionizer
         /// <summary>Whether or not to prevent a directory that is being monitored from being renamed or deleted.</summary>
         public static bool LockActiveDirectory { get; set; } = true;
 
-        public static Action<Action> DisplayBusyDuring { get; set; } = action => {
+        public static Func<Func<Task>, Task> DisplayBusyDuring { get; set; } = async func => {
             Mouse.OverrideCursor = Cursors.Wait;
-            action();
+            await func();
             Mouse.OverrideCursor = null;
         };
 
