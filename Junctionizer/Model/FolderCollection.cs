@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -51,17 +53,18 @@ namespace Junctionizer.Model
             InitDirectoryWatcher();
 
             Folders.CollectionChanged += (sender, args) => {
-                switch (args.Action) {
+                switch (args.Action)
+                {
                     case NotifyCollectionChangedAction.Add:
                     case NotifyCollectionChangedAction.Remove:
                     case NotifyCollectionChangedAction.Replace:
-                        args.OldItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                            JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder);
-                        });
+                        args.OldItems?.OfType<GameFolder>()
+                            .Where(folder => folder.IsJunction)
+                            .ForEach(folder => JunctionTargetsDictionary.Remove(folder.JunctionTarget, folder));
 
-                        args.NewItems?.OfType<GameFolder>().Where(folder => folder.IsJunction).ForEach(folder => {
-                            JunctionTargetsDictionary.Add(folder.JunctionTarget, folder);
-                        });
+                        args.NewItems?.OfType<GameFolder>()
+                            .Where(folder => folder.IsJunction)
+                            .ForEach(folder => JunctionTargetsDictionary.Add(folder.JunctionTarget, folder));
                         break;
                     case NotifyCollectionChangedAction.Reset:
                         JunctionTargetsDictionary.Clear();
@@ -87,10 +90,30 @@ namespace Junctionizer.Model
 
         [NotNull]
         public AsyncObservableKeyedSet<string, GameFolder> Folders { get; }
-        
+
         // The initial value is used when running headlessly, WPF bindings should replace it with a SelectedItemsCollection
+        private ObservableCollection<object> _selectedItems = new ObservableCollection<object>();
         [NotNull]
-        public ObservableCollection<object> SelectedItems { get; set; } = new ObservableCollection<object>();
+        public ObservableCollection<object> SelectedItems
+        {
+            get => _selectedItems;
+            set {
+                _selectedItems = value;
+
+                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
+                          .Throttle(TimeSpan.FromMilliseconds(1))
+                          .Subscribe(pattern => CheckCanExecute());
+            }
+        }
+
+        private void CheckCanExecute()
+        {
+            ArchiveSelectedCommand.RaiseCanExecuteChanged();
+            CopySelectedCommand.RaiseCanExecuteChanged();
+            CreateSelectedJunctionCommand.RaiseCanExecuteChanged();
+            DeleteSelectedFoldersCommand.RaiseCanExecuteChanged();
+            DeleteSelectedJunctionsCommand.RaiseCanExecuteChanged();
+        }
 
         [NotNull]
         public IEnumerable<GameFolder> AllSelectedGameFolders =>
@@ -103,7 +126,7 @@ namespace Junctionizer.Model
         public bool BothCollectionsInitialized => Location != null && CorrespondingCollection.Location != null;
 
         [NotNull] private readonly FileSystemWatcher _directoryWatcher = new FileSystemWatcher();
-        
+
         public event Action JunctionCreated;
 
         [CanBeNull] private PauseTokenSource PauseTokenSource { get; }
@@ -157,7 +180,7 @@ namespace Junctionizer.Model
                 await AddCurrentFoldersAsync(location);
             }
         }
-        
+
         private void LockDirectory(string location)
         {
             try
@@ -182,7 +205,13 @@ namespace Junctionizer.Model
                     .EnumerateDirectories()
                     .Where(info => (info.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == 0)
                     .Reverse()
-                    .Select(info => new GameFolder(info, PauseToken));
+                    .Select(info => new GameFolder(info, PauseToken))
+                    .ToList();
+
+                foreach (var folder in newFolders)
+                {
+                    PropertyChangedEventManager.AddHandler(folder, (s, e) => CheckCanExecute(), nameof(folder.IsBeingAccessed));
+                }
 
                 await Folders.AddAllAsync(newFolders);
             }
@@ -196,17 +225,17 @@ namespace Junctionizer.Model
         #region Commands
 
         [AutoLazy.Lazy]
-        public IListCommand ArchiveSelectedCommand => new PausingListCommand<GameFolder>(
+        public IDelegateListCommand ArchiveSelectedCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             ArchiveAsync, PauseTokenSource);
-        
+
         [AutoLazy.Lazy]
-        public IListCommand CopySelectedCommand => new PausingListCommand<GameFolder>(
+        public IDelegateListCommand CopySelectedCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             folder => CorrespondingCollection.CopyFolderAsync(folder), PauseTokenSource);
-        
+
         [AutoLazy.Lazy]
-        public IListCommand CreateSelectedJunctionCommand => new PausingListCommand<GameFolder>(
+        public IDelegateListCommand CreateSelectedJunctionCommand => new PausingDelegateListCommand<GameFolder>(
             () => BothCollectionsInitialized ? SelectedFolders : Enumerable.Empty<GameFolder>(),
             folder => {
                 CorrespondingCollection.CreateJunctionTo(folder);
@@ -214,15 +243,15 @@ namespace Junctionizer.Model
             }, PauseTokenSource);
 
         [AutoLazy.Lazy]
-        public IListCommand DeleteSelectedFoldersCommand => new PausingListCommand<GameFolder>(
-            () => SelectedFolders, 
+        public IDelegateListCommand DeleteSelectedFoldersCommand => new PausingDelegateListCommand<GameFolder>(
+            () => SelectedFolders,
             DeleteFolderOrJunctionAsync, PauseTokenSource, itemsToDelete => {
                 var count = itemsToDelete.Count;
                 return Dialogs.RequestBooleanPromptAsync($"Are you sure you want to move {count} {"item".Pluralize(count)} to the Recycle Bin?");
             });
 
         [AutoLazy.Lazy]
-        public IListCommand DeleteSelectedJunctionsCommand => new PausingListCommand<GameFolder>(
+        public IDelegateListCommand DeleteSelectedJunctionsCommand => new PausingDelegateListCommand<GameFolder>(
             () => SelectedJunctions,
             folder => {
                 DeleteJunction(folder);
@@ -284,6 +313,7 @@ namespace Junctionizer.Model
             _directoryWatcher.InternalBufferSize = 40960;
             _directoryWatcher.Created += (sender, args) => {
                 var newFolder = new GameFolder(args.FullPath, PauseToken);
+                PropertyChangedEventManager.AddHandler(newFolder, (s, e) => CheckCanExecute(), nameof(newFolder.IsBeingAccessed));
                 if (!newFolder.IsJunction) newFolder.IsBeingAccessed = true;
                 Folders.AddAsync(newFolder).Forget();
             };
@@ -292,10 +322,11 @@ namespace Junctionizer.Model
             };
             _directoryWatcher.Renamed += (sender, args) => {
                 var folder = GetFolderByName(args.OldName);
-                Folders.RemoveKeyAsync(args.OldName).ContinueWith(task => {
-                    folder.Rename(args.Name);
-                    Folders.AddAsync(folder);
-                });
+                Folders.RemoveKeyAsync(args.OldName)
+                       .ContinueWith(task => {
+                           folder.Rename(args.Name);
+                           Folders.AddAsync(folder);
+                       });
             };
         }
 
@@ -371,9 +402,10 @@ namespace Junctionizer.Model
                     }
 
                     FileSystem.CopyDirectory(folderToCopy.DirectoryInfo.FullName, targetDirectory, UIOption.AllDialogs);
+                    folderToCopy.IsBeingAccessed = false;
 
                     var createdFolder = await Folders.GetValueAsync(targetDirectoryInfo.Name).ConfigureAwait(false);
-
+                    
                     return createdFolder;
                 }
                 catch (OperationCanceledException)

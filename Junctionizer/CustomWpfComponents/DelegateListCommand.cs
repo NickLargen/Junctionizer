@@ -7,23 +7,26 @@ using System.Windows.Input;
 
 using JetBrains.Annotations;
 
+using Prism.Commands;
+
 namespace Junctionizer.CustomWpfComponents
 {
-    /// <summary>Exists so that <see cref="ListCommandBase{T}"/> can be referenced without specifying a type.</summary>
-    public interface IListCommand : ICommand
+    /// <summary>Exists so that <see cref="DelegateListCommandBase{T}"/> can be referenced without specifying a type.</summary>
+    public interface IDelegateListCommand : ICommand
     {
         int Count { get; }
+        void RaiseCanExecuteChanged();
         bool CanExecute();
         void Execute();
     }
 
-    /// <summary>A command that executes an action on every item in a collection. Maintains a count of the number of items the action will be executed on and returns false for CanExecute if that count is 0. </summary>
+    /// <summary>A command that executes an action on every item in a collection. Maintains a count of the number of items the action will be executed on and returns false for CanExecute if that count is 0. RaiseCanExecuteChanged() must be called whenever it is possible that the number of items has changed.</summary>
     /// <typeparam name="T">The type of items in the list.</typeparam>
-    public abstract class ListCommandBase<T> : INotifyPropertyChanged, IListCommand
+    public abstract class DelegateListCommandBase<T> : DelegateCommandBase, INotifyPropertyChanged, IDelegateListCommand
     {
         protected Func<IEnumerable<T>> ApplicableItemsFunc { get; }
 
-        protected ListCommandBase(Func<IEnumerable<T>> applicableItemsFunc)
+        protected DelegateListCommandBase(Func<IEnumerable<T>> applicableItemsFunc)
         {
             ApplicableItemsFunc = applicableItemsFunc;
         }
@@ -41,19 +44,13 @@ namespace Junctionizer.CustomWpfComponents
             }
         }
 
-        public bool CanExecute(object parameter)
+        protected override void OnCanExecuteChanged()
         {
             Count = ApplicableItemsFunc().Count();
-            return Count > 0;
+            base.OnCanExecuteChanged();
         }
 
-        public abstract void Execute(object parameter);
-
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
+        protected override bool CanExecute(object parameter) => Count > 0;
 
         public bool CanExecute() => CanExecute(null);
         public void Execute() => Execute(null);

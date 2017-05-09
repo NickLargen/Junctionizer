@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
@@ -37,7 +39,19 @@ namespace Junctionizer.Model
                 SelectedFolderPairs = SelectedItems.Reverse()
                                                    .Cast<GameFolderPair>()
                                                    .Where(pair => pair.IsBeingAccessed == false);
+
+                Observable.FromEventPattern(_selectedItems, nameof(_selectedItems.CollectionChanged))
+                          .Throttle(TimeSpan.FromMilliseconds(1))
+                          .Subscribe(pattern => CheckCanExecute());
             }
+        }
+
+        private void CheckCanExecute()
+        {
+            DeleteCommand.RaiseCanExecuteChanged();
+            ArchiveCommand.RaiseCanExecuteChanged();
+            RestoreCommand.RaiseCanExecuteChanged();
+            MirrorCommand.RaiseCanExecuteChanged();
         }
 
         [CanBeNull]
@@ -90,6 +104,8 @@ namespace Junctionizer.Model
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+
+                CheckCanExecute();
             };
         }
 
@@ -116,6 +132,11 @@ namespace Junctionizer.Model
                     Items.Add(folder.Name, newItem);
                     addedItems.Add(newItem);
                 }
+            }
+    
+            foreach (var pair in addedItems)
+            {
+                PropertyChangedEventManager.AddHandler(pair, (s, e) => CheckCanExecute(), nameof(pair.IsBeingAccessed));
             }
 
             return addedItems;
@@ -158,7 +179,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in neither location.</summary>
         [AutoLazy.Lazy]
-        public IListCommand DeleteCommand => new PausingListCommand<GameFolderPair>(
+        public IDelegateListCommand DeleteCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairs,
             DeleteAsync, PauseTokenSource, itemsToDelete => {
                 var count = itemsToDelete.Count;
@@ -179,7 +200,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder in destination with a junction pointing to it from source.</summary>
         [AutoLazy.Lazy]
-        public IListCommand ArchiveCommand => new PausingListCommand<GameFolderPair>(
+        public IDelegateListCommand ArchiveCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.SourceEntry?.IsJunction == false ||
                                                                  pair.SourceEntry == null && pair.DestinationEntry?.IsJunction == false),
             ArchiveAsync, PauseTokenSource);
@@ -193,7 +214,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in folder in source location, not in destination.</summary>
         [AutoLazy.Lazy]
-        public IListCommand RestoreCommand => new PausingListCommand<GameFolderPair>(
+        public IDelegateListCommand RestoreCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => pair.DestinationEntry?.IsJunction == false),
             RestoreAsync, PauseTokenSource);
 
@@ -208,7 +229,7 @@ namespace Junctionizer.Model
 
         /// <summary>Results in the folder existing in both locations</summary>
         [AutoLazy.Lazy]
-        public IListCommand MirrorCommand => new PausingListCommand<GameFolderPair>(
+        public IDelegateListCommand MirrorCommand => new PausingDelegateListCommand<GameFolderPair>(
             () => SelectedFolderPairsIfInitialized.Where(pair => !(pair.SourceEntry?.IsJunction == false &&
                                                                    pair.DestinationEntry?.IsJunction == false)),
             MirrorAsync, PauseTokenSource);

@@ -23,14 +23,15 @@ namespace Junctionizer.UI.UserControls
         public static readonly DependencyProperty InnerContentProperty =
             DependencyProperty.Register(nameof(InnerContent), typeof(Button), typeof(ListActionButton));
 
-        public IListCommand Command
+
+        public IDelegateListCommand Command
         {
-            get => (IListCommand) GetValue(CommandProperty);
+            get => (IDelegateListCommand) GetValue(CommandProperty);
             set => SetValue(CommandProperty, value);
         }
 
         public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register(nameof(Command), typeof(IListCommand), typeof(ListActionButton), new FrameworkPropertyMetadata((source, e) => {
+            DependencyProperty.Register(nameof(Command), typeof(IDelegateListCommand), typeof(ListActionButton), new FrameworkPropertyMetadata((source, e) => {
                 var actionButton = (ListActionButton) source;
                 actionButton.InnerContent.Command = actionButton.Command;
             }));
